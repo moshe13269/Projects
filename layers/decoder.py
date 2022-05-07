@@ -5,15 +5,15 @@ from tensorflow.keras.layers import Layer as BaseLayer
 
 class Layer(BaseLayer):
 
-    def __init__(self, **kwargs):
+    def __init__(self, kernel_size, in_channels, out_channels, **kwargs):
         super(Layer, self).__init__(**kwargs)
-        self.db1 = DecoderBlock()
-        self.db2 = DecoderBlock()
-        self.db3 = DecoderBlock()
-        self.db4 = DecoderBlock()
-        self.db5 = DecoderBlock()
-        self.db6 = DecoderBlock()
-        self.db7 = DecoderBlock()
+        self.db1 = DecoderBlock(kernel_size, in_channels, out_channels)
+        self.db2 = DecoderBlock(kernel_size, in_channels, out_channels)
+        self.db3 = DecoderBlock(kernel_size, in_channels, out_channels)
+        self.db4 = DecoderBlock(kernel_size, in_channels, out_channels)
+        self.db5 = DecoderBlock(kernel_size, in_channels, out_channels)
+        self.db6 = DecoderBlock(kernel_size, in_channels, out_channels)
+        self.db7 = DecoderBlock(kernel_size, in_channels, out_channels)
 
     def call(self, inputs, **kwargs):
         outputs = self.db1(inputs)
@@ -24,3 +24,11 @@ class Layer(BaseLayer):
         outputs = self.db6(outputs)
         outputs = self.db7(outputs)
         return outputs
+
+
+if __name__ == '__main__':
+    import tensorflow as tf
+    inputs = tf.random.normal((2, 4, 4, 512))
+    layers = Layer(3, 64, 32)
+    outputs = layers(inputs)
+    print(outputs.shape)
