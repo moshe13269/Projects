@@ -20,8 +20,6 @@ class Quantizer(tf.keras.layers.Layer):
     def call(self, data, **kwargs):
         logits = tf.transpose(tf.reshape(self.fc1(data), (data.shape[0], data.shape[1], self.V, self.G)), perm=[0,1,3,2])
 
-            # tf.transpose(tf.reshape(logits[0][0], (13, 2)))
-
         noise = -tf.math.log(-tf.math.log(tf.random.uniform(shape=logits.shape, maxval=1)))
 
         numertor_p_g_v = tf.math.exp(noise + logits)/self.tau
