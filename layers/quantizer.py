@@ -2,9 +2,9 @@
 import tensorflow as tf
 
 
-class Quantizer(tf.keras.layers.Layer):
+class Layer(tf.keras.layers.Layer):
     def __init__(self, *,G, V, activation, tau, word_depth=512):
-        super(Quantizer, self).__init__()
+        super(Layer, self).__init__()
 
         self.word_depth = word_depth
         self.code_book = None
@@ -41,11 +41,11 @@ class Quantizer(tf.keras.layers.Layer):
 
         q = self.fc2(tf.squeeze(sub_words, axis=[2]))
 
-        return logits, q
+        return p_g_v, q
 
 
 if __name__ == '__main__':
     inputs = tf.random.normal(shape=(3, 20, 512))
-    layers = Quantizer(G=2, V=13, activation=None, tau=2.)
+    layers = Layer(G=2, V=13, activation=None, tau=2.)
     outputs = layers(inputs)
     print(outputs) #.shape)

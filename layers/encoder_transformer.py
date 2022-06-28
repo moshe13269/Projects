@@ -4,9 +4,9 @@ from tensorflow.keras.layers import Layer as BaseLayer, Conv1D, LayerNormalizati
 from layers.encoder_attention import EncoderLayer
 
 
-class Encoder(tf.keras.layers.Layer):
+class Layer(tf.keras.layers.Layer):
     def __init__(self, *, num_layers, d_model, num_heads, dff, rate=0.1):
-        super(Encoder, self).__init__()
+        super(Layer, self).__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
@@ -41,6 +41,6 @@ class PositionalEncoding(tf.keras.layers.Layer):
 if __name__ == '__main__':
     import tensorflow as tf
     inputs = tf.random.normal((2, 40, 512))
-    layers = Encoder(num_layers=24, d_model=512, num_heads=8, dff=4096)
+    layers = Layer(num_layers=24, d_model=512, num_heads=8, dff=4096)
     outputs = layers(inputs)
     print(outputs.shape)
