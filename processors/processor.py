@@ -1,45 +1,33 @@
-
+from tensorflow import keras
 import numpy as np
-import tensorflow as tf
 
 
-class DataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, latent_shape, df, x_col, y_col=None, batch_size=32, num_classes=None, shuffle=True):
+class Processor(keras.utils.Sequence):
+
+    def __init__(self, x_in, batch_size, y_in=None, shuffle=True):
+        # Initialization
         self.batch_size = batch_size
-        self.df = dataframe
-        self.indices = self.df.index.tolist()
-        self.num_classes = num_classes
         self.shuffle = shuffle
-        self.x_col = x_col
-        self.y_col = y_col
-        self.on_epoch_end()
-        self.latent_shape = latent_shape
-
-    def __len__(self):
-        return len(self.indices) // self.batch_size
-
+        self.x = x_in
+        self.y = y_in
+        self.datalen = len(x_in)
+        self.indexes = np.arange(self.datalen)
+        if self.shuffle:
+            np.random.shuffle(self.indexes)
 
     def __getitem__(self, index):
-        index = self.index[index * self.batch_size:(index + 1) * self.batch_size]
-        batch = [self.indices[k] for k in index]
+        # get batch indexes from shuffled indexes
+        batch_indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
+        x_batch = self.x[batch_indexes]
+        y_batch = self.y[batch_indexes]
+        return x_batch, y_batch
 
-        X, y = self.__get_data(batch)
-        return X, y
+    def __len__(self):
+        # Denotes the number of batches per epoch
+        return self.datalen // self.batch_size
 
     def on_epoch_end(self):
-        self.index = np.arange(len(self.indices))
-        if self.shuffle == True:
-            np.random.shuffle(self.index)
-
-    def mask_creator(self):
-
-
-    def __get_data(self, batch):
-        X =  # logic
-        y =  # logic
-
-        for i, id in enumerate(batch):
-            X[i,] =  # logic
-            y[i] =  # labels
-
-        return X, y
+        # Updates indexes after each epoch
+        self.indexes = np.arange(self.datalen)
+        if self.shuffle:
+            np.random.shuffle(self.indexes)

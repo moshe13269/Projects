@@ -5,7 +5,7 @@ from layers.encoder_latent_space import Layer as Encoder
 from layers.encoder_transformer import Layer as Transformer
 
 
-class MyModel(tf.keras.Model):
+class Wav2Vec(tf.keras.Model):
 
     def __init__(self):
         super().__init__()
@@ -28,7 +28,7 @@ class MyModel(tf.keras.Model):
 
 
 if __name__ == '__main__':
-    model = MyModel()
+    model = Wav2Vec
     c_t, p_g_v = model(
         (tf.random.normal(shape=(10, 8000, 1)), tf.math.round(tf.random.uniform(shape=(10, 134), maxval=1))))
     print(c_t.shape, p_g_v.shape)
