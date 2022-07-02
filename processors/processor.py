@@ -5,15 +5,15 @@ from tensorflow import keras
 
 class Processor(keras.utils.Sequence):
 
-    def __init__(self, x_in, batch_size, num2mask, t_axis, y_in=None, shuffle=True):
+    def __init__(self, x_in=None, batch_size=512, num2mask=10, t_axis=138, y_in=None, shuffle=True):
         # Initialization
         self.num2mask = num2mask
         self.t_axis = t_axis
         self.batch_size = batch_size
         self.shuffle = shuffle
-        self.x = x_in
+        self.x = np.arange(1,1000) #x_in
         self.y = y_in
-        self.datalen = len(x_in)
+        self.datalen = len(self.x)
         self.indexes = np.arange(self.datalen)
         if self.shuffle:
             np.random.shuffle(self.indexes)
@@ -40,3 +40,19 @@ class Processor(keras.utils.Sequence):
         self.indexes = np.arange(self.datalen)
         if self.shuffle:
             np.random.shuffle(self.indexes)
+
+    def __data_generation(self, list_IDs_temp):
+        'Generates data containing batch_size samples'  # X : (n_samples, *dim, n_channels)
+        # Initialization
+        X = np.empty((self.batch_size, *self.dim, self.n_channels))
+        y = np.empty((self.batch_size), dtype=int)
+
+        # Generate data
+        for i, ID in enumerate(list_IDs_temp):
+            # Store sample
+            X[i,] = np.load('data/' + ID + '.npy')
+
+            # Store class
+            y[i] = self.labels[ID]
+
+        return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
