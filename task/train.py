@@ -1,21 +1,24 @@
 
 import tensorflow as tf
+from hydra.utils import instantiate
 from processors.processor import Processor
-from model.selfsupervised_model import Wav2Vec
-from losses.diversity_loss import DiversityLoss
-from losses.contrastive_loss import ContrastiveLoss
+from omegaconf import DictConfig, OmegaConf
+# from model.self_supervised_model import Wav2Vec
+# from losses.diversity_loss import DiversityLoss
+# from losses.contrastive_loss import ContrastiveLoss
 
 
 class TrainTask:
 
-    def __init__(self, epochs, path2save_model, path2load_dataset):
-        self.path2save_model = path2save_model
-        self.path2load_dataset = path2load_dataset
-        self.model = Wav2Vec()
+    def __init__(self, cfg: DictConfig):
+        self.cfg = cfg
+        self.path2save_model = self.cfg.get('path2save_model')
+        self.path2load_dataset = self.cfg.get('path2load_dataset')
+        self.model = instantiate(cfg.model)
         self.processor_train = Processor()
         self.processor_validation = Processor()
-        self.loss = [ContrastiveLoss(), DiversityLoss()]
-        self.epochs = epochs
+        self.loss = instantiate(cfg.losses) #[ContrastiveLoss(), DiversityLoss()]
+        self.epochs = self.cfg.get('epochs')
 
     def run(self):
         self.model.compile(optimizer="Adam", loss=self.loss)

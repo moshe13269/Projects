@@ -7,8 +7,9 @@ from layers.encoder_transformer import Layer as Transformer
 
 class Wav2Vec(tf.keras.Model):
 
-    def __init__(self):
+    def __init__(self, params):
         super().__init__()
+
         self.encoder = Encoder(kernel_size=(10, 5, 3, 3, 2, 2, 2), stride_size=(5, 3, 2, 2, 1, 1, 1), in_channels=1,
                                out_channels=512)
         self.mask = Masking(word_depth=512)

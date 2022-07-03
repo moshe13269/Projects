@@ -1,14 +1,16 @@
 
+import os
+import hydra
 from task.train import TrainTask
 from omegaconf import DictConfig, OmegaConf
-import hydra
 
 
-@hydra.main(version_base=None)
+@hydra.main(config_path=os.path.join('../configs', 'wav2vec'))
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     train_task = TrainTask()
+    train_task.run()
 
 
 if __name__ == "__main__":
-    my_app()
+    main()
