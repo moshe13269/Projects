@@ -5,7 +5,7 @@ from task.train import TrainTask
 from omegaconf import DictConfig, OmegaConf
 
 
-@hydra.main(config_path=os.path.join('../configs', 'wav2vec'))
+@hydra.main(config_path=os.path.join('../configs', 'wav2vec'), config_name='config')
 def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     train_task = TrainTask()
