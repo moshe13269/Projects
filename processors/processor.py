@@ -11,7 +11,7 @@ class Processor(keras.utils.Sequence):
         self.t_axis = t_axis
         self.batch_size = batch_size
         self.shuffle = shuffle
-        self.x = np.arange(1,1000) #x_in
+        self.x = np.arange(1, 1000) #x_in
         self.y = y_in
         self.datalen = len(self.x)
         self.indexes = np.arange(self.datalen)
