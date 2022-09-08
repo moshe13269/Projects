@@ -1,6 +1,6 @@
 
-from tensorflow.keras.layers import Layer as BaseLayer, Conv1D, BatchNormalization
-from tensorflow.keras.activations import gelu
+from tensorflow.python.keras.layers import Layer as BaseLayer, Conv1D, BatchNormalization
+from tensorflow.python.keras.activations import gelu
 
 
 class Layer(BaseLayer):

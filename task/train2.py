@@ -8,10 +8,11 @@ from losses.contrastive_loss import ContrastiveLoss
 
 class TrainTask:
 
-    def __init__(self, epochs):
+    def __init__(self, path2save_model, path2load_dataset, epochs=10):
         self.path2save_model = self.cfg.get('path2save_model')
         self.path2load_dataset = self.cfg.get('path2load_dataset')
         self.model = Wav2Vec()
+        self.dataset = tf.data.Dataset.from_tensor_slices(imagePaths)
         self.processor_train = Processor()
         self.processor_validation = Processor()
         self.loss = [ContrastiveLoss(), DiversityLoss()]
