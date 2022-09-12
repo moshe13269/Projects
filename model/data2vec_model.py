@@ -4,28 +4,28 @@ import tensorflow as tf
 from tensorflow import keras
 from typing import List, Tuple
 import tensorflow_addons as tfa
+from dataclasses import dataclass, field
+from tensorflow.python.keras import Model
 from tensorflow.python.keras.layers import Layer as BaseLayer, Conv1D, Dropout
 
-from dataclasses import dataclass, field
 
-
-class ConvFeatureExtractionModel(BaseLayer, ABC):
+class ConvFeatureExtractionModel(Model, ABC):
     def __init__(self,
                  conv_layers: List[Tuple[int, int, int]],
                  dropout: float = 0.0,
                  mode: str = "default",
-                 conv_bias: bool = False,
-                 **kwargs):
-        super().__init__(**kwargs)
+                 conv_bias: bool = False):
+        super(ConvFeatureExtractionModel, self).__init__()
+        self.conv_layers = None
 
         def block(n_out,
-                  k,
-                  stride,
+                  kernel,
+                  strides,
                   is_layer_norm=False,
                   is_group_norm=False,
                   conv_bias=False):
             def make_conv():
-                conv = Conv1D(filters=n_out, kernel_size=k, strides=stride, use_bias=conv_bias,
+                conv = Conv1D(filters=n_out, kernel_size=kernel, strides=strides, use_bias=conv_bias,
                               kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
                 return conv
 
@@ -35,43 +35,51 @@ class ConvFeatureExtractionModel(BaseLayer, ABC):
                 return keras.Sequential([
                     make_conv(),
                     Dropout(rate=dropout),
-                    tf.keras.layers.LayerNormalization()
-                    tf.keras.activations.gelu(),
+                    tf.keras.layers.LayerNormalization(),
+                    tf.keras.layers.Activation(tf.nn.gelu),
                 ])
             elif is_group_norm:
                 return keras.Sequential([
                     make_conv(),
                     Dropout(rate=dropout),
                     tfa.layers.GroupNormalization(),
-                    tf.keras.activations.gelu(),
+                    tf.keras.layers.Activation(tf.nn.gelu), #tf.keras.activations.gelu(),
                 ])
             else:
-                return keras.Sequential([make_conv(), Dropout(rate=dropout), tf.keras.activations.gelu()])
+                return keras.Sequential([make_conv(), Dropout(rate=dropout), tf.keras.layers.Activation(tf.nn.gelu)])
 
-        in_d = 1
-        self.conv_layers = nn.ModuleList()
+        layers = []
+
         for i, cl in enumerate(conv_layers):
             assert len(cl) == 3, "invalid conv definition: " + str(cl)
-            (dim, k, stride) = cl
+            (dim, kernel, stride) = cl
 
-            self.conv_layers.append(
+            layers.append(
                 block(
-                    in_d,
                     dim,
-                    k,
+                    kernel,
                     stride,
                     is_layer_norm=mode == "layer_norm",
                     is_group_norm=mode == "default" and i == 0,
                     conv_bias=conv_bias,
                 )
             )
-            in_d = dim
+
+        self.conv_layers = layers
 
     def call(self, inputs, **kwargs):
-        # BxT -> BxCxT
-        inputs = inputs.unsqueeze(1)
+        # BxT -> BxTxC
+        inputs = tf.expand_dims(inputs, axis=-1)
 
         for conv in self.conv_layers:
             inputs = conv(inputs)
 
         return inputs
+
+
+if __name__ == '__main__':
+    data = tf.random.normal((2, 1000))
+    conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
+    conv = ConvFeatureExtractionModel(conv_layers=conv_layers)
+    output = conv(data)
+    print(output.shape)
