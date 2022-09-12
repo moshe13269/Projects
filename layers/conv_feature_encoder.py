@@ -43,7 +43,7 @@ class ConvFeatureExtractionModel(Model, ABC):
                     make_conv(),
                     Dropout(rate=dropout),
                     tfa.layers.GroupNormalization(),
-                    tf.keras.layers.Activation(tf.nn.gelu),
+                    tf.keras.layers.Activation(tf.nn.gelu), #tf.keras.activations.gelu(),
                 ])
             else:
                 return keras.Sequential([make_conv(), Dropout(rate=dropout), tf.keras.layers.Activation(tf.nn.gelu)])
