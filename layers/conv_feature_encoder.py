@@ -1,15 +1,12 @@
-from abc import ABC
 
 import tensorflow as tf
 from tensorflow import keras
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from dataclasses import dataclass, field
-from tensorflow.python.keras import Model
-from tensorflow.python.keras.layers import Layer as BaseLayer, Conv1D, Dropout
+from tensorflow.python.keras.layers import Conv1D, Dropout
 
 
-class ConvFeatureExtractionModel(Model, ABC):
+class ConvFeatureExtractionModel(tf.keras.Model):
     def __init__(self,
                  conv_layers: List[Tuple[int, int, int]],
                  dropout: float = 0.0,

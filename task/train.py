@@ -12,9 +12,11 @@ class TrainTask:
 
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
+        self.model = instantiate(cfg.model)
+
         self.path2save_model = self.cfg.get('path2save_model')
         self.path2load_dataset = self.cfg.get('path2load_dataset')
-        self.model = instantiate(cfg.model)
+
         self.processor_train = Processor()
         self.processor_validation = Processor()
         self.loss = instantiate(cfg.losses) #[ContrastiveLoss(), DiversityLoss()]

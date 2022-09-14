@@ -2,7 +2,7 @@ import tensorflow as tf
 from layers.masking import Layer as Masking
 from layers.quantizer import Layer as Quantizer
 from layers.encoder_latent_space import Layer as Encoder
-from layers.encoder_transformer import Layer as Transformer
+from layers.encoder_transformer_2 import Layer as Transformer
 
 
 class Wav2Vec(tf.keras.Model):
