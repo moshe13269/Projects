@@ -1,6 +1,27 @@
 # @package _group_
-_traget_: model.data2vec_model.Data2VecModel
-param: sdsdsds
+data2vecmodel:
+  _target_: model.data2vec_model.Data2VecModel
+  conv_encoder:
+    _target_: layers.conv_feature_encoder.ConvFeatureExtractionModel
+    conv_layers: [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
+    dropout: 0.0
+    mode: default
+    conv_bias: False
+  transformer_encoder:
+    _target_: layers.
+
+
+#optimizer:
+#  _target_: draft.Optimizer
+#  optim:
+#    _target_: draft.Optim
+#    algo_rec: SGD_rec
+#    lr_rec: 0.01111
+#  algo: SGD
+  lr: 0.01
+
+
+
 #params:
 
 #  kernel_size:

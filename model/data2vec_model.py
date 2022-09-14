@@ -11,8 +11,10 @@ class Data2VecModel(tf.keras.Model):
     def __init__(self, param: str):
         super(Data2VecModel).__init__()
         self.param = param
-        # print(self.cfg)
-        print('ssdsdsdsdssdsds')
+        self.num2mask =
+        self.conv_encoder =
+
+
 
     def call(self):
         print('sdsds')
