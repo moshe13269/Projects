@@ -1,23 +1,42 @@
 
 import tensorflow as tf
 from typing import List, Tuple
+from layers.masking import Masking
+from layers.transformer_encoder import TransformerEncoder
 from layers.conv_feature_encoder import ConvFeatureExtractionModel
 from dataclasses import dataclass, field
 
 
 class Data2VecModel(tf.keras.Model):
-    # param: str
+    prob2mask: float
+    masking_length: int
+    masking: bool
+    masking_layer: Masking
+    len_latent_space: int
+    conv_encoder: ConvFeatureExtractionModel
+    transformer_encoder: TransformerEncoder
 
-    def __init__(self, param: str):
+    def __init__(self, prob2mask: float, masking_length: int, masking: bool, masking_layer: Masking,
+                 len_latent_space: int, conv_encoder: ConvFeatureExtractionModel,
+                 transformer_encoder: TransformerEncoder,
+                 ):
+
         super(Data2VecModel).__init__()
-        self.param = param
-        self.num2mask =
-        self.conv_encoder =
+        self.prob2mask = prob2mask
+        self.masking_length = masking_length
+        self.masking = masking# bool
+        self.masking_layer = masking_layer
+
+        self.len_latent_space = len_latent_space
+        self.conv_encoder = conv_encoder
+        self.transformer_encoder = transformer_encoder
+
+    def call(self, inputs):
+        latent_space = self.conv_encoder(inputs)
+        if self.masking:
+            masked_latent_space = self.masking_layer(latent_space)
 
 
-
-    def call(self):
-        print('sdsds')
         # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)
         # # conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
         # self.embed = cfg.encoder_embed_dim

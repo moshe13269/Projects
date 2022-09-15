@@ -67,7 +67,14 @@ class EncoderLayer(tf.keras.layers.Layer):
         return out2
 
 
-class Encoder(tf.keras.layers.Layer):
+class TransformerEncoder(tf.keras.layers.Layer):
+    num_layers: int
+    d_model: int
+    num_attention_heads: int
+    dff: int
+    input_vocab_size: int
+    dropout_rate: float
+
     def __init__(self,
                  *,
                  num_layers,
@@ -77,7 +84,7 @@ class Encoder(tf.keras.layers.Layer):
                  input_vocab_size,  # Input (Portuguese) vocabulary size.
                  dropout_rate=0.1
                  ):
-        super(Encoder, self).__init__()
+        super(TransformerEncoder, self).__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers

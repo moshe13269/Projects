@@ -2,9 +2,9 @@
 import tensorflow as tf
 
 
-class Layer(tf.keras.layers.Layer):
+class Masking(tf.keras.layers.Layer):
     def __init__(self, *, word_depth=512):
-        super(Layer, self).__init__()
+        super(Masking, self).__init__()
 
         self.word_depth = word_depth
         self.learnable_mask = self.add_weight("learnable_mask", shape=(1, 1, self.word_depth), trainable=True)
@@ -22,6 +22,6 @@ class Layer(tf.keras.layers.Layer):
 if __name__ == '__main__':
     import tensorflow as tf
     inputs = [tf.random.normal((2, 40, 6)), tf.math.round(tf.random.uniform(shape=(2, 40), maxval=1))]
-    layers = Layer(word_depth=6)
+    layers = Masking(word_depth=6)
     outputs = layers(inputs)
     print(outputs) #.shape)
