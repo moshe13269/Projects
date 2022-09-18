@@ -2,6 +2,7 @@
 import tensorflow as tf
 from typing import List, Tuple
 from layers.masking import Masking
+from layers.ffn import FFN
 from layers.transformer_encoder import TransformerEncoder
 from layers.conv_feature_encoder import ConvFeatureExtractionModel
 from dataclasses import dataclass, field
@@ -15,10 +16,13 @@ class Data2VecModel(tf.keras.Model):
     len_latent_space: int
     conv_encoder: ConvFeatureExtractionModel
     transformer_encoder: TransformerEncoder
+    ffn: FFN
+    tau: float
+    top_k_transformer: int
 
     def __init__(self, prob2mask: float, masking_length: int, masking: bool, masking_layer: Masking,
                  len_latent_space: int, conv_encoder: ConvFeatureExtractionModel,
-                 transformer_encoder: TransformerEncoder,
+                 transformer_encoder: TransformerEncoder, ffn: FFN, tau: float, top_k_transformer: int
                  ):
 
         super(Data2VecModel).__init__()
@@ -30,12 +34,20 @@ class Data2VecModel(tf.keras.Model):
         self.len_latent_space = len_latent_space
         self.conv_encoder = conv_encoder
         self.transformer_encoder = transformer_encoder
+        self.ffn = ffn
+        self.tau = tau
+        self.top_k_transformer = top_k_transformer
 
     def call(self, inputs):
         latent_space = self.conv_encoder(inputs)
         if self.masking:
             masked_latent_space = self.masking_layer(latent_space)
 
+        student_encode = self.transformer_encoder(masked_latent_space, 1)
+
+        teacher_encode = self.transformer_encoder(masked_latent_space, self.top_k_transformer)
+
+        teacher_encode = teacher_encode * self.tau + (1-self.tau) * student_encode
 
         # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)
         # # conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
