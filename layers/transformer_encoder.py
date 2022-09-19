@@ -1,18 +1,11 @@
-# from abc import ABC
+
 import tensorflow as tf
-# from tensorflow import keras
-# from typing import List, Tuple
-# import tensorflow_addons as tfa
-# from dataclasses import dataclass, field
-# import keras_nlp
-# from tensorflow.python.keras import Model
-# from tensorflow.python.keras.layers import Layer as BaseLayer, Conv1D, Dropout
 
 
 def point_wise_feed_forward_network(
         d_model,  # Input/output dimensionality.
         dff  # Inner-layer dimensionality.
-        ):
+):
     return tf.keras.Sequential([
         tf.keras.layers.Dense(dff, activation='relu'),  # Shape `(batch_size, seq_len, dff)`.
         tf.keras.layers.Dense(d_model)  # Shape `(batch_size, seq_len, d_model)`.
@@ -20,7 +13,6 @@ def point_wise_feed_forward_network(
 
 
 class ConvPosEncoding(tf.keras.layers.Layer):
-
     filters: int
     kernel_size: int
     stride: int
@@ -36,17 +28,16 @@ class ConvPosEncoding(tf.keras.layers.Layer):
                  activation: str,
                  ):
 
-        super(ConvPosEncoding).__init__()
+        super(ConvPosEncoding, self).__init__()
         if dim_conv == 1:
             self.conv = tf.keras.layers.Conv1D(filters=filters, kernel_size=kernel_size, strides=stride,
-                                               activation=activation)
+                                               activation=activation, padding='same')
         else:
             self.conv = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=stride,
-                                               activation=activation)
+                                               activation=activation, padding='same')
 
     def call(self, inputs, **kwargs):
         return self.conv(inputs)
-
 
 
 class EncoderLayer(tf.keras.layers.Layer):
@@ -75,7 +66,6 @@ class EncoderLayer(tf.keras.layers.Layer):
         self.dropout1 = tf.keras.layers.Dropout(dropout_rate)
 
     def call(self, x, training):
-
         # Multi-head self-attention output (`tf.keras.layers.MultiHeadAttention `).
         attn_output = self.mha(
             query=x,  # Query Q tensor.
@@ -111,22 +101,18 @@ class TransformerEncoder(tf.keras.layers.Layer):
                  d_model,  # Input/output dimensionality.
                  num_attention_heads,
                  dff,  # Inner-layer dimensionality.
-                 input_vocab_size,  # Input (Portuguese) vocabulary size.
-                 dropout_rate=0.1
+                 dropout_rate=0.1,
                  ):
+
         super(TransformerEncoder, self).__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
 
-        # Embeddings.
-        # self.embedding = tf.keras.layers.Embedding(input_vocab_size, d_model, mask_zero=True)
-        # Positional encoding.
         self.conv_pos_encoding = ConvPosEncoding(kernel_size=3, filters=self.d_model, stride=1, dim_conv=1,
                                                  activation='gelu')
 
         self.layer_norm = tf.keras.layers.LayerNormalization()
-        #positional_encoding(MAX_TOKENS, self.d_model)
 
         # Encoder layers.
         self.enc_layers = [
@@ -139,26 +125,34 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # Dropout.
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
 
-    def call(self, x, training):
-        # seq_len = tf.shape(x)[1]
-
-        # Sum up embeddings and positional encoding.
-        # x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
-        # x += self.pos_encoding[:, :seq_len, :]
-        # Add dropout.
+    def call(self, x, training, top_k_transformer=None):
 
         x = self.layer_norm(x + self.conv_pos_encoding(x))
         x = self.dropout(x, training=training)
 
         # N encoder layers.
-        for encoder_layer in self.enc_layers:
-            x = encoder_layer(x, training=training)
-            #concat todo
-        return x  # Shape `(batch_size, input_seq_len, d_model)`.
+        if top_k_transformer is None:
+            for encoder_layer in self.enc_layers:
+                x = encoder_layer(x, training=training)
+            return x
+        else:
+            top_k_layers = tf.zeros_like(x)
+            index_k0 = len(self.enc_layers) - top_k_transformer
+            counter = 0
+            for encoder_layer in self.enc_layers:
+                counter += 1
+                x = encoder_layer(x, training=training)
+                if counter >= index_k0:
+                    top_k_layers += x
+            return tf.stop_gradient(x/top_k_transformer)  # Shape `(batch_size, input_seq_len, d_model)`.
 
 
 if __name__ == '__main__':
-    encoder = EncoderLayer(d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
-    data = tf.random.normal((10, 100, 512))
-    output = encoder(data)
-    print(output.shape)
+    encoder = TransformerEncoder(num_layers=24, d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
+    # encoder = EncoderLayer(d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
+    position = ConvPosEncoding(3, 512, 1, 1, 'gelu')
+    data = tf.random.normal((10, 200, 512))
+    output1 = position(data, training=True)
+    output2 = encoder(data, training=True, top_k_transformer=7)
+    print(output1.shape, output2.shape)
+    print(tf.reduce_mean(output1), tf.reduce_mean(output2))
