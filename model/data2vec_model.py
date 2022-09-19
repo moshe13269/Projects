@@ -1,3 +1,4 @@
+
 import tensorflow as tf
 from typing import List, Tuple
 from layers.masking import Masking
@@ -30,7 +31,9 @@ class Data2VecModel(tf.keras.Model):
                  tau: float,
                  top_k_transformer: int
                  ):
+
         super(Data2VecModel).__init__()
+
         self.prob2mask = prob2mask
         self.masking_length = masking_length
         self.masking = masking  # bool
@@ -52,13 +55,15 @@ class Data2VecModel(tf.keras.Model):
         if self.masking:
             masked_latent_space = self.masking_layer(latent_space)
 
-        student_encode = self.transformer_encoder(masked_latent_space, 1)
+        student_encoding = self.transformer_encoder(masked_latent_space, 1)[0]
 
-        teacher_encode = self.transformer_encoder(teacher_inputs, self.top_k_transformer)
+        teacher_encoding = tf.stop_gradient(self.transformer_encoder(teacher_inputs, self.top_k_transformer))
 
-        teacher_encode = teacher_encode * self.tau + (1 - self.tau) * student_encode
+        teacher_encoding = tf.stop_gradient(tf.reduce_mean(self.ffn(teacher_encoding), axis=1))
 
+        teacher_encoding = tf.stop_gradient(teacher_encoding * self.tau + (1 - self.tau) * student_encoding)
 
+        return teacher_encoding, student_encoding
 
 
         # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)

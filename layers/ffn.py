@@ -29,6 +29,6 @@ class FFN(tf.keras.layers.Layer):
         self.num_layers = num_layers
 
     def call(self, inputs, *args, **kwargs):
-        return [self.fnn_layers[index_layer](inputs[index_layer])
-                for index_layer in range(self.num_layers)]
+        return tf.concat([tf.expand_dims(self.fnn_layers[index_layer](inputs[index_layer]), axis=1)
+                          for index_layer in range(self.num_layers)], axis=1)
 
