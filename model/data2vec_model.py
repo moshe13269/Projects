@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 from typing import List, Tuple
 from layers.masking import Masking
@@ -20,15 +19,21 @@ class Data2VecModel(tf.keras.Model):
     tau: float
     top_k_transformer: int
 
-    def __init__(self, prob2mask: float, masking_length: int, masking: bool, masking_layer: Masking,
-                 len_latent_space: int, conv_encoder: ConvFeatureExtractionModel,
-                 transformer_encoder: TransformerEncoder, ffn: FFN, tau: float, top_k_transformer: int
+    def __init__(self, prob2mask: float,
+                 masking_length: int,
+                 masking: bool,
+                 masking_layer: Masking,
+                 len_latent_space: int,
+                 conv_encoder: ConvFeatureExtractionModel,
+                 transformer_encoder: TransformerEncoder,
+                 ffn: FFN,
+                 tau: float,
+                 top_k_transformer: int
                  ):
-
         super(Data2VecModel).__init__()
         self.prob2mask = prob2mask
         self.masking_length = masking_length
-        self.masking = masking# bool
+        self.masking = masking  # bool
         self.masking_layer = masking_layer
 
         self.len_latent_space = len_latent_space
@@ -38,23 +43,28 @@ class Data2VecModel(tf.keras.Model):
         self.tau = tau
         self.top_k_transformer = top_k_transformer
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
+
         latent_space = self.conv_encoder(inputs)
+
+        teacher_inputs = tf.stop_gradient(tf.identity(latent_space))
+
         if self.masking:
             masked_latent_space = self.masking_layer(latent_space)
 
         student_encode = self.transformer_encoder(masked_latent_space, 1)
 
-        teacher_encode = self.transformer_encoder(masked_latent_space, self.top_k_transformer)
+        teacher_encode = self.transformer_encoder(teacher_inputs, self.top_k_transformer)
 
-        teacher_encode = teacher_encode * self.tau + (1-self.tau) * student_encode
+        teacher_encode = teacher_encode * self.tau + (1 - self.tau) * student_encode
+
+
+
 
         # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)
         # # conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
         # self.embed = cfg.encoder_embed_dim
         # self.average_top_k_layers = cfg.average_top_k_layers
-
-
 
     #     #######
     #     feature_enc_layers = eval(cfg.conv_feature_layers)
