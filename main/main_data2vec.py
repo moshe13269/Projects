@@ -1,7 +1,7 @@
 
 import os
 import hydra
-from task.train import TrainTask
+from task.train_test_task import TrainTask
 from omegaconf import DictConfig, OmegaConf
 
 

@@ -34,10 +34,10 @@ class Data2VecModel(tf.keras.Model):
 
         super(Data2VecModel).__init__()
 
-        self.prob2mask = prob2mask
-        self.masking_length = masking_length
-        self.masking = masking  # bool
-        self.masking_layer = masking_layer
+        # self.prob2mask = prob2mask
+        # self.masking_length = masking_length
+        # self.masking = masking  # bool
+        # self.masking_layer = masking_layer
 
         self.len_latent_space = len_latent_space
         self.conv_encoder = conv_encoder
@@ -54,6 +54,8 @@ class Data2VecModel(tf.keras.Model):
 
         if self.masking:
             masked_latent_space = self.masking_layer(latent_space)
+        else:
+            masked_latent_space = latent_space
 
         student_encoding = self.transformer_encoder(masked_latent_space, 1)[0]
 

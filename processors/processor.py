@@ -1,35 +1,40 @@
-import numpy as np
+
 import tensorflow as tf
-from tensorflow import keras
 
 
 class Processor:
 
-    def __init__(self, x_in=None, batch_size=512, num2mask=10, t_axis=138, y_in=None, shuffle=True):
-        # Initialization
-        self.num2mask = num2mask
-        self.t_axis = t_axis
-        self.batch_size = batch_size
-        self.shuffle = shuffle
-        self.x = np.arange(1, 1000) #x_in
-        self.y = y_in
-        self.datalen = len(self.x)
-        self.indexes = np.arange(self.datalen)
-        if self.shuffle:
-            np.random.shuffle(self.indexes)
+    t_axis: int
+    prob2mask: float
+    masking_size: int
 
-    def create_mask(self, batch_shape):
-        random = tf.random.normal(shape=(batch_shape, self.t_axis))
-        point2mask, _ = tf.math.top_k(random, self.num2mask)
-        mask = tf.where(random - tf.reduce_min(point2mask, axis=-1, keepdims=True) >= 0., 1., 0.)
+    def __init__(self, t_axis: int,
+                 prob2mask: float,
+                 masking_size: int,
+                 ):
+
+        self.t_axis = t_axis
+        self.prob2mask = prob2mask
+        self.point2mask = int(self.prob2mask * self.t_axis)
+        self.masking_size = masking_size
+
+    def create_mask(self):
+        rand_uniform = tf.random.uniform(maxval=1, shape=(self.t_axis,))
+        mask = tf.where(
+            tf.sign(rand_uniform - tf.reduce_min(tf.math.top_k(rand_uniform, k=self.point2mask)[0])) >= 0,
+            1., 0.)
         return mask
 
-    def load_data(self, path2wav, path2label):
+    def load_data(self, path2wav, path2label=None):
         wav_file = tf.io.read_file(path2wav)
         wav_file = tf.audio.decode_wav(wav_file)
-        label = tf.io.read_file(path2label)
-        mask = self.create_mask(wav_file)
-        return [wav_file, mask], [label, mask]
+
+        if path2label is not None:
+            label = tf.io.read_file(path2label)
+        else:
+            mask = self.create_mask()
+            label = mask
+        return [wav_file, label], [label, label]
 
 
 
@@ -90,3 +95,14 @@ class Processor:
 #             y[i] = self.labels[ID]
 #
 #         return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+
+
+     # self.num2mask = num2mask
+        # self.batch_size = batch_size
+        # self.shuffle = shuffle
+        # self.x = np.arange(1, 1000) #x_in
+        # self.y = y_in
+        # self.datalen = len(self.x)
+        # self.indexes = np.arange(self.datalen)
+        # if self.shuffle:
+        #     np.random.shuffle(self.indexes)
