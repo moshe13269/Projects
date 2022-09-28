@@ -1,4 +1,6 @@
 
+import mlflow
+import mlflow.keras
 import tensorflow as tf
 from hydra.utils import instantiate
 from processors.processor import Processor
@@ -19,13 +21,17 @@ class TrainTask:
 
         self.processor_train = Processor()
         self.processor_validation = Processor()
-        self.loss = instantiate(cfg.losses) #[ContrastiveLoss(), DiversityLoss()]
+        self.loss = instantiate(cfg.losses)
         self.epochs = self.cfg.get('epochs')
 
     def run(self):
         self.model.compile(optimizer="Adam", loss=self.loss)
+
+        mlflow.keras.autolog()
+
         self.model.fit(x=self.processor_train, epochs=self.epochs, verbose=1, validation_data=self.processor_validation,
                        initial_epoch=0, use_multiprocessing=True)
+
         tf.saved_model.save(self.model, self.path2save_model)
 
 
