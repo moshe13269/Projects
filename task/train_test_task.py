@@ -1,10 +1,13 @@
+
 import mlflow
 import mlflow.keras
+import datetime
 import tensorflow as tf
 from hydra.utils import instantiate
 # from tensorflow.data import AUTOTUNE
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
+
 
 # from model.self_supervised_model import Wav2Vec
 # from losses.diversity_loss import DiversityLoss
@@ -24,6 +27,7 @@ class TrainTask:
 
         self.path2save_model = self.cfg.get('path2save_model')
 
+        self.model_name = self.cfg.get('model_name')
         self.model = instantiate(cfg.model)
         self.loss = instantiate(cfg.losses)
         self.epochs = self.cfg.get('epochs')
@@ -97,7 +101,7 @@ class TrainTask:
 
         self.model.compile(optimizer="Adam", loss=self.loss)
 
-        # mlflow.keras.autolog()
+        mlflow.keras.autolog(registered_model_name=self.model_name+str(datetime.datetime.now()))
 
         self.model.fit(x=self.train_dataset,
                        epochs=self.epochs,
@@ -108,19 +112,28 @@ class TrainTask:
                        initial_epoch=0,
                        use_multiprocessing=True)
 
-        with mlflow.start_run() as run:
-            mlflow.keras.log_model(self.model, "models")
-            mlflow.log_param("num_trees", n_estimators)
-            mlflow.log_param("maxdepth", max_depth)
-            mlflow.log_param("max_feat", max_features)
+        # run_name = f'test_split_{test_inx}__val_split_{crossval_inx}'
+        #
+        # with self.logger.start_run(run_name=run_name, nested=True):
 
+        prediction = self.model.evaluate(x=self.test_dataset)
+
+        # # option
+        # results = self.results(prediction)
+        # mlflow.log_artifact() # path: str
+        # mlflow.log_image() # image:ndarray
+
+        # with mlflow.start_run() as run:
+        #     mlflow.keras.log_model(self.model, "models")
+        #     mlflow.log_param("num_trees", n_estimators)
+        #     mlflow.log_param("maxdepth", max_depth)
+        #     mlflow.log_param("max_feat", max_features)
 
         tf.saved_model.save(self.model,
-                            self.path2save_model)
+                            self.path2save_model,)
 
 
 if __name__ == '__main__':
     task = TrainTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
                      path2load_dataset=r"C:\Users\moshel\Desktop\cscscs")
     task.run()
-

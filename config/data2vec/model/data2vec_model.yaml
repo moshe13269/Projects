@@ -54,7 +54,10 @@ TrainTask:
     masking_size: 10
     top_k_transformer: 8
 
-
+  batch_size:
+    - train: 128
+    - test: 128
+    - val: 32
 #optimizer:
 #  _target_: draft.Optimizer
 #  optim:

@@ -1,6 +1,6 @@
 
 defaults:
-  - train_task: data2vec
+  - model: data2vec_model
   - _self_
 
 
