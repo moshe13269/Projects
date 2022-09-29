@@ -1,14 +1,58 @@
 # @package _group_
-data2vecmodel:
-  _target_: model.data2vec_model.Data2VecModel
-  conv_encoder:
-    _target_: layers.conv_feature_encoder.ConvFeatureExtractionModel
-    conv_layers: [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
-    dropout: 0.0
-    mode: default
-    conv_bias: False
-  transformer_encoder:
-    _target_: layers.
+
+TrainTask:
+
+  dataset_class: path2data
+  path2save_model: path2save_model
+
+  data2vec_model:
+    _target_: model.data2vec_model.Data2VecModel
+    conv_encoder:
+      _target_: layers.conv_feature_encoder.ConvFeatureExtractionModel
+      conv_layers: [(512, 10, 5),
+                    (512, 3, 2),
+                    (512, 3, 2),
+                    (512, 3, 2),
+                    (512, 3, 2),
+                    (512, 2, 2),
+                    (512, 2, 2)]
+      dropout: 0.0
+      mode: default
+      conv_bias: False
+    transformer_encoder:
+      _target_: layers.transformer_encoder.TransformerEncoder
+      num_layers: 12
+      d_model: 512
+      num_attention_heads: 8
+      dff: 768
+      dropout_rate: 0.1
+
+  loss:
+    _target_: losses.smooth_l1_loss.SmoothL1Loss
+    beta: 0.5
+
+  epochs: 10
+
+  callbacks:
+    _target_: callbacks.callbacks.EMACallback
+    t_n: 30000  # int
+    t_0: 0.999
+    t_e: 0.9999
+
+  optimizer:
+    _target_: tf.keras.optimizers.Adam
+    learning_rate:
+    beta_1:
+    beta_2:
+
+  train_steps_per_epoch: 100
+
+  processor:
+    _target_: processors.processor.Processor
+    t_axis: 10000
+    prob2mask: 0.065
+    masking_size: 10
+    top_k_transformer: 8
 
 
 #optimizer:
@@ -18,7 +62,7 @@ data2vecmodel:
 #    algo_rec: SGD_rec
 #    lr_rec: 0.01111
 #  algo: SGD
-  lr: 0.01
+#  lr: 0.01
 
 
 

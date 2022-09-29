@@ -15,7 +15,6 @@ class TrainTask:
 
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
-        self.model = instantiate(cfg.model)
 
         self.datasets_path = instantiate(cfg.dataset_class)
 
