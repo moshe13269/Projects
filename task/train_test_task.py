@@ -97,7 +97,7 @@ class TrainTask:
 
         self.model.compile(optimizer="Adam", loss=self.loss)
 
-        mlflow.keras.autolog()
+        # mlflow.keras.autolog()
 
         self.model.fit(x=self.train_dataset,
                        epochs=self.epochs,
@@ -107,6 +107,13 @@ class TrainTask:
                        steps_per_epoch=self.train_steps_per_epoch,
                        initial_epoch=0,
                        use_multiprocessing=True)
+
+        with mlflow.start_run() as run:
+            mlflow.keras.log_model(self.model, "models")
+            mlflow.log_param("num_trees", n_estimators)
+            mlflow.log_param("maxdepth", max_depth)
+            mlflow.log_param("max_feat", max_features)
+
 
         tf.saved_model.save(self.model,
                             self.path2save_model)

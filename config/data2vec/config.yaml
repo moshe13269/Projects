@@ -1,6 +1,12 @@
-model:
-  _target_: model.data2vec_model.Data2VecModel
-  param: sdsdsds
+
+defaults:
+  - train_task: data2vec
+  - _self_
+
+
+#model:
+#  _target_: model.data2vec_model.Data2VecModel
+#  param: sdsdsds
 
 
 #defaults:
