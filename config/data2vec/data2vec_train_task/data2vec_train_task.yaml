@@ -2,11 +2,14 @@
 
 TrainTask:
 
-  dataset_class: path2data
-  path2save_model: path2save_model
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load: fdfd
+    type_files: fdfed
+    labels: False
 
   data2vec_model:
-    _target_: model.data2vec_model.Data2VecModel
+    _target_: data2vec_train_task.data2vec_model.Data2VecModel
     conv_encoder:
       _target_: layers.conv_feature_encoder.ConvFeatureExtractionModel
       conv_layers: [(512, 10, 5),
@@ -31,8 +34,6 @@ TrainTask:
     _target_: losses.smooth_l1_loss.SmoothL1Loss
     beta: 0.5
 
-  epochs: 10
-
   callbacks:
     _target_: callbacks.callbacks.EMACallback
     t_n: 30000  # int
@@ -42,8 +43,8 @@ TrainTask:
   optimizer:
     _target_: tf.keras.optimizers.Adam
     learning_rate:
-    beta_1:
-    beta_2:
+    beta_1: 0.9 #
+    beta_2: 0.99 #
 
   train_steps_per_epoch: 100
 
@@ -58,6 +59,12 @@ TrainTask:
     - train: 128
     - test: 128
     - val: 32
+
+  epochs: 10
+  path2save_model: path2save_model
+  model_name: data2vec
+
+
 #optimizer:
 #  _target_: draft.Optimizer
 #  optim:

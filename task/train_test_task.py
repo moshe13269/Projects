@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
 
-# from model.self_supervised_model import Wav2Vec
+# from data2vec_train_task.self_supervised_model import Wav2Vec
 # from losses.diversity_loss import DiversityLoss
 # from losses.contrastive_loss import ContrastiveLoss
 
@@ -19,26 +19,26 @@ class TrainTask:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
 
-        self.datasets_path = instantiate(cfg.dataset_class)
+        self.dataset_class = instantiate(cfg.data2vec_train_task.TrainTask.dataset_class)
 
         self.train_dataset = None
         self.test_dataset = None
         self.val_dataset = None
 
-        self.path2save_model = self.cfg.get('path2save_model')
+        self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
 
-        self.model_name = self.cfg.get('model_name')
-        self.model = instantiate(cfg.model)
-        self.loss = instantiate(cfg.losses)
-        self.epochs = self.cfg.get('epochs')
-        self.callbacks = instantiate(cfg.callbacks)
-        self.optimizer = instantiate(cfg.optimizer)
-        self.train_steps_per_epoch = self.cfg.get('train_steps_per_epoch')
+        self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
+        self.model = instantiate(cfg.data2vec_train_task.TrainTaskmodel)
+        self.loss = instantiate(cfg.data2vec_train_task.TrainTask.losses)
+        self.epochs = self.cfg.data2vec_train_task.TrainTaskget('epochs')
+        self.callbacks = instantiate(cfg.data2vec_train_task.TrainTask.callbacks)
+        self.optimizer = instantiate(cfg.data2vec_train_task.TrainTask.optimizer)
+        self.train_steps_per_epoch = self.cfg.data2vec_train_task.TrainTask.get('train_steps_per_epoch')
 
-        self.processor = instantiate(cfg.processor)
-        self.batch_size = self.cfg.get('batch_size')
+        self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
+        self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 
-        self.results = instantiate(cfg.results)
+        self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
 
     def run(self):
 
@@ -124,7 +124,7 @@ class TrainTask:
         # mlflow.log_image() # image:ndarray
 
         # with mlflow.start_run() as run:
-        #     mlflow.keras.log_model(self.model, "models")
+        #     mlflow.keras.log_model(self.data2vec_train_task, "models")
         #     mlflow.log_param("num_trees", n_estimators)
         #     mlflow.log_param("maxdepth", max_depth)
         #     mlflow.log_param("max_feat", max_features)
