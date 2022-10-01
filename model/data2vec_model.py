@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 
 
 class Data2VecModel(tf.keras.Model):
-    prob2mask: float
-    masking_length: int
+    # prob2mask: float
+    # masking_length: int
     masking: bool
     masking_layer: Masking
     len_latent_space: int
@@ -20,8 +20,9 @@ class Data2VecModel(tf.keras.Model):
     tau: float
     top_k_transformer: int
 
-    def __init__(self, prob2mask: float,
-                 masking_length: int,
+    def __init__(self,
+                 # prob2mask: float,
+                 # masking_length: int,
                  masking: bool,
                  masking_layer: Masking,
                  len_latent_space: int,
@@ -32,12 +33,13 @@ class Data2VecModel(tf.keras.Model):
                  top_k_transformer: int
                  ):
 
-        super(Data2VecModel).__init__()
+        super(Data2VecModel, self).__init__()
 
         # self.prob2mask = prob2mask
         # self.masking_length = masking_length
-        # self.masking = masking  # bool
-        # self.masking_layer = masking_layer
+
+        self.masking = masking  # bool
+        self.masking_layer = masking_layer
 
         self.len_latent_space = len_latent_space
         self.conv_encoder = conv_encoder
@@ -48,24 +50,31 @@ class Data2VecModel(tf.keras.Model):
 
     def call(self, inputs, **kwargs):
 
-        latent_space = self.conv_encoder(inputs)
+        wav_file, mask = inputs
+
+        latent_space = self.conv_encoder(wav_file)
 
         teacher_inputs = tf.stop_gradient(tf.identity(latent_space))
 
         if self.masking:
-            masked_latent_space = self.masking_layer(latent_space)
+            masked_latent_space, mask = self.masking_layer([latent_space, mask])
         else:
             masked_latent_space = latent_space
+            mask = tf.Variable([0])
 
-        student_encoding = self.transformer_encoder(masked_latent_space, 1)[0]
+        student_encoding = self.transformer_encoder(masked_latent_space,
+                                                    training=True,
+                                                    top_k_transformer=1)[0]
 
-        teacher_encoding = tf.stop_gradient(self.transformer_encoder(teacher_inputs, self.top_k_transformer))
+        teacher_encoding = tf.stop_gradient(self.transformer_encoder(teacher_inputs,
+                                                                     training=False,
+                                                                     top_k_transformer=self.top_k_transformer))
 
         teacher_encoding = tf.stop_gradient(tf.reduce_mean(self.ffn(teacher_encoding), axis=1))
 
         teacher_encoding = tf.stop_gradient(teacher_encoding * self.tau + (1 - self.tau) * student_encoding)
 
-        return teacher_encoding, student_encoding
+        return tf.concat([teacher_encoding, student_encoding], axis=1), mask
 
 
         # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)

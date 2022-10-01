@@ -12,15 +12,16 @@ class Processor:
                  t_axis: int,
                  prob2mask: float,
                  masking_size: int,
-                 top_k_transformer: int,
+                 # top_k_transformer: int,
                  ):
 
         self.t_axis = t_axis
         self.prob2mask = prob2mask
         self.point2mask = int(self.prob2mask * self.t_axis)
         self.masking_size = masking_size
-        self.top_k_transformer = top_k_transformer
+        # self.top_k_transformer = top_k_transformer
 
+    # the masking area is '1' and the unmasking by '0'
     def create_mask(self):
         rand_uniform = tf.random.uniform(maxval=1, shape=(self.t_axis,))
         mask = tf.where(
@@ -40,4 +41,4 @@ class Processor:
         wav_file = (wav_file - tf.reduce_mean(wav_file)) / tf.math.reduce_std(wav_file)
         wav_file = tf.audio.decode_wav(wav_file)
 
-        return [wav_file, label, self.top_k_transformer], [label, label]
+        return [wav_file, label], [label]

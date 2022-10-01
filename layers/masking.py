@@ -10,16 +10,16 @@ class Masking(tf.keras.layers.Layer):
         super(Masking, self).__init__()
 
         self.num_channels = num_channels
-        self.learnable_mask = self.add_weight("learnable_mask", shape=(1, 1, self.word_depth), trainable=True)
+        self.learnable_mask = self.add_weight("learnable_mask", shape=(1, 1, self.num_channels), trainable=True)
 
     def call(self, data, **kwargs):
         latent_z, mask = data
 
         # mask = tf.expand_dims(mask, axis=-1)
         # mask = tf.ones_like(inputs) * mask
-        masked = mask * self.learnable_mask + tf.multiply(1. - mask, latent_z)
+        latent_z_masked = mask * self.learnable_mask + tf.multiply(1. - mask, latent_z)
 
-        return masked
+        return latent_z_masked, mask
 
 
 if __name__ == '__main__':

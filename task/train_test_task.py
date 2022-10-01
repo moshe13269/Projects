@@ -28,9 +28,9 @@ class TrainTask:
         self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
 
         self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
-        self.model = instantiate(cfg.data2vec_train_task.TrainTaskmodel)
-        self.loss = instantiate(cfg.data2vec_train_task.TrainTask.losses)
-        self.epochs = self.cfg.data2vec_train_task.TrainTaskget('epochs')
+        self.model = instantiate(cfg.data2vec_train_task.TrainTask.model)
+        self.loss = instantiate(cfg.data2vec_train_task.TrainTask.loss)
+        self.epochs = self.cfg.data2vec_train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.data2vec_train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.data2vec_train_task.TrainTask.optimizer)
         self.train_steps_per_epoch = self.cfg.data2vec_train_task.TrainTask.get('train_steps_per_epoch')
