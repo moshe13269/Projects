@@ -1,8 +1,9 @@
+
 import tensorflow as tf
 from tensorflow import keras
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv1D, Dropout
+from tensorflow.python.keras.layers import Conv2D, Dropout, MaxPool2D
 
 
 class ConvFeatureExtractionModel(tf.keras.Model):
@@ -17,11 +18,18 @@ class ConvFeatureExtractionModel(tf.keras.Model):
         def block(n_out,
                   kernel,
                   strides,
+                  activation='relu',
                   is_layer_norm=False,
                   is_group_norm=False,
                   conv_bias=False):
+
             def make_conv():
-                conv = Conv1D(filters=n_out, kernel_size=kernel, strides=strides, use_bias=conv_bias,
+                conv = Conv2D(filters=n_out,
+                              kernel_size=kernel,
+                              strides=strides,
+                              use_bias=conv_bias,
+                              padding="same",
+                              activation=activation,
                               kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
                 return conv
 
@@ -39,7 +47,7 @@ class ConvFeatureExtractionModel(tf.keras.Model):
                     make_conv(),
                     Dropout(rate=dropout),
                     tfa.layers.GroupNormalization(),
-                    tf.keras.layers.Activation(tf.nn.gelu),  # tf.keras.activations.gelu(),
+                    tf.keras.layers.Activation(tf.nn.gelu), #tf.keras.activations.gelu(),
                 ])
             else:
                 return keras.Sequential([make_conv(), Dropout(rate=dropout), tf.keras.layers.Activation(tf.nn.gelu)])
@@ -63,9 +71,10 @@ class ConvFeatureExtractionModel(tf.keras.Model):
 
         self.conv_layers = layers
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         # BxT -> BxTxC
-        inputs = tf.expand_dims(inputs, axis=-1)
+        if len(inputs.shape) == 3:
+            inputs = tf.expand_dims(inputs, axis=-1)
 
         for conv in self.conv_layers:
             inputs = conv(inputs)
