@@ -75,9 +75,9 @@ class ConvFeatureExtractionModel(tf.keras.Model):
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((2, 5000))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 3, 2),
-                                               (512, 2, 2), (512, 2, 2)]
+    data = tf.random.normal((2, 1024))
+    conv_layers: List[Tuple[int, int, int]] = [(512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 2, 1),
+                                               (512, 2, 1), (512, 2, 1)]
     conv = ConvFeatureExtractionModel(conv_layers=conv_layers)
     output = conv(data)
     print(output.shape)

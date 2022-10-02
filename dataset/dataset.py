@@ -1,4 +1,3 @@
-
 import os
 import sys
 from os import listdir
@@ -17,22 +16,40 @@ class Dataset:
     path2load: str
     type_files: str
     labels: bool
+    data_names: dict
 
     """class for load path to samples of dataset and the labels (if had a labels)"""
 
-    def __init__(self, path2load, type_files, labels=False):
+    def __init__(self, path2load, type_files, data_names, labels=False):
         assert os.path.isdir(path2load), 'Directory not exist'
 
         self.path2load = path2load
-        self.dataset_names = [join(path2load, 'dataset', file) for file in listdir(join(path2load, 'dataset'))
-                              if isfile(join(path2load, 'dataset', file)) and
-                              os.path.splitext(file)[-1].lower() == type_files]
+        self.path2load_data_train = join(path2load, 'train', data_names['data'])
+        self.path2load_data_test = join(path2load, 'train', data_names['label'])
+        self.path2load_label_train = join(path2load, 'test', data_names['data'])
+        self.path2load_label_test = join(path2load, 'train', data_names['label'])
+
+        self.dataset_names_train = [join(path2load, 'train', 'image', file) for file in listdir(join(path2load, 'train'))
+                                    if isfile(join(path2load, 'train', 'image', file)) and
+                                    os.path.splitext(file)[-1].lower() == type_files and
+                                    'label' not in join(path2load, 'train', 'image', file)]
+
+        self.dataset_names_test = [join(path2load, 'test', 'image', file) for file in listdir(join(path2load, 'test'))
+                                   if isfile(join(path2load, 'test', 'image', file)) and
+                                   os.path.splitext(file)[-1].lower() == type_files and
+                                   'label' not in join(path2load, 'test', file)]
         if labels:
             self.labels_names = None
         else:
-            self.labels_names = [join(path2load, 'labels', file) for file in listdir(join(path2load, 'labels'))
-                                 if isfile(join(path2load, 'labels', file)) and
-                                 os.path.splitext(file)[-1].lower() == type_files]
+            self.labels_names_train = [join(path2load, 'labels', file) for file in listdir(join(path2load, 'labels'))
+                                       if isfile(join(path2load, 'labels', file)) and
+                                       os.path.splitext(file)[-1].lower() == type_files and
+                                       'label' in join(path2load, 'dataset', file)]
+
+            self.labels_names_test = [join(path2load, 'labels', file) for file in listdir(join(path2load, 'labels'))
+                                      if isfile(join(path2load, 'labels', file)) and
+                                      os.path.splitext(file)[-1].lower() == type_files and
+                                      'label' in join(path2load, 'dataset', file)]
 
         if labels:
             def check_dataset():

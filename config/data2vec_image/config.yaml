@@ -1,6 +1,6 @@
 
 defaults:
-  - data2vec_train_task: data2vec_image_train_task
+  - data2vec_train_task: data2vec_train_task
   - _self_
 
 #data2vec_train_task:

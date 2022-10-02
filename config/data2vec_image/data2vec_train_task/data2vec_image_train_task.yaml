@@ -1,0 +1,171 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load: C:\Users\moshe\PycharmProjects\datasets
+    type_files: numpy
+    labels: False
+
+  model:
+    _target_: model.data2vec_model.Data2VecModel #data2vec_train_task.data2vec_model.Data2VecModel
+
+    len_latent_space: 60 #
+    tau: 0.9
+
+    conv_encoder:
+      _target_: layers.conv_feature_encoder.ConvFeatureExtractionModel
+      conv_layers:
+        -
+          - 512
+          - 3
+          - 2
+        -
+          - 512
+          - 3
+          - 2
+        -
+          - 512
+          - 3
+          - 2
+        -
+          - 512
+          - 3
+          - 2
+        -
+          - 512
+          - 2
+          - 1
+        -
+          - 512
+          - 2
+          - 1
+        -
+          - 512
+          - 2
+          - 1
+
+      dropout: 0.0
+#      mode: default
+      conv_bias: False
+
+    masking: True
+    masking_layer:
+      _target_: layers.masking.Masking
+      num_channels: 512
+
+    ffn:
+      _target_: layers.ffn.FFN
+      dff: 512
+      activation: gelu
+      num_layers: 2
+
+    top_k_transformer: 8
+
+    transformer_encoder:
+      _target_: layers.transformer_encoder.TransformerEncoder
+      num_layers: 12
+      d_model: 512
+      num_attention_heads: 8
+      dff: 768
+      dropout_rate: 0.1
+
+  loss:
+    _target_: losses.smooth_l1_loss.SmoothL1Loss
+    beta: 0.5
+
+  callbacks:
+    _target_: callbacks.callbacks.EMACallback
+    t_n: 30000  # int
+    t_0: 0.999
+    t_e: 0.9999
+
+  optimizer:
+    _target_: tensorflow.keras.optimizers.Adam
+    learning_rate:
+    beta_1: 0.9 #
+    beta_2: 0.99 #
+
+  train_steps_per_epoch: 100
+
+  processor:
+    _target_: processors.processor.Processor
+    t_axis: 10000
+    prob2mask: 0.065
+    masking_size: 10
+
+  batch_size:
+    - train: 128
+    - test: 128
+    - val: 32
+
+  epochs: 10
+  path2save_model: path2save_model
+  model_name: data2vec
+
+  results:
+    _target_: results.results.Results
+    path2save_results: path2save_results #
+    num_class: 100
+
+#optimizer:
+#  _target_: draft.Optimizer
+#  optim:
+#    _target_: draft.Optim
+#    algo_rec: SGD_rec
+#    lr_rec: 0.01111
+#  algo: SGD
+#  lr: 0.01
+
+
+
+#params:
+
+#  kernel_size:
+#    - 10
+#    - 5
+#    - 3
+#    - 3
+#    - 2
+#    - 2
+#    - 2
+#
+#  stride_size:
+#    - 5
+#    - 3
+#    - 2
+#    - 2
+#    - 1
+#    - 1
+#    - 1
+#
+#  in_channels:
+#    - 1
+#  out_channels:
+#    - 512
+#  word_depth:
+#    - 512
+#  G:
+#    - 2
+#  V:
+#    - 320
+#  tau:
+#    - 2.
+#
+#  num_layers:
+#    - 24
+#  d_model:
+#    - 512
+#  num_heads:
+#    - 8
+#  dff:
+#    - 4096
+#
+#  activation:
+#    - 'gelu'
+#    -
+
+#name: resnet
+#num_layers: 50 # As 50 is the default value
+#
