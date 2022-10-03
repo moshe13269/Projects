@@ -1,0 +1,86 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load: fdfd
+    type_files: fdfed
+    labels: False
+
+  model:
+    _target_: model.data2vec_model.Data2VecModel #data2vec_train_task.data2vec_model.Data2VecModel
+
+    len_latent_space: 256 #
+    tau: 0.99
+
+#    conv_encoder:
+#      _target_: tensorflow.keras.applications.resnet50.ResNet50
+#      input_shape:
+#        -
+#          - 32
+#          - 32
+#          - 3
+#        - include_top: False
+
+
+    masking: True
+    masking_layer:
+      _target_: layers.masking.Masking
+      num_channels: 512
+
+    ffn:
+      _target_: layers.ffn.FFN
+      dff: 512
+      activation: gelu
+      num_layers: 2
+
+    top_k_transformer: 8
+
+    transformer_encoder:
+      _target_: layers.transformer_encoder.TransformerEncoder
+      num_layers: 12
+      d_model: 512
+      num_attention_heads: 8
+      dff: 768
+      dropout_rate: 0.1
+
+  loss:
+    _target_: losses.smooth_l1_loss.SmoothL1Loss
+    beta: 0.5
+
+  callbacks:
+    _target_: callbacks.callbacks.EMACallback
+    t_n: 30000  # int
+    t_0: 0.999
+    t_e: 0.9999
+
+  optimizer:
+    _target_: tensorflow.keras.optimizers.Adam
+    learning_rate:
+    beta_1: 0.9 #
+    beta_2: 0.99 #
+
+  train_steps_per_epoch: 100
+
+  processor:
+    _target_: processors.processor_images2.Processor
+    t_axis: 256
+    prob2mask: 0.065
+    masking_size: 2
+
+  batch_size:
+    - train: 128
+    - test: 128
+    - val: 32
+
+  epochs: 10
+  path2save_model: path2save_model
+  model_name: data2vec
+
+  results:
+    _target_: results.results.Results
+    path2save_results: path2save_results #
+    num_class: 100
+
+# input shape: image (512,512,3) -> (16, 32, 32, 3)

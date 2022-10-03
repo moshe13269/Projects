@@ -1,0 +1,45 @@
+
+defaults:
+  - data2vec_train_task: data2vec_image_train_task
+  - _self_
+
+#data2vec_train_task:
+#  _target_: data2vec_train_task.data2vec_model.Data2VecModel
+#  param: sdsdsds
+
+
+#defaults:
+#  - dataset: preloaded_tracks_dataset
+#  - split: split_v1
+#  - class_lookup: drone_vs_other_lookup
+#  - batch_provider: batch_provider_small_model
+#  - callbacks: callbacks_set_v1
+#  - metrics: metrics_set_v1
+#  - losses: losses_set
+#  - logger: mlflow_logger
+#  - optimizer: adam
+#  - data2vec_train_task: data2vec_model
+#  - result: result_roc_auc_v1
+#  - hydra: tpe1
+#  - _self_
+
+# train params
+#num_epochs: 2000
+#initial_epoch: 0
+#
+#eval_test: True
+#eval_train: True
+#is_save: True
+#
+#clustering: False
+
+#filter_unknoun: False
+#experiment_name: wav2vec
+
+#experiment_path: /raid/qnap/AI_temp_sandbox/moshel/track2vec_quant/pretrain/experiments/
+#tensorflow_logdir: /raid/qnap/AI_temp_sandbox/moshel/track2vec_quant/pretrain/tensorflow/
+#dataset_paths:
+#  - /home/moshel/saved_dataset.pickle
+
+#logger_tracking_uri: file:////raid/qna mhp/AI_temp_sandbox/moshel/track2vec_quant/pretrain/mlflow_runs/
+#model_path: /raid/qnap/AI_temp_sandbox/moshel/track2vec_quant/pretrain/experiments/

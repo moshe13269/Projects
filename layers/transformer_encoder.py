@@ -36,7 +36,7 @@ class ConvPosEncoding(tf.keras.layers.Layer):
             self.conv = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=stride,
                                                activation=activation, padding='same')
 
-    def call(self, inputs, **kwargs):
+    def __call__(self, inputs, **kwargs):
         return self.conv(inputs)
 
 
@@ -65,7 +65,7 @@ class EncoderLayer(tf.keras.layers.Layer):
         # Dropout for the point-wise feed-forward network.
         self.dropout1 = tf.keras.layers.Dropout(dropout_rate)
 
-    def call(self, x, training):
+    def __call__(self, x, training):
         # Multi-head self-attention output (`tf.keras.layers.MultiHeadAttention `).
         attn_output = self.mha(
             query=x,  # Query Q tensor.
@@ -125,7 +125,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # Dropout.
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
 
-    def call(self, x, training, top_k_transformer=None):
+    def __call__(self, x, training, top_k_transformer=None):
 
         x = self.layer_norm(x + self.conv_pos_encoding(x))
         x = self.dropout(x, training=training)

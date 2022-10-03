@@ -13,7 +13,7 @@ class FFNLayer(tf.keras.layers.Layer):
         self.ffn = tf.keras.Sequential([tf.keras.layers.Dense(dff, activation=activation)])
         self.instance_norm = tfa.layers.InstanceNormalization()
 
-    def call(self, inputs, *args, **kwargs):
+    def __call__(self, inputs, *args, **kwargs):
         return self.instance_norm(self.ffn(inputs))
 
 
@@ -28,7 +28,7 @@ class FFN(tf.keras.layers.Layer):
         self.fnn_layers = [FFNLayer(dff, activation) for _ in range(num_layers)]
         self.num_layers = num_layers
 
-    def call(self, inputs, *args, **kwargs):
+    def __call__(self, inputs, *args, **kwargs):
         return tf.concat([tf.expand_dims(self.fnn_layers[index_layer](inputs[index_layer]), axis=1)
                           for index_layer in range(self.num_layers)], axis=1)
 

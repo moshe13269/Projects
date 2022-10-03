@@ -50,16 +50,14 @@ class Data2VecModel(tf.keras.Model):
 
     def __call__(self, inputs, **kwargs):
 
-        wav_file, mask = inputs
+        image_file, mask = inputs
 
-        latent_space = self.conv_encoder(wav_file)
-
-        teacher_inputs = tf.stop_gradient(tf.identity(latent_space))
+        teacher_inputs = tf.stop_gradient(tf.identity(image_file))
 
         if self.masking:
-            masked_latent_space, mask = self.masking_layer([latent_space, mask])
+            masked_latent_space, mask = self.masking_layer([image_file, mask])
         else:
-            masked_latent_space = latent_space
+            masked_latent_space = image_file
             mask = tf.Variable([0])
 
         student_encoding = self.transformer_encoder(masked_latent_space,

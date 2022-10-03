@@ -7,7 +7,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         self.conv1 = Conv1D(channels, kernel_size=kernel_size, strides=stride, padding='same')
         self.gn1 = LayerNormalization(axis=-1)
 
-    def call(self, inputs):
+    def __call__(self, inputs):
         return gelu(self.gn1(self.conv1(inputs) + inputs))
 
 class EncoderLayer(tf.keras.layers.Layer):

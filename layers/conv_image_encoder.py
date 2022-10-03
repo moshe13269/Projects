@@ -1,9 +1,33 @@
-
 import tensorflow as tf
 from tensorflow import keras
 from typing import List, Tuple
 import tensorflow_addons as tfa
 from tensorflow.python.keras.layers import Conv2D, Dropout, MaxPool2D
+
+
+class CreatePatches(tf.keras.layers.Layer):
+
+    def __init__(self, patch_size):
+        super(CreatePatches, self).__init__()
+        self.patch_size = 32
+        self.resnet = tf.keras.applications.resnet50.ResNet50(input_shape=(32, 32, 3), include_top=False)
+
+    def call(self, inputs):
+        patches = []
+        #For square images only (as inputs.shape[1] = inputs.shape[2])
+        input_image_size = inputs.shape[1]
+        for i in range(0, input_image_size, self.patch_size):
+            for j in range(0, input_image_size, self.patch_size):
+                patches.append(self.resnet(inputs[:, i: i + self.patch_size, j: j + self.patch_size, :]))
+        return patches
+
+
+
+
+
+
+
+
 
 
 class ConvFeatureExtractionModel(tf.keras.Model):
@@ -18,7 +42,6 @@ class ConvFeatureExtractionModel(tf.keras.Model):
         def block(n_out,
                   kernel,
                   strides,
-                  activation='relu',
                   is_layer_norm=False,
                   is_group_norm=False,
                   conv_bias=False):
@@ -29,7 +52,6 @@ class ConvFeatureExtractionModel(tf.keras.Model):
                               strides=strides,
                               use_bias=conv_bias,
                               padding="same",
-                              activation=activation,
                               kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
                 return conv
 
@@ -40,17 +62,17 @@ class ConvFeatureExtractionModel(tf.keras.Model):
                     make_conv(),
                     Dropout(rate=dropout),
                     tf.keras.layers.LayerNormalization(),
-                    tf.keras.layers.Activation(tf.nn.gelu),
+                    tf.keras.layers.Activation(tf.nn.relu),
                 ])
             elif is_group_norm:
                 return keras.Sequential([
                     make_conv(),
                     Dropout(rate=dropout),
                     tfa.layers.GroupNormalization(),
-                    tf.keras.layers.Activation(tf.nn.gelu), #tf.keras.activations.gelu(),
+                    tf.keras.layers.Activation(tf.nn.relu),  # tf.keras.activations.gelu(),
                 ])
             else:
-                return keras.Sequential([make_conv(), Dropout(rate=dropout), tf.keras.layers.Activation(tf.nn.gelu)])
+                return keras.Sequential([make_conv(), Dropout(rate=dropout), tf.keras.layers.Activation(tf.nn.relu)])
 
         layers = []
 
@@ -84,7 +106,10 @@ class ConvFeatureExtractionModel(tf.keras.Model):
 
 if __name__ == '__main__':
     data = tf.random.normal((2, 1024))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 3, 2), (512, 2, 1),
+    conv_layers: List[Tuple[int, int, int]] = [(64, 3, 1), (64, 3, 1),
+                                               (128, 3, 1), (128, 3, 1),
+                                               (256, 2, 1), (256, 2, 1), (256, 2, 1), (256, 2, 1),
+                                               (512, 2, 1), (512, 2, 1), (512, 2, 1), (512, 2, 1), (512, 2, 1),
                                                (512, 2, 1), (512, 2, 1)]
     conv = ConvFeatureExtractionModel(conv_layers=conv_layers)
     output = conv(data)
