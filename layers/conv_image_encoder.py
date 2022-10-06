@@ -1,15 +1,16 @@
-
 import tensorflow as tf
 from tensorflow import keras
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv2D, Dropout
+from tensorflow.python.keras.layers import Conv2D, Dropout, Dense, AveragePooling2D
 
 
 class ConvFeatureExtractionModel(tf.keras.Model):
     def __init__(self,
-                 conv_layers: List[List[Tuple[int, int, int]]], #List[Tuple[int, int, int]],
+                 conv_layers: List[List[Tuple[int, int, int]]],  # List[Tuple[int, int, int]],
+                 num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
                  activation: str,
+                 units: int,
                  dropout: float = 0.0,
                  mode: str = "default",
                  conv_bias: bool = False):
@@ -81,18 +82,23 @@ class ConvFeatureExtractionModel(tf.keras.Model):
             assert len(layers_param) == 2 and len(layers_param[0]) == len(layers_param[1]) == 3, \
                 "invalid conv definition: " + str(layers_param)
             # (dim, kernel, stride) = cl
+            for j in range(num_duplicate_layer[i]):
 
-            layers.append(
-                block(
-                    layers_param,
-                    activation,
-                    is_layer_norm=mode == "layer_norm",
-                    is_group_norm=mode == "default" and i == 0,
-                    conv_bias=conv_bias,
+                layers.append(
+                    block(
+                        layers_param,
+                        activation,
+                        is_layer_norm=mode == "layer_norm",
+                        is_group_norm=mode == "default" and i == 0,
+                        conv_bias=conv_bias,
+                    )
                 )
-            )
 
         self.conv_layers = layers
+
+        self.avg_pool = AveragePooling2D()
+
+        self.fc = Dense(units=units, activation=activation)
 
     def __call__(self, inputs):
         # BxT -> BxTxC
@@ -101,24 +107,29 @@ class ConvFeatureExtractionModel(tf.keras.Model):
         for conv in self.conv_layers:
             x = inputs
             inputs = conv(inputs)
-            print(x.shape, inputs.shape)
+
             if inputs.shape == x.shape:
                 inputs = self.activation(x + inputs)
             else:
                 inputs = self.activation(inputs)
-        return inputs
+
+        inputs = self.avg_pool(inputs)
+        return tf.squeeze(self.fc(inputs))
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((2, 128, 128))
-    conv_layers: List[List[Tuple[int, int, int]]] = [[(512, 3, 1), (512, 3, 1)],
-                                                                           [(512, 3, 1), (512, 3, 1)],
-                                                                           [(512, 3, 1), (512, 3, 1)],
-                                                                           [(512, 3, 1), (512, 3, 1)],
-                                                                           [(512, 3, 1), (512, 3, 1)],
-                                                                           [(512, 3, 1), (512, 3, 1)],
-                                                                           [(512, 3, 1), (512, 3, 1)]]
-    conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu')
+    data = tf.random.normal((2, 32, 32))
+    conv_layers: List[List[Tuple[int, int, int]]] = [[(64, 3, 1), (64, 3, 1)],
+                                                     [(128, 3, 1), (128, 3, 2)],
+                                                     [(256, 3, 1), (256, 3, 2)],
+                                                     [(512, 3, 1), (512, 3, 2)],
+                                                     [(512, 3, 1), (512, 3, 1)],
+                                                     [(512, 3, 1), (512, 3, 2)],
+                                                     [(512, 3, 1), (512, 3, 1)]]
+
+    num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 1, 1, 3, 1, 2)
+    conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
+                                      num_duplicate_layer=num_duplicate_layer)
     output = conv(data)
     print(output.shape)
     print(tf.reduce_mean(output), tf.reduce_min(output), tf.reduce_max(output))

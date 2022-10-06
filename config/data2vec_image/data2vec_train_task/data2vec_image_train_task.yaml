@@ -9,45 +9,90 @@ TrainTask:
     labels: False
 
   model:
-    _target_: model.data2vec_model.Data2VecModel #data2vec_train_task.data2vec_model.Data2VecModel
+    _target_: model.data2vec_image_model.Data2VecModel #data2vec_train_task.data2vec_model.Data2VecModel
 
     len_latent_space: 60 #
     tau: 0.9
 
     conv_encoder:
-      _target_: layers.conv_feature_encoder.ConvFeatureExtractionModel
+      _target_: layers.conv_image_encoder.ConvFeatureExtractionModel
+      activation: gelu
+      units: 512
       conv_layers:
         -
-          - 512
-          - 3
-          - 2
+          -
+            - 64
+            - 3
+            - 1
+          -
+            - 64
+            - 3
+            - 1
         -
-          - 512
-          - 3
-          - 2
+          -
+            - 128
+            - 3
+            - 2
+          -
+            - 128
+            - 3
+            - 1
         -
-          - 512
-          - 3
-          - 2
+          -
+            - 128
+            - 3
+            - 1
+          -
+            - 128
+            - 3
+            - 1
         -
-          - 512
-          - 3
-          - 2
+          -
+            - 256
+            - 3
+            - 2
+          -
+            - 256
+            - 3
+            - 1
         -
-          - 512
-          - 2
-          - 1
+          -
+            - 256
+            - 3
+            - 1
+          -
+            - 256
+            - 3
+            - 1
         -
-          - 512
-          - 2
-          - 1
+          -
+            - 512
+            - 3
+            - 2
+          -
+            - 512
+            - 3
+            - 1
         -
-          - 512
-          - 2
-          - 1
+          -
+            - 512
+            - 3
+            - 1
+          -
+            - 512
+            - 3
+            - 1
+
+      num_duplicate_layer:
+        - 2
+        - 1
+        - 2
+        - 1
+        - 2
+        - 1
+        - 2
 
       dropout: 0.0
-#      mode: default
       conv_bias: False
 
     masking: True

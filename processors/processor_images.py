@@ -40,8 +40,8 @@ class Processor:
 
         image = tf.io.read_file(path2data[0])
         image = tf.image.decode_png(image, channels=3)
-        image = tf.reshape(image, (image[0] * image[1], 3))
-        # image = (wav_file - tf.reduce_mean(wav_file)) / tf.math.reduce_std(wav_file)
-        # image = tf.audio.decode_wav(image)
+
+        if tf.reduce_max(image) > 1.:
+            image = image / 255
 
         return [image, label], [label]

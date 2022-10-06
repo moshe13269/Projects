@@ -4,7 +4,7 @@ from typing import List, Tuple
 from layers.masking import Masking
 from layers.ffn import FFN
 from layers.transformer_encoder import TransformerEncoder
-from layers.conv_feature_encoder import ConvFeatureExtractionModel
+from layers.conv_image_encoder import ConvFeatureExtractionModel
 from dataclasses import dataclass, field
 
 
