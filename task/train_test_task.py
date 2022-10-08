@@ -1,4 +1,3 @@
-
 import mlflow
 import mlflow.keras
 import datetime
@@ -42,14 +41,42 @@ class TrainTask:
 
     def run(self):
 
-        if self.datasets_path.labels_names is None:
-            X_train, X_test, _, y_test = train_test_split(self.datasets_path.dataset_names,
-                                                          self.datasets_path.dataset_names,
-                                                          test_size=0.2,
-                                                          random_state=1)
+        dataset_had_split = len(self.dataset_class.dataset_names_train) > 0 and \
+                            len(self.dataset_class.dataset_names_test) > 0
+
+        if self.dataset_class.labels:
+            if dataset_had_split:
+                X_train = self.dataset_class.dataset_names_train
+                y_train = self.dataset_class.labels_names_train
+                X_test = self.dataset_class.dataset_names_test
+                y_test = self.dataset_class.labels_names_test
+            else:
+                X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names,
+                                                                    self.dataset_class.labels_names,
+                                                                    test_size=0.2,
+                                                                    random_state=1)
+
+            X_train, X_val, y_train, y_val = train_test_split(X_train,
+                                                              y_train,
+                                                              test_size=0.05,
+                                                              random_state=1)
+
+            self.train_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_train, y_train)))
+            self.test_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_test, y_test)))
+            self.val_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_val, y_val)))
+
+        else:
+            if dataset_had_split:
+                X_train = self.dataset_class.dataset_names_train
+                X_test = self.dataset_class.dataset_names_test
+            else:
+                X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names_train,
+                                                                    self.dataset_class.labels_names_train,
+                                                                    test_size=0.2,
+                                                                    random_state=1)
 
             X_test, X_val, y_test, y_val = train_test_split(X_test,
-                                                            y_test,
+                                                            X_test,
                                                             test_size=0.05,
                                                             random_state=1)
 
@@ -57,24 +84,9 @@ class TrainTask:
             self.test_dataset = tf.data.Dataset.from_tensor_slices(X_test)
             self.val_dataset = tf.data.Dataset.from_tensor_slices(X_val)
 
-        else:
-            X_train, X_test, y_train, y_test = train_test_split(self.datasets_path.dataset_names,
-                                                                self.datasets_path.labels_names,
-                                                                test_size=0.2,
-                                                                random_state=1)
-
-            X_test, X_val, y_test, y_val = train_test_split(X_test,
-                                                            y_test,
-                                                            test_size=0.05,
-                                                            random_state=1)
-
-            self.train_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_train, y_train)))
-            self.test_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_test, y_test)))
-            self.val_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_val, y_val)))
-
         self.train_dataset = (self.train_dataset
                               .shuffle(1024)
-                              .map(self.processor, num_parallel_calls=tf.data.AUTOTUNE)
+                              .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
                               .cache()
                               .repeat()
                               .batch(self.batch_size['train'])
@@ -83,7 +95,7 @@ class TrainTask:
 
         self.test_dataset = (self.test_dataset
                              .shuffle(1024)
-                             .map(self.processor, num_parallel_calls=tf.data.AUTOTUNE)
+                             .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
                              .cache()
                              .repeat()
                              .batch(self.batch_size['test'])
@@ -92,7 +104,7 @@ class TrainTask:
 
         self.val_dataset = (self.val_dataset
                             .shuffle(1024)
-                            .map(self.processor, num_parallel_calls=tf.data.AUTOTUNE)
+                            .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
                             .cache()
                             .repeat()
                             .batch(self.batch_size['valid'])
@@ -101,7 +113,7 @@ class TrainTask:
 
         self.model.compile(optimizer="Adam", loss=self.loss)
 
-        mlflow.keras.autolog(registered_model_name=self.model_name+str(datetime.datetime.now()))
+        mlflow.keras.autolog(registered_model_name=self.model_name + str(datetime.datetime.now()))
 
         self.model.fit(x=self.train_dataset,
                        epochs=self.epochs,
@@ -130,7 +142,7 @@ class TrainTask:
         #     mlflow.log_param("max_feat", max_features)
 
         tf.saved_model.save(self.model,
-                            self.path2save_model,)
+                            self.path2save_model, )
 
 
 if __name__ == '__main__':

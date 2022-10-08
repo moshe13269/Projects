@@ -4,12 +4,13 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets
-    type_files: numpy
+    path2load: C:\Users\moshe\PycharmProjects\datasets\cifar10
+    type_files: npy
     labels: False
+    dataset_names: cifar10
 
   model:
-    _target_: model.data2vec_image_model.Data2VecModel #data2vec_train_task.data2vec_model.Data2VecModel
+    _target_: model.data2vec_image_model.Data2VecModel
 
     len_latent_space: 60 #
     tau: 0.9
@@ -135,82 +136,23 @@ TrainTask:
   train_steps_per_epoch: 100
 
   processor:
-    _target_: processors.processor.Processor
+    _target_: processors.processor_images.Processor
     t_axis: 10000
     prob2mask: 0.065
     masking_size: 10
+    load_label: False
 
   batch_size:
-    - train: 128
-    - test: 128
-    - val: 32
+    train: 128
+    test: 128
+    valid: 32
 
   epochs: 10
-  path2save_model: path2save_model
+  path2save_model: r'C:\Users\moshe\PycharmProjects\save_models\models'
   model_name: data2vec
 
   results:
     _target_: results.results.Results
-    path2save_results: path2save_results #
+    path2save_results: r'C:\Users\moshe\PycharmProjects\save_models\results'
     num_class: 100
 
-#optimizer:
-#  _target_: draft.Optimizer
-#  optim:
-#    _target_: draft.Optim
-#    algo_rec: SGD_rec
-#    lr_rec: 0.01111
-#  algo: SGD
-#  lr: 0.01
-
-
-
-#params:
-
-#  kernel_size:
-#    - 10
-#    - 5
-#    - 3
-#    - 3
-#    - 2
-#    - 2
-#    - 2
-#
-#  stride_size:
-#    - 5
-#    - 3
-#    - 2
-#    - 2
-#    - 1
-#    - 1
-#    - 1
-#
-#  in_channels:
-#    - 1
-#  out_channels:
-#    - 512
-#  word_depth:
-#    - 512
-#  G:
-#    - 2
-#  V:
-#    - 320
-#  tau:
-#    - 2.
-#
-#  num_layers:
-#    - 24
-#  d_model:
-#    - 512
-#  num_heads:
-#    - 8
-#  dff:
-#    - 4096
-#
-#  activation:
-#    - 'gelu'
-#    -
-
-#name: resnet
-#num_layers: 50 # As 50 is the default value
-#

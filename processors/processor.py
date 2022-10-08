@@ -7,11 +7,13 @@ class Processor:
     prob2mask: float
     masking_size: int
     top_k_transformer: int
+    load_label: bool
 
     def __init__(self,
                  t_axis: int,
                  prob2mask: float,
                  masking_size: int,
+                 load_label: bool,
                  # top_k_transformer: int,
                  ):
 
@@ -19,6 +21,7 @@ class Processor:
         self.prob2mask = prob2mask
         self.point2mask = int(self.prob2mask * self.t_axis)
         self.masking_size = masking_size
+        self.load_label = load_label
         # self.top_k_transformer = top_k_transformer
 
     # the masking area is '1' and the unmasking by '0'
@@ -30,8 +33,9 @@ class Processor:
         return mask
 
     def load_data(self, path2data):
-        if len(path2data) == 2:
-            label_file = open(path2data[1], 'r')
+        if self.load_label:
+            path2label = path2data.replace('data', 'labels')
+            label_file = open(path2label, 'r')
             label = pickle.load(label_file)
             # todo: convert to onehot vector
         else:
