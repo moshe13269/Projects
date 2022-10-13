@@ -29,14 +29,17 @@ class ConvPosEncoding(tf.keras.layers.Layer):
                  ):
 
         super(ConvPosEncoding, self).__init__()
-        if dim_conv == 1:
+
+        # self.conv = tf.keras.layers.Conv1D(filters=filters, kernel_size=kernel_size, strides=stride,
+        #                                    activation=activation, padding='same')
+        if dim_conv == 1: ##
             self.conv = tf.keras.layers.Conv1D(filters=filters, kernel_size=kernel_size, strides=stride,
                                                activation=activation, padding='same')
         else:
             self.conv = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=stride,
                                                activation=activation, padding='same')
 
-    def __call__(self, inputs, **kwargs):
+    def call(self, inputs):
         return self.conv(inputs)
 
 

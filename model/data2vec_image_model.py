@@ -56,6 +56,7 @@ class Data2VecModel(tf.keras.Model):
 
         if self.masking:
             masked_latent_space, mask = self.masking_layer([image_file, mask])
+            tf.print(tf.reduce_mean(masked_latent_space), tf.reduce_mean(mask))
         else:
             masked_latent_space = image_file
             mask = tf.Variable([0])

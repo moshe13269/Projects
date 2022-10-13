@@ -24,5 +24,5 @@ class EMACallback(tf.keras.callbacks.Callback):
         self.step = (self.t_e - self.t_0) / self.t_n
         self.tau = self.t_0 - self.step
 
-    def on_batch_begin(self, logs=None, **kwargs):
-        self.tau = min(self.t_e, self.t_0 + self.step)
+    # def on_batch_begin(self, logs=None, **kwargs):
+    #     self.tau = min(self.t_e, self.t_0 + self.step)

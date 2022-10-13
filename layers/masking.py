@@ -18,10 +18,10 @@ class Masking(tf.keras.layers.Layer):
                                               trainable=True,
                                               initializer='random_normal')
 
-    def call(self, data):
+    def call(self, data, **kwargs):
         latent_z, mask = data
-        if len(mask.shape) < len(latent_z.shape):
-            mask = tf.expand_dims(mask, axis=-1)
+        # if len(mask.shape) < len(latent_z.shape):
+        mask = tf.expand_dims(mask, axis=-1)
         latent_z_masked = mask * self.learnable_mask + tf.multiply(1. - mask, latent_z)
 
         return latent_z_masked, mask
@@ -29,7 +29,7 @@ class Masking(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     import tensorflow as tf
-    inputs = [tf.random.normal((2, 40, 8)), tf.random.uniform(shape=(2, 40), maxval=1)]
+    inputs = [tf.Variable(tf.random.normal((2, 40, 8))), tf.Variable(tf.random.uniform(shape=(2, 40), maxval=1))]
     layers = Masking(num_channels=8)
     layers.build((None, 40))
     outputs = layers(inputs)

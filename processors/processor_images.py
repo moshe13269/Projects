@@ -27,6 +27,7 @@ class Processor:
         # self.top_k_transformer = top_k_transformer
 
     # the masking area is '1' and the unmasking by '0'
+    @tf.function(autograph=True)
     def create_mask(self):
         rand_uniform = tf.random.uniform(maxval=1, shape=(self.t_axis,))
         mask = tf.where(
@@ -34,6 +35,7 @@ class Processor:
             1., 0.)
         return mask
 
+    @tf.function(autograph=True)
     def load_data(self, path2data):
         if self.load_label:
             path2label = path2data.replace('data', 'labels')
@@ -43,11 +45,13 @@ class Processor:
         else:
             label = self.create_mask()
 
+        # image = np.load(path2data)
         image = tf.io.read_file(path2data)
-        image = tf.cast(tf.image.decode_image(image, channels=3), dtype=tf.float32)
-        tf.print(path2data)
+        image = tf.image.decode_image(image, channels=3, dtype=tf.float32)
+        # image = tf.cast(tf.image.decode_image(image, channels=3, dtype=tf.float32), dtype=tf.float32)
+        # tf.print(path2data)
 
         if tf.reduce_max(image) > 1.:
             image = image / 255.
 
-        return [image, label], [label]
+        return (image, label), (label)

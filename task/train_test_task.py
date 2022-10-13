@@ -111,7 +111,7 @@ class TrainTask:
                             .prefetch(tf.data.AUTOTUNE)
                             )
 
-        self.model.compile(optimizer="Adam", loss=self.loss)
+        self.model.compile(optimizer=self.optimizer, loss=self.loss)
 
         mlflow.keras.autolog(registered_model_name=self.model_name + str(datetime.datetime.now()))
 
