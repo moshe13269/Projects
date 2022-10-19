@@ -1,16 +1,14 @@
-
 import tensorflow as tf
 from typing import List, Tuple
 from layers.masking import Masking
 from layers.ffn import FFN
 from layers.transformer_encoder import TransformerEncoder
 from layers.conv_image_encoder import ConvFeatureExtractionModel
+from tensorflow.python.keras import Input
 from dataclasses import dataclass, field
 
 
 class Data2VecModel(tf.keras.Model):
-    # prob2mask: float
-    # masking_length: int
     masking: bool
     masking_layer: Masking
     len_latent_space: int
@@ -21,8 +19,6 @@ class Data2VecModel(tf.keras.Model):
     top_k_transformer: int
 
     def __init__(self,
-                 # prob2mask: float,
-                 # masking_length: int,
                  masking: bool,
                  masking_layer: Masking,
                  len_latent_space: int,
@@ -48,17 +44,24 @@ class Data2VecModel(tf.keras.Model):
         self.tau = tau
         self.top_k_transformer = top_k_transformer
 
-    def __call__(self, inputs, **kwargs):
+    # def build(self, input_shape=([(None, 32, 32, 3), (None, 16)])):
+    #     inputs = Input(shape=([(None, 32, 32, 3), (None, 16)]))
+    # def __call__(self, inputs, **kwargs):
+
+    def call(self, inputs, **kwargs):
+        # tf.keras.layers.InputLayer(input_shape=(4,))
 
         image_file, mask = inputs
 
-        teacher_inputs = tf.stop_gradient(tf.identity(image_file))
+        latent_image = self.conv_encoder(image_file)
+
+        teacher_inputs = tf.stop_gradient(tf.identity(latent_image))
 
         if self.masking:
-            masked_latent_space, mask = self.masking_layer([image_file, mask])
-            tf.print(tf.reduce_mean(masked_latent_space), tf.reduce_mean(mask))
+            masked_latent_space, mask = self.masking_layer([latent_image, mask])
+            # tf.print(tf.reduce_mean(masked_latent_space), tf.reduce_mean(mask))
         else:
-            masked_latent_space = image_file
+            masked_latent_space = latent_image
             mask = tf.Variable([0])
 
         student_encoding = self.transformer_encoder(masked_latent_space,
@@ -75,11 +78,56 @@ class Data2VecModel(tf.keras.Model):
 
         return tf.concat([teacher_encoding, student_encoding], axis=1), mask
 
+    # @self.input_shape.setter
+    # def input_shape(self, value):
+    #     self._input_shape = value
 
-        # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)
-        # # conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
-        # self.embed = cfg.encoder_embed_dim
-        # self.average_top_k_layers = cfg.average_top_k_layers
+
+if __name__ == '__main__':
+    data = tf.random.normal((2, 32, 32))
+    conv_layers: List[List[Tuple[int, int, int]]] = [[(64, 3, 1), (64, 3, 1)],
+                                                     [(128, 3, 1), (128, 3, 2)],
+                                                     [(256, 3, 1), (256, 3, 1)],
+                                                     [(512, 3, 1), (512, 3, 2)],
+                                                     [(512, 3, 1), (512, 3, 1)],
+                                                     [(512, 3, 1), (512, 3, 1)],
+                                                     [(512, 3, 1), (512, 3, 1)]]
+
+    num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 1, 1, 3, 1, 2)
+    conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
+                                      num_duplicate_layer=num_duplicate_layer)
+
+    mask = tf.where(tf.random.uniform(shape=(100, 16), maxval=1) > 0.9, 1., 0.)
+    inputs = [tf.Variable(tf.random.normal((100, 32, 32, 3))), tf.Variable(mask)]
+    mask = Masking(num_channels=512)
+    mask.build((None, 16))
+
+    encoder = TransformerEncoder(num_layers=24, d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
+
+    ffn = FFN(dff=512, activation='gelu', num_layers=1)
+
+    model = Data2VecModel(masking=True,
+                          masking_layer=mask,
+                          len_latent_space=16,
+                          conv_encoder=conv,
+                          transformer_encoder=encoder,
+                          ffn=ffn,
+                          tau=0.9,
+                          top_k_transformer=4, )
+
+    # from tensorflow.python.keras import Input
+    # input = Input(shape=(32, 32, 3,))
+    # model = Model(inputs=Input(shape=(32, 32, 3,)), outputs=Data2VecModel()(Input(shape=(32, 32, 3,)))
+    # print(model.summary(expand_nested=True))
+    # model.build(input_shape=([(None, 32, 32, 3), (None, 16)]))
+    # model.build()
+    model.summary()
+    outputs = model(inputs)
+    print(tf.reduce_mean(outputs[0]))
+    # self.feature_extractor = ConvFeatureExtractionModel(conv_layers=cfg)
+    # # conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 5, 3), (512, 3, 2)]
+    # self.embed = cfg.encoder_embed_dim
+    # self.average_top_k_layers = cfg.average_top_k_layers
 
     #     #######
     #     feature_enc_layers = eval(cfg.conv_feature_layers)

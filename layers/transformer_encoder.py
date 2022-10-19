@@ -39,7 +39,7 @@ class ConvPosEncoding(tf.keras.layers.Layer):
             self.conv = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=stride,
                                                activation=activation, padding='same')
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         return self.conv(inputs)
 
 
@@ -97,6 +97,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
     dff: int
     input_vocab_size: int
     dropout_rate: float
+    dim_conv: int
 
     def __init__(self,
                  *,
@@ -105,6 +106,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
                  num_attention_heads,
                  dff,  # Inner-layer dimensionality.
                  dropout_rate=0.1,
+                 dim_conv=1
                  ):
 
         super(TransformerEncoder, self).__init__()
@@ -112,7 +114,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         self.d_model = d_model
         self.num_layers = num_layers
 
-        self.conv_pos_encoding = ConvPosEncoding(kernel_size=3, filters=self.d_model, stride=1, dim_conv=1,
+        self.conv_pos_encoding = ConvPosEncoding(kernel_size=3, filters=self.d_model, stride=1, dim_conv=dim_conv,
                                                  activation='gelu')
 
         self.layer_norm = tf.keras.layers.LayerNormalization()
@@ -156,6 +158,6 @@ if __name__ == '__main__':
     position = ConvPosEncoding(3, 512, 1, 1, 'gelu')
     data = tf.random.normal((10, 200, 512))
     output1 = position(data, training=True)
-    output2 = encoder(data, training=True, top_k_transformer=7)
+    output2 = encoder(data, training=True, top_k_transformer=8)
     print(output1.shape, output2.shape)
     print(tf.reduce_mean(output1), tf.reduce_mean(output2))

@@ -5,6 +5,7 @@ from layers.masking import Masking
 from layers.ffn import FFN
 from layers.transformer_encoder import TransformerEncoder
 from layers.conv_feature_encoder import ConvFeatureExtractionModel
+from tensorflow.python.keras import Input
 from dataclasses import dataclass, field
 
 
@@ -49,6 +50,8 @@ class Data2VecModel(tf.keras.Model):
         self.top_k_transformer = top_k_transformer
 
     def __call__(self, inputs, **kwargs):
+
+        inputs = Input((None, 32, 32, 3), (None, 16))
 
         wav_file, mask = inputs
 

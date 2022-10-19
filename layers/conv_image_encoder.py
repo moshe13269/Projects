@@ -2,10 +2,14 @@ import tensorflow as tf
 from tensorflow import keras
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv2D, Dropout, Dense, AveragePooling2D
+from tensorflow.python.keras.layers import Conv2D, Dropout, Dense, AveragePooling2D, Reshape
 
 
-class ConvFeatureExtractionModel(tf.keras.Model):
+def clac_conv_output():
+    pass
+
+
+class ConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[List[Tuple[int, int, int]]],  # List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
@@ -17,6 +21,7 @@ class ConvFeatureExtractionModel(tf.keras.Model):
         super(ConvFeatureExtractionModel, self).__init__()
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
+        self.reshape = Reshape((16, 512))
 
         def block(layers_param,
                   activation,
@@ -102,7 +107,8 @@ class ConvFeatureExtractionModel(tf.keras.Model):
 
     def __call__(self, inputs):
         # BxT -> BxTxC
-        inputs = tf.expand_dims(inputs, axis=-1)
+        # if len(inputs.shape) == 3:
+        #     inputs = tf.expand_dims(inputs, axis=-1)
 
         for conv in self.conv_layers:
             x = inputs
@@ -114,17 +120,18 @@ class ConvFeatureExtractionModel(tf.keras.Model):
                 inputs = self.activation(inputs)
 
         inputs = self.avg_pool(inputs)
-        return tf.squeeze(self.fc(inputs))
+        inputs = self.reshape(inputs)
+        return self.fc(inputs)
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((2, 32, 32))
+    data = tf.random.normal((4, 32, 32, 3))
     conv_layers: List[List[Tuple[int, int, int]]] = [[(64, 3, 1), (64, 3, 1)],
                                                      [(128, 3, 1), (128, 3, 2)],
-                                                     [(256, 3, 1), (256, 3, 2)],
+                                                     [(256, 3, 1), (256, 3, 1)],
                                                      [(512, 3, 1), (512, 3, 2)],
                                                      [(512, 3, 1), (512, 3, 1)],
-                                                     [(512, 3, 1), (512, 3, 2)],
+                                                     [(512, 3, 1), (512, 3, 1)],
                                                      [(512, 3, 1), (512, 3, 1)]]
 
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 1, 1, 3, 1, 2)

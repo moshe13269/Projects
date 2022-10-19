@@ -65,7 +65,8 @@ class ConvFeatureExtractionModel(tf.keras.Model):
 
     def __call__(self, inputs):
         # BxT -> BxTxC
-        inputs = tf.expand_dims(inputs, axis=-1)
+        if tf.shape(inputs) == 3:
+            inputs = tf.expand_dims(inputs, axis=-1)
 
         for conv in self.conv_layers:
             inputs = conv(inputs)

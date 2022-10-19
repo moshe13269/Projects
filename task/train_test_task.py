@@ -33,6 +33,7 @@ class TrainTask:
         self.callbacks = instantiate(cfg.data2vec_train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.data2vec_train_task.TrainTask.optimizer)
         self.train_steps_per_epoch = self.cfg.data2vec_train_task.TrainTask.get('train_steps_per_epoch')
+        self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
 
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
@@ -84,42 +85,46 @@ class TrainTask:
             self.test_dataset = tf.data.Dataset.from_tensor_slices(X_test)
             self.val_dataset = tf.data.Dataset.from_tensor_slices(X_val)
 
-        self.train_dataset = (self.train_dataset
-                              .shuffle(1024)
-                              .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
-                              .cache()
-                              .repeat()
-                              .batch(self.batch_size['train'])
-                              .prefetch(tf.data.AUTOTUNE)
-                              )
+        train_dataset = (self.train_dataset
+                         .shuffle(1024)
+                         .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
+                         .cache()
+                         .repeat()
+                         .batch(self.batch_size['train'])
+                         .prefetch(tf.data.AUTOTUNE)
+                         )
 
-        self.test_dataset = (self.test_dataset
-                             .shuffle(1024)
-                             .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
-                             .cache()
-                             .repeat()
-                             .batch(self.batch_size['test'])
-                             .prefetch(tf.data.AUTOTUNE)
-                             )
+        test_dataset = (self.test_dataset
+                        .shuffle(1024)
+                        .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
+                        .cache()
+                        .repeat()
+                        .batch(self.batch_size['test'])
+                        .prefetch(tf.data.AUTOTUNE)
+                        )
 
-        self.val_dataset = (self.val_dataset
-                            .shuffle(1024)
-                            .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
-                            .cache()
-                            .repeat()
-                            .batch(self.batch_size['valid'])
-                            .prefetch(tf.data.AUTOTUNE)
-                            )
+        val_dataset = (self.val_dataset
+                       .shuffle(1024)
+                       .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
+                       .cache()
+                       .repeat()
+                       .batch(self.batch_size['valid'])
+                       .prefetch(tf.data.AUTOTUNE)
+                       )
+
+
+        # self.model.build(
+        #     input_shape=([(None, 32, 32, 3), (None, 16)]))  # self.input_shape) #[(None, 32, 32, 3), (None, 16)]
 
         self.model.compile(optimizer=self.optimizer, loss=self.loss)
 
         mlflow.keras.autolog(registered_model_name=self.model_name + str(datetime.datetime.now()))
 
-        self.model.fit(x=self.train_dataset,
+        self.model.fit(x=train_dataset,
                        epochs=self.epochs,
                        verbose=1,
-                       validation_data=self.val_dataset,
-                       callbacks=self.callbacks,
+                       validation_data=val_dataset,
+                       # callbacks=self.callbacks,
                        steps_per_epoch=self.train_steps_per_epoch,
                        initial_epoch=0,
                        use_multiprocessing=True)

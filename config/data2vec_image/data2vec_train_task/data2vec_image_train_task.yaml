@@ -9,10 +9,20 @@ TrainTask:
     labels: False
     dataset_names: cifar10
 
+  input_shape:
+    -
+      -
+      - 32
+      - 32
+      - 3
+    -
+      -
+      - 16
+
   model:
     _target_: model.data2vec_image_model.Data2VecModel
 
-    len_latent_space: 60 #
+    len_latent_space: 16 #
     tau: 0.9
 
     conv_encoder:
@@ -51,7 +61,7 @@ TrainTask:
           -
             - 256
             - 3
-            - 2
+            - 1
           -
             - 256
             - 3
@@ -116,6 +126,7 @@ TrainTask:
       num_attention_heads: 8
       dff: 768
       dropout_rate: 0.1
+      dim_conv: 1
 
   loss:
     _target_: losses.smooth_l1_loss.SmoothL1Loss
@@ -137,9 +148,9 @@ TrainTask:
 
   processor:
     _target_: processors.processor_images.Processor
-    t_axis: 10000
+    t_axis: 16
     prob2mask: 0.065
-    masking_size: 10
+    masking_size: 1
     load_label: False
 
   batch_size:

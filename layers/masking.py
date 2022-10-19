@@ -29,7 +29,7 @@ class Masking(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     import tensorflow as tf
-    inputs = [tf.Variable(tf.random.normal((2, 40, 8))), tf.Variable(tf.random.uniform(shape=(2, 40), maxval=1))]
+    inputs = [tf.Variable(tf.random.normal((2, 10000, 8))), tf.Variable(tf.random.uniform(shape=(2, 40), maxval=1))]
     layers = Masking(num_channels=8)
     layers.build((None, 40))
     outputs = layers(inputs)
