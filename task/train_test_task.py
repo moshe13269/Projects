@@ -85,9 +85,11 @@ class TrainTask:
             self.test_dataset = tf.data.Dataset.from_tensor_slices(X_test)
             self.val_dataset = tf.data.Dataset.from_tensor_slices(X_val)
 
+
+
         train_dataset = (self.train_dataset
                          .shuffle(1024)
-                         .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
+                         .map(lambda item: tf.numpy_function(self.processor.load_data, [item], tf.float32),num_parallel_calls=tf.data.AUTOTUNE)#.map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
                          .cache()
                          .repeat()
                          .batch(self.batch_size['train'])
@@ -96,7 +98,7 @@ class TrainTask:
 
         test_dataset = (self.test_dataset
                         .shuffle(1024)
-                        .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
+                        .map(lambda item: tf.numpy_function(self.processor.load_data, [item], tf.float32),num_parallel_calls=tf.data.AUTOTUNE)#.map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
                         .cache()
                         .repeat()
                         .batch(self.batch_size['test'])
@@ -105,7 +107,7 @@ class TrainTask:
 
         val_dataset = (self.val_dataset
                        .shuffle(1024)
-                       .map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
+                       .map(lambda item: tf.numpy_function(self.processor.load_data, [item], tf.float32),num_parallel_calls=tf.data.AUTOTUNE)#.map(self.processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
                        .cache()
                        .repeat()
                        .batch(self.batch_size['valid'])
@@ -116,6 +118,11 @@ class TrainTask:
         # self.model.build(
         #     input_shape=([(None, 32, 32, 3), (None, 16)]))  # self.input_shape) #[(None, 32, 32, 3), (None, 16)]
 
+        # input1 = tf.keras.layers.Input(shape=(32, 32, 3,))
+        # input2 = tf.keras.layers.Input(shape=(1, 1, 4,))
+        # input = tf.keras.layers.Concatenate()([input1, input1])
+
+        self.model.build(([(None, 32, 32, 3), (None, 16)]))
         self.model.compile(optimizer=self.optimizer, loss=self.loss)
 
         mlflow.keras.autolog(registered_model_name=self.model_name + str(datetime.datetime.now()))
