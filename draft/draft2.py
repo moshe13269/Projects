@@ -49,9 +49,9 @@ class BaseModel2(tf.keras.Model):
 
     def __init__(self):
         super().__init__()
-        self.inputs1 = tf.keras.layers.Input(shape=(32, 32, 3,))
-        self.inputs2 = tf.keras.layers.Input(shape=(10,))
-        self.inputs = tf.c
+        # self.inputs1 = tf.keras.layers.Input(shape=(32, 32, 3,))
+        # self.inputs2 = tf.keras.layers.Input(shape=(10,))
+        # self.inputs = tf.c
         self.conv1 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
         self.conv2 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
         self.relu = tf.keras.layers.Activation(tf.nn.relu)
@@ -61,8 +61,9 @@ class BaseModel2(tf.keras.Model):
 
     def call(self, inputs, **kwargs):
         # inputs1 = self.input1(inputs)
-        outputs = self.conv1(inputs[0])
+        outputs = self.conv1(inputs)
         outputs = self.relu(outputs)
+        tf.print(tf.shape(inputs))
         outputs = self.conv2(outputs)
         outputs = self.relu(outputs)
         outputs = self.flatten(outputs)
@@ -98,8 +99,8 @@ if __name__ == '__main__':
     output_shapes = (([2, 2], [2, 3]), [2, 5])
     # ds = ds.flat_map()
         # .map(lambda x, y: tf.data.Dataset.from_tensor_slices(tf.stack([tf.broadcast_to(x, (repeats,)), y], axis=1)))
-    print(ds.__iter__().__next__())
-    a = ds.__iter__().__next__()
+    # print(ds.__iter__().__next__())
+    # a = ds.__iter__().__next__()
 
     train = Train(r'C:\Users\moshe\PycharmProjects\datasets\dataset_draft')
     train.run()

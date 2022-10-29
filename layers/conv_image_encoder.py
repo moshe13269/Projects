@@ -13,6 +13,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[List[Tuple[int, int, int]]],  # List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
+                 conv_input_shape: Tuple[int, int, int],
                  activation: str,
                  units: int,
                  dropout: float = 0.0,
@@ -22,6 +23,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
         self.reshape = Reshape((16, 512))
+        self.conv_input_shape = conv_input_shape
 
         def block(layers_param,
                   activation,
@@ -81,7 +83,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                                          make_conv1(),
                                          Dropout(rate=dropout)])
 
-        layers = []
+        layers = [] #[tf.keras.layers.Input(shape=self.conv_input_shape)]
 
         for i, layers_param in enumerate(conv_layers):
             assert len(layers_param) == 2 and len(layers_param[0]) == len(layers_param[1]) == 3, \
@@ -105,7 +107,10 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.fc = Dense(units=units, activation=activation)
 
-    def __call__(self, inputs):
+    # def build(self, input_shape):
+
+
+    def call(self, inputs, **kwargs):
         # BxT -> BxTxC
         # if len(inputs.shape) == 3:
         #     inputs = tf.expand_dims(inputs, axis=-1)
@@ -122,6 +127,10 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         inputs = self.avg_pool(inputs)
         inputs = self.reshape(inputs)
         return self.fc(inputs)
+
+    # @input_shape.setter
+    # def input_shape(self, value):
+    #     self._input_shape = value
 
 
 if __name__ == '__main__':

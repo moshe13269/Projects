@@ -26,13 +26,20 @@ class Processor:
         # self.top_k_transformer = top_k_transformer
 
     # the masking area is '1' and the unmasking by '0'
-    @tf.function(autograph=True)
+    # @tf.function(autograph=True)
     def create_mask(self):
-        rand_uniform = tf.random.uniform(maxval=1, shape=(self.t_axis,))
-        mask = tf.where(
-            tf.sign(rand_uniform - tf.reduce_min(tf.math.top_k(rand_uniform, k=self.point2mask)[0])) >= 0.,
-            1., 0.)
-        return mask
+        rand_uniform = np.random.uniform(high=1., size=(self.t_axis,))
+        #top k:
+        indexes_top_k = np.argpartition(rand_uniform, -self.point2mask)[-self.point2mask:]
+        top_k = rand_uniform[indexes_top_k]
+        min_from_top_k = np.nanmin(top_k, axis=-1)
+        mask = np.where(np.sign(rand_uniform - min_from_top_k) >= 0, 1., 0.)
+
+        # rand_uniform = tf.random.uniform(maxval=1, shape=(self.t_axis,))
+        # mask = tf.where(
+        #     tf.sign(rand_uniform - tf.reduce_min(tf.math.top_k(rand_uniform, k=self.point2mask)[0])) >= 0.,
+        #     1., 0.)
+        return np.ndarray.astype(mask, np.float32)
 
     # @tf.function(input_signature=[tf.TensorSpec(None, tf.string)]) # @tf.function(autograph=True)
     def load_data(self, path2data):
@@ -48,7 +55,8 @@ class Processor:
 
         image = np.ndarray.astype(image, np.float32)
         label = np.ndarray.astype(label, np.float32)
-        return (image, label), (label)
+
+        return image, label
 
 
 if __name__ == '__main__':

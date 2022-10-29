@@ -103,6 +103,11 @@ TrainTask:
         - 1
         - 2
 
+      conv_input_shape:
+        - 32
+        - 32
+        - 3
+
       dropout: 0.0
       conv_bias: False
 

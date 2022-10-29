@@ -8,7 +8,7 @@ from tensorflow.python.keras import Input
 from dataclasses import dataclass, field
 
 
-class Data2VecModel(tf.keras.Model):
+class Data2VecModel: #(tf.keras.Model):
     masking: bool
     masking_layer: Masking
     len_latent_space: int
@@ -29,7 +29,7 @@ class Data2VecModel(tf.keras.Model):
                  top_k_transformer: int
                  ):
 
-        super(Data2VecModel, self).__init__()
+        super().__init__()
 
         # self.prob2mask = prob2mask
         # self.masking_length = masking_length
@@ -44,15 +44,22 @@ class Data2VecModel(tf.keras.Model):
         self.tau = tau
         self.top_k_transformer = top_k_transformer
 
+        self.inputs1 = tf.keras.layers.Input(shape=(32, 32, 3,))
+        self.inputs2 = tf.keras.layers.Input(shape=(10,))
     # def build(self, input_shape=([(None, 32, 32, 3), (None, 16)])):
     #     inputs = Input(shape=([(None, 32, 32, 3), (None, 16)]))
     # def __call__(self, inputs, **kwargs):
 
-    def call(self, inputs, **kwargs):
+    # @staticmethod
+    def call(self): #(self, inputs, **kwargs):
         # input = tf.keras.layers.InputLayer([(None, 32, 32, 3), (None, 16)])
 
-        image_file = inputs[0]
-        mask = inputs[1]
+        # image_file = inputs[0]
+        # mask = inputs[1]
+        # tf.print(image_file)
+        # tf.print(mask)
+        image_file = self.inputs1()
+        mask = self.inputs2()
 
         latent_image = self.conv_encoder(image_file)
 
@@ -77,7 +84,9 @@ class Data2VecModel(tf.keras.Model):
 
         teacher_encoding = tf.stop_gradient(teacher_encoding * self.tau + (1 - self.tau) * student_encoding)
 
-        return tf.concat([teacher_encoding, student_encoding], axis=1), mask
+        outputs = tf.concat([teacher_encoding, student_encoding], axis=1), mask
+
+        return tf.keras.Model(inputs=[self.inputs1, self.inputs2], outputs=outputs)
 
     # @self.input_shape.setter
     # def input_shape(self, value):
