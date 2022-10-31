@@ -68,7 +68,7 @@ class EncoderLayer(tf.keras.layers.Layer):
         # Dropout for the point-wise feed-forward network.
         self.dropout1 = tf.keras.layers.Dropout(dropout_rate)
 
-    def __call__(self, x, training):
+    def call(self, x, training):
         # Multi-head self-attention output (`tf.keras.layers.MultiHeadAttention `).
         attn_output = self.mha(
             query=x,  # Query Q tensor.
@@ -90,7 +90,7 @@ class EncoderLayer(tf.keras.layers.Layer):
         return out2
 
 
-class TransformerEncoder(tf.keras.layers.Layer):
+class TransformerEncoder(tf.keras.Model):
     num_layers: int
     d_model: int
     num_attention_heads: int
@@ -100,7 +100,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
     dim_conv: int
 
     def __init__(self,
-                 *,
+                 # *,
                  num_layers,
                  d_model,  # Input/output dimensionality.
                  num_attention_heads,
@@ -130,7 +130,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
         # Dropout.
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
 
-    def __call__(self, x, training, top_k_transformer=None):
+    def call(self, x, training, top_k_transformer=None):
 
         x = self.layer_norm(x + self.conv_pos_encoding(x))
         x = self.dropout(x, training=training)
@@ -149,7 +149,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
                 x = encoder_layer(x, training=training)
                 if counter >= index_k0:
                     top_k_layers += x
-            return tf.stop_gradient(x/top_k_transformer)  # Shape `(batch_size, input_seq_len, d_model)`.
+            return top_k_layers / top_k_transformer  #x / top_k_transformer  # Shape `(batch_size, input_seq_len, d_model)`.
 
 
 if __name__ == '__main__':

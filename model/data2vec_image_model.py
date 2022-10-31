@@ -8,7 +8,30 @@ from tensorflow.python.keras import Input
 from dataclasses import dataclass, field
 
 
-class Data2VecModel: #(tf.keras.Model):
+
+class BaseModel:
+
+    in1 = tf.keras.layers.Input(shape=(32, 32, 3,))
+    in2 = tf.keras.layers.Input(shape=(10,))
+    conv1 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
+    relu = tf.keras.layers.Activation(tf.nn.relu)
+    conv2 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
+    flatten = tf.keras.layers.Flatten()
+    dense = tf.keras.layers.Dense(units=10)
+    softmax = tf.keras.layers.Activation(tf.nn.softmax)
+
+    @staticmethod
+    def call():
+        outputs = BaseModel.relu(BaseModel.conv1(BaseModel.in1))
+        outputs = BaseModel.relu(BaseModel.conv2(outputs))
+        outputs = BaseModel.flatten(outputs)
+        outputs = BaseModel.dense(outputs)
+        # outputs = outputs-BaseModel.in2
+        outputs = BaseModel.softmax(outputs-BaseModel.in2)
+        return tf.keras.Model(inputs=[BaseModel.in1, BaseModel.in2], outputs=outputs)
+
+
+class Data2VecModel:
     masking: bool
     masking_layer: Masking
     len_latent_space: int
@@ -31,9 +54,6 @@ class Data2VecModel: #(tf.keras.Model):
 
         super().__init__()
 
-        # self.prob2mask = prob2mask
-        # self.masking_length = masking_length
-
         self.masking = masking  # bool
         self.masking_layer = masking_layer
 
@@ -45,48 +65,70 @@ class Data2VecModel: #(tf.keras.Model):
         self.top_k_transformer = top_k_transformer
 
         self.inputs1 = tf.keras.layers.Input(shape=(32, 32, 3,))
-        self.inputs2 = tf.keras.layers.Input(shape=(10,))
-    # def build(self, input_shape=([(None, 32, 32, 3), (None, 16)])):
-    #     inputs = Input(shape=([(None, 32, 32, 3), (None, 16)]))
-    # def __call__(self, inputs, **kwargs):
+        self.inputs2 = tf.keras.layers.Input(shape=(16,))
 
-    # @staticmethod
-    def call(self): #(self, inputs, **kwargs):
-        # input = tf.keras.layers.InputLayer([(None, 32, 32, 3), (None, 16)])
-
-        # image_file = inputs[0]
-        # mask = inputs[1]
-        # tf.print(image_file)
-        # tf.print(mask)
-        image_file = self.inputs1()
-        mask = self.inputs2()
-
-        latent_image = self.conv_encoder(image_file)
+    def build(self):
+        latent_image = self.conv_encoder(self.inputs1)
 
         teacher_inputs = tf.stop_gradient(tf.identity(latent_image))
 
-        if self.masking:
-            masked_latent_space, mask = self.masking_layer([latent_image, mask])
-            # tf.print(tf.reduce_mean(masked_latent_space), tf.reduce_mean(mask))
-        else:
-            masked_latent_space = latent_image
-            mask = tf.Variable([0])
+        masked_latent_space = self.masking_layer([latent_image, self.inputs2])
 
         student_encoding = self.transformer_encoder(masked_latent_space,
                                                     training=True,
-                                                    top_k_transformer=1)[0]
+                                                    top_k_transformer=1)
 
-        teacher_encoding = tf.stop_gradient(self.transformer_encoder(teacher_inputs,
-                                                                     training=False,
-                                                                     top_k_transformer=self.top_k_transformer))
+        teacher_encoding = self.transformer_encoder(teacher_inputs, training=False,
+                                                    top_k_transformer=self.top_k_transformer)
 
-        teacher_encoding = tf.stop_gradient(tf.reduce_mean(self.ffn(teacher_encoding), axis=1))
+        # teacher_encoding = tf.reduce_mean(self.ffn(teacher_encoding), axis=1)
 
-        teacher_encoding = tf.stop_gradient(teacher_encoding * self.tau + (1 - self.tau) * student_encoding)
+        teacher_encoding = teacher_encoding * self.tau + (1 - self.tau) * student_encoding
 
-        outputs = tf.concat([teacher_encoding, student_encoding], axis=1), mask
+        teacher_encoding = tf.stop_gradient(teacher_encoding)
+
+        outputs = tf.concat([student_encoding, teacher_encoding], axis=0)
 
         return tf.keras.Model(inputs=[self.inputs1, self.inputs2], outputs=outputs)
+
+
+    # # @staticmethod
+    # def call(self): #(self, inputs, **kwargs):
+    #     # input = tf.keras.layers.InputLayer([(None, 32, 32, 3), (None, 16)])
+    #
+    #     # image_file = inputs[0]
+    #     # mask = inputs[1]
+    #     # tf.print(image_file)
+    #     # tf.print(mask)
+    #     image_file = self.inputs1()
+    #     mask = self.inputs2()
+    #
+    #     latent_image = self.conv_encoder(image_file)
+    #
+    #     teacher_inputs = tf.stop_gradient(tf.identity(latent_image))
+    #
+    #     if self.masking:
+    #         masked_latent_space, mask = self.masking_layer([latent_image, mask])
+    #         # tf.print(tf.reduce_mean(masked_latent_space), tf.reduce_mean(mask))
+    #     else:
+    #         masked_latent_space = latent_image
+    #         mask = tf.Variable([0])
+    #
+    #     student_encoding = self.transformer_encoder(masked_latent_space,
+    #                                                 training=True,
+    #                                                 top_k_transformer=1)[0]
+    #
+    #     teacher_encoding = tf.stop_gradient(self.transformer_encoder(teacher_inputs,
+    #                                                                  training=False,
+    #                                                                  top_k_transformer=self.top_k_transformer))
+    #
+    #     teacher_encoding = tf.stop_gradient(tf.reduce_mean(self.ffn(teacher_encoding), axis=1))
+    #
+    #     teacher_encoding = tf.stop_gradient(teacher_encoding * self.tau + (1 - self.tau) * student_encoding)
+    #
+    #     outputs = tf.concat([teacher_encoding, student_encoding], axis=1), mask
+    #
+    #     return tf.keras.Model(inputs=[self.inputs1, self.inputs2], outputs=outputs)
 
     # @self.input_shape.setter
     # def input_shape(self, value):

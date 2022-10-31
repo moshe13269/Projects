@@ -88,9 +88,10 @@ class TrainTask:
         train_dataset = (self.train_dataset
                          .shuffle(1024)
                          .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
-                              , num_parallel_calls=tf.data.AUTOTUNE).map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
+                              , num_parallel_calls=tf.data.AUTOTUNE).map(
+            lambda x, y: ((x, y), y))  # map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
                          .cache()
-                         .repeat()
+                         # .repeat()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
                          )
@@ -98,9 +99,9 @@ class TrainTask:
         test_dataset = (self.test_dataset
                         .shuffle(1024)
                         .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
-                             , num_parallel_calls=tf.data.AUTOTUNE).map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
+                             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
                         .cache()
-                        .repeat()
+                        # .repeat()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
                         )
@@ -108,41 +109,60 @@ class TrainTask:
         val_dataset = (self.val_dataset
                        .shuffle(1024)
                        .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
-                            , num_parallel_calls=tf.data.AUTOTUNE).map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
+                            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
                        .cache()
-                       .repeat()
+                       # .repeat()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
                        )
 
+        model = self.model.build()
 
-        # self.model.build(
-        #     input_shape=([(None, 32, 32, 3), (None, 16)]))  # self.input_shape) #[(None, 32, 32, 3), (None, 16)]
+        model.compile(optimizer=self.optimizer, loss=self.loss)
 
-        # input1 = tf.keras.layers.Input(shape=(32, 32, 3,))
-        # input2 = tf.keras.layers.Input(shape=(1, 1, 4,))
-        # input = tf.keras.layers.Concatenate()([input1, input1])
+        mlflow.keras.autolog()
 
-        # self.model.build([(None, 32, 32, 3), (None, 16)])
-        # self.model.call()
-        self.model.compile(optimizer=self.optimizer, loss=self.loss)
+        # mlflow.keras.log_model(registered_model_name=self.model_name + str(datetime.datetime.now()),
+        #                        log_models=True,
+        #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
+        #                        keras_model=model)
 
-        mlflow.keras.autolog(registered_model_name=self.model_name + str(datetime.datetime.now()))
+        with mlflow.start_run():
+            # log parameters
+            # mlflow.log_param("hidden_layers", args.hidden_layers)
+            # mlflow.log_param("output", args.output)
+            mlflow.log_param("epochs", self.epochs)
+            mlflow.log_param("loss_function", self.loss)
+            # log metrics
+            # mlflow.log_metric("binary_loss", ktrain_cls.get_binary_loss(history))
+            # mlflow.log_metric("binary_acc", ktrain_cls.get_binary_acc(history))
+            # mlflow.log_metric("validation_loss", ktrain_cls.get_binary_loss(history))
+            # mlflow.log_metric("validation_acc", ktrain_cls.get_validation_acc(history))
+            # mlflow.log_metric("average_loss", results[0])
+            # mlflow.log_metric("average_acc", results[1])
 
-        self.model.fit(x=train_dataset,
-                       epochs=self.epochs,
-                       verbose=1,
-                       validation_data=val_dataset,
-                       # callbacks=self.callbacks,
-                       steps_per_epoch=self.train_steps_per_epoch,
-                       initial_epoch=0,
-                       use_multiprocessing=True)
+            # log artifacts (matplotlib images for loss/accuracy)
+            # mlflow.log_artifacts(r'C:\Users\moshe\PycharmProjects\mlflow\image')
+            # log model
+            # mlflow.keras.log_model(model, r'C:\Users\moshe\PycharmProjects\mlflow')
+
+
+
+        # with mlflow.start_run():
+            model.fit(x=train_dataset,
+                      epochs=self.epochs,
+                      verbose=1,
+                      validation_data=val_dataset,
+                      # callbacks=self.callbacks,
+                      steps_per_epoch=self.train_steps_per_epoch,
+                      initial_epoch=0,
+                      use_multiprocessing=True)
 
         # run_name = f'test_split_{test_inx}__val_split_{crossval_inx}'
         #
         # with self.logger.start_run(run_name=run_name, nested=True):
 
-        prediction = self.model.evaluate(x=self.test_dataset)
+        # prediction = self.model.evaluate(x=self.test_dataset)
 
         # # option
         # results = self.results(prediction)
@@ -155,8 +175,8 @@ class TrainTask:
         #     mlflow.log_param("maxdepth", max_depth)
         #     mlflow.log_param("max_feat", max_features)
 
-        tf.saved_model.save(self.model,
-                            self.path2save_model, )
+        # model.save(self.path2save_model)
+            mlflow.keras.save_model(model, self.path2save_model)
 
 
 if __name__ == '__main__':

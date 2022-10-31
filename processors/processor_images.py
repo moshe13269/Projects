@@ -26,7 +26,6 @@ class Processor:
         # self.top_k_transformer = top_k_transformer
 
     # the masking area is '1' and the unmasking by '0'
-    # @tf.function(autograph=True)
     def create_mask(self):
         rand_uniform = np.random.uniform(high=1., size=(self.t_axis,))
         #top k:
@@ -41,15 +40,14 @@ class Processor:
         #     1., 0.)
         return np.ndarray.astype(mask, np.float32)
 
-    # @tf.function(input_signature=[tf.TensorSpec(None, tf.string)]) # @tf.function(autograph=True)
     def load_data(self, path2data):
-        if self.load_label:
-            path2label = path2data.replace('data', 'labels')
-            label_file = open(path2label, 'r')
-            label = pickle.load(label_file)
-            # todo: convert to onehot vector
-        else:
-            label = self.create_mask()
+        # if self.load_label:
+        #     path2label = path2data.replace('data', 'labels')
+        #     label_file = open(path2label, 'r')
+        #     label = pickle.load(label_file)
+        #     # todo: convert to onehot vector
+        # else:
+        label = self.create_mask()
 
         image = np.load(path2data)
 

@@ -13,7 +13,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[List[Tuple[int, int, int]]],  # List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
-                 conv_input_shape: Tuple[int, int, int],
+                 # conv_input_shape: Tuple[int, int, int],
                  activation: str,
                  units: int,
                  dropout: float = 0.0,
@@ -22,8 +22,8 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         super(ConvFeatureExtractionModel, self).__init__()
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
-        self.reshape = Reshape((16, 512))
-        self.conv_input_shape = conv_input_shape
+        self.reshape = Reshape((16, 512,))
+        # self.conv_input_shape = conv_input_shape
 
         def block(layers_param,
                   activation,
@@ -55,7 +55,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
             assert (is_layer_norm and is_group_norm) == False, "layer norm and group norm are exclusive"
 
             if is_layer_norm and activation is not None:
-                return keras.Sequential([
+                return tf.keras.Sequential([
                     make_conv0(),
                     Dropout(rate=dropout),
                     tf.keras.layers.LayerNormalization(),
@@ -66,7 +66,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                 ])
 
             elif is_group_norm and activation is not None:
-                return keras.Sequential([
+                return tf.keras.Sequential([
                     make_conv0(),
                     Dropout(rate=dropout),
                     tfa.layers.GroupNormalization(),
@@ -77,7 +77,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                 ])
 
             else:
-                return keras.Sequential([make_conv0(),
+                return tf.keras.Sequential([make_conv0(),
                                          Dropout(rate=dropout),
                                          tf.keras.layers.Activation(activation),
                                          make_conv1(),
@@ -109,41 +109,39 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
     # def build(self, input_shape):
 
-
-    def call(self, inputs, **kwargs):
+    def call(self, x): #call(self, inputs, **kwargs):
         # BxT -> BxTxC
         # if len(inputs.shape) == 3:
         #     inputs = tf.expand_dims(inputs, axis=-1)
 
         for conv in self.conv_layers:
-            x = inputs
-            inputs = conv(inputs)
+            inputs = x
+            x = conv(inputs)
 
-            if inputs.shape == x.shape:
-                inputs = self.activation(x + inputs)
-            else:
-                inputs = self.activation(inputs)
+            # x_shape = tf.gather_nd(indices=[1, 2], params=tf.shape(x))
+            # inputs_shape = tf.gather_nd(indices=[1, 2], params=tf.shape(inputs))
+            # if x_shape == inputs_shape:
+            #     # if tf.math.equal(tf.shape(inputs), tf.shape(x)): # and tf.gather(tf.shape(x)):
+            #     x = self.activation(x + inputs)
+            # else:
+            x = self.activation(x)
 
-        inputs = self.avg_pool(inputs)
-        inputs = self.reshape(inputs)
-        return self.fc(inputs)
-
-    # @input_shape.setter
-    # def input_shape(self, value):
-    #     self._input_shape = value
+        x = self.avg_pool(x)
+        x = self.reshape(x)
+        return self.fc(x)
 
 
 if __name__ == '__main__':
     data = tf.random.normal((4, 32, 32, 3))
     conv_layers: List[List[Tuple[int, int, int]]] = [[(64, 3, 1), (64, 3, 1)],
-                                                     [(128, 3, 1), (128, 3, 2)],
+                                                     [(128, 3, 2), (128, 3, 1)],
+                                                     [(128, 3, 1), (128, 3, 1)],
                                                      [(256, 3, 1), (256, 3, 1)],
-                                                     [(512, 3, 1), (512, 3, 2)],
-                                                     [(512, 3, 1), (512, 3, 1)],
-                                                     [(512, 3, 1), (512, 3, 1)],
+                                                     [(256, 3, 1), (256, 3, 1)],
+                                                     [(512, 3, 2), (512, 3, 1)],
                                                      [(512, 3, 1), (512, 3, 1)]]
 
-    num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 1, 1, 3, 1, 2)
+    num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 2, 1, 2, 1, 2)
     conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
                                       num_duplicate_layer=num_duplicate_layer)
     output = conv(data)

@@ -103,10 +103,17 @@ TrainTask:
         - 1
         - 2
 
-      conv_input_shape:
-        - 32
-        - 32
-        - 3
+#      conv_input_shape:
+#        - 32
+#        - 32
+#        - 3
+
+#
+#      conv_outputs_shape:
+#        - 16
+#        - 16
+#        - 512
+#        -
 
       dropout: 0.0
       conv_bias: False
@@ -145,30 +152,30 @@ TrainTask:
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate:
+    learning_rate: 0.001
     beta_1: 0.9 #
     beta_2: 0.99 #
 
-  train_steps_per_epoch: 100
+  train_steps_per_epoch: 10
 
   processor:
     _target_: processors.processor_images.Processor
     t_axis: 16
-    prob2mask: 0.065
+    prob2mask: 0.65
     masking_size: 1
     load_label: False
 
   batch_size:
-    train: 128
-    test: 128
-    valid: 32
+    train: 32 #128
+    test: 32 #128
+    valid: 32 #32
 
-  epochs: 10
-  path2save_model: r'C:\Users\moshe\PycharmProjects\save_models\models'
+  epochs: 2
+  path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
   model_name: data2vec
 
   results:
     _target_: results.results.Results
-    path2save_results: r'C:\Users\moshe\PycharmProjects\save_models\results'
+    path2save_results: C:\Users\moshe\PycharmProjects\save_models\results
     num_class: 100
 
