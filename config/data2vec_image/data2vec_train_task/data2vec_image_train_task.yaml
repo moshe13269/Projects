@@ -167,8 +167,8 @@ TrainTask:
   processor:
     _target_: processors.processor_images.Processor
     t_axis: 16
-    prob2mask: 0.65
-    masking_size: 1
+    prob2mask: 0.4
+    masking_size: 2
     load_label: False
 
   batch_size:
