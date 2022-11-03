@@ -86,8 +86,9 @@ class Data2VecModel:
 
         # teacher_encoding = self.ffn(teacher_encoding)
         # teacher_encoding = tf.reduce_mean(self.ffn(teacher_encoding), axis=1)
+        tau = tf.constant(self.tau, name='tau')
 
-        teacher_encoding = teacher_encoding * self.tau + (1 - self.tau) * student_encoding
+        teacher_encoding = teacher_encoding * tau + (1 - tau) * student_encoding
 
         teacher_encoding = tf.stop_gradient(teacher_encoding)
 

@@ -103,10 +103,20 @@ TrainTask:
     _target_: tf.keras.losses.MeanSquaredError
 
   callbacks:
-    _target_: callbacks.callbacks.EMACallback
-    t_n: 30000
-    t_0: 0.999
-    t_e: 0.9999
+#    -
+#      _target_: callbacks.callbacks.EMACallback
+#      t_n: 30000
+#      t_0: 0.999
+#      t_e: 0.9999
+    -
+      _target_: callbacks.callbacks.LearnRateSchedulerTriStage
+      initial_lr: 0.0001
+      peak: 0.00005
+      steps2warp_up: 0.03
+      steps2hold: 0.67
+      decay: 0.3
+      train_steps_per_epoch: 10
+      epochs: 15
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam

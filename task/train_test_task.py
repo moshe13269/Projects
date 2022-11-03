@@ -153,7 +153,7 @@ class TrainTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          # callbacks=self.callbacks,
+                          callbacks=self.callbacks,
                           steps_per_epoch=self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
