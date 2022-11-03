@@ -166,7 +166,7 @@ TrainTask:
     load_label: False
 
   batch_size:
-    train: 64
+    train: 128
     test: 32 #128
     valid: 64
 

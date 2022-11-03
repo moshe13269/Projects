@@ -1,12 +1,10 @@
 
 import tensorflow as tf
-from typing import List, Tuple
 from layers.masking import Masking
 from layers.ffn import FFN
 from layers.transformer_encoder import TransformerEncoder
-from layers.conv_feature_encoder import ConvFeatureExtractionModel
+from layers.archive.conv_feature_encoder import ConvFeatureExtractionModel
 from tensorflow.python.keras import Input
-from dataclasses import dataclass, field
 
 
 class Data2VecModel(tf.keras.Model):

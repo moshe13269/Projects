@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 from typing import List, Tuple
 import tensorflow_addons as tfa
@@ -11,7 +10,7 @@ def clac_conv_output():
 
 class ConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
-                 conv_layers: List[List[Tuple[int, int, int]]],  # List[Tuple[int, int, int]],
+                 conv_layers: List[List[Tuple[int, int, int]]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
                  activation: str,
                  units: int,
@@ -104,7 +103,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.fc = Dense(units=units, activation=activation)
 
-    def call(self, x, **kwargs): # call(self, x):  #
+    def call(self, x, **kwargs): #call(self, x):  #
         # BxT -> BxTxC
 
         for conv in self.conv_layers:
