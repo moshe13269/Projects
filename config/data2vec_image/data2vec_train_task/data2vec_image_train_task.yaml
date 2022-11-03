@@ -25,6 +25,14 @@ TrainTask:
     len_latent_space: 16 #
     tau: 0.999
 
+    inputs1:
+      - 32
+      - 32
+      - 3
+
+    inputs2:
+      - 16
+
     conv_encoder:
       _target_: layers.conv_image_encoder.ConvFeatureExtractionModel
       activation: gelu

@@ -7,23 +7,28 @@ TrainTask:
     path2load: C:\Users\moshe\PycharmProjects\datasets\wav_fake
     type_files: npy
     labels: False
-    dataset_names: cifar10
+    dataset_names: fake_wav
 
   input_shape:
     -
       -
-      - 32
-      - 32
-      - 3
+      - 1000
     -
       -
-      - 16
+      - 210
 
   model:
     _target_: model.data2vec_image_model.Data2VecModel
 
-    len_latent_space: 16
+    len_latent_space: 210
     tau: 0.9
+
+    input1:
+      - 10000
+      - 1
+
+    input2:
+      - 210
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -95,8 +100,7 @@ TrainTask:
       dim_conv: 1
 
   loss:
-    _target_: tf.keras.losses.MeanSquaredError          #losses.smooth_l1_loss.SmoothL1Loss
-#    beta: 0.5
+    _target_: tf.keras.losses.MeanSquaredError
 
   callbacks:
     _target_: callbacks.callbacks.EMACallback
@@ -114,7 +118,7 @@ TrainTask:
 
   processor:
     _target_: processors.processor_wav_files.Processor
-    t_axis: 16
+    t_axis: 10000
     prob2mask: 0.65
     masking_size: 1
     load_label: False

@@ -39,6 +39,8 @@ class Data2VecModel:
     ffn: FFN
     tau: float
     top_k_transformer: int
+    inputs1: Tuple[int, int, int]
+    inputs2: Tuple[int, int, int]
 
     def __init__(self,
                  masking: bool,
@@ -48,7 +50,9 @@ class Data2VecModel:
                  transformer_encoder: TransformerEncoder,
                  ffn: FFN,
                  tau: float,
-                 top_k_transformer: int
+                 top_k_transformer: int,
+                 inputs1: Tuple[int, int, int],
+                 inputs2: Tuple[int, int, int],
                  ):
 
         super().__init__()
@@ -63,8 +67,8 @@ class Data2VecModel:
         self.tau = tau
         self.top_k_transformer = top_k_transformer
 
-        self.inputs1 = tf.keras.layers.Input(shape=(32, 32, 3,))
-        self.inputs2 = tf.keras.layers.Input(shape=(16,))
+        self.inputs1 = tf.keras.layers.Input(inputs1) #(shape=(32, 32, 3,))
+        self.inputs2 = tf.keras.layers.Input(inputs2) #(shape=(16,))
 
     def build(self):
         latent_image = self.conv_encoder(self.inputs1)
