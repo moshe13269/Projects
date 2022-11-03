@@ -26,7 +26,7 @@ TrainTask:
     tau: 0.9
 
     conv_encoder:
-      _target_: layers.conv_image_encoder.ConvFeatureExtractionModel
+      _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
       activation: gelu
       units: 512
       conv_layers:
