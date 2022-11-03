@@ -1,3 +1,4 @@
+
 import pickle
 import numpy as np
 import tensorflow as tf
@@ -34,20 +35,16 @@ class Processor:
         min_from_top_k = np.nanmin(top_k, axis=-1)
         mask = np.where(np.sign(rand_uniform - min_from_top_k) >= 0, 1., 0.)
 
-        # rand_uniform = tf.random.uniform(maxval=1, shape=(self.t_axis,))
-        # mask = tf.where(
-        #     tf.sign(rand_uniform - tf.reduce_min(tf.math.top_k(rand_uniform, k=self.point2mask)[0])) >= 0.,
-        #     1., 0.)
         return np.ndarray.astype(mask, np.float32)
 
     def load_data(self, path2data):
-        # if self.load_label:
-        #     path2label = path2data.replace('data', 'labels')
-        #     label_file = open(path2label, 'r')
-        #     label = pickle.load(label_file)
+        if self.load_label:
+            path2label = path2data.replace('data', 'labels')
+            label_file = open(path2label, 'r')
+            label = pickle.load(label_file)
         #     # todo: convert to onehot vector
-        # else:
-        label = self.create_mask()
+        else:
+            label = self.create_mask()
 
         image = np.load(path2data)
 

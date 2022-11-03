@@ -4,7 +4,7 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\cifar10
+    path2load: C:\Users\moshe\PycharmProjects\datasets\wav_fake
     type_files: npy
     labels: False
     dataset_names: cifar10
@@ -22,7 +22,7 @@ TrainTask:
   model:
     _target_: model.data2vec_image_model.Data2VecModel
 
-    len_latent_space: 16 #
+    len_latent_space: 16
     tau: 0.9
 
     conv_encoder:
@@ -31,92 +31,46 @@ TrainTask:
       units: 512
       conv_layers:
         -
-          -
-            - 64
-            - 3
-            - 1
-          -
-            - 64
-            - 3
-            - 1
+          - 512
+          - 10
+          - 5
+
         -
-          -
-            - 128
-            - 3
-            - 2
-          -
-            - 128
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 128
-            - 3
-            - 1
-          -
-            - 128
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 256
-            - 3
-            - 1
-          -
-            - 256
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 256
-            - 3
-            - 1
-          -
-            - 256
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 512
-            - 3
-            - 2
-          -
-            - 512
-            - 3
-            - 1
+          - 512
+          - 2
+          - 2
         -
-          -
-            - 512
-            - 3
-            - 1
-          -
-            - 512
-            - 3
-            - 1
+          - 512
+          - 2
+          - 2
 
       num_duplicate_layer:
-        - 2
         - 1
-        - 2
         - 1
-        - 2
         - 1
-        - 2
-
-#      conv_input_shape:
-#        - 32
-#        - 32
-#        - 3
-
-#
-#      conv_outputs_shape:
-#        - 16
-#        - 16
-#        - 512
-#        -
+        - 1
+        - 1
+        - 1
+        - 1
 
       dropout: 0.0
-      conv_bias: False
+      conv_bias: True
 
     masking: True
     masking_layer:
@@ -141,33 +95,33 @@ TrainTask:
       dim_conv: 1
 
   loss:
-    _target_: losses.smooth_l1_loss.SmoothL1Loss
-    beta: 0.5
+    _target_: tf.keras.losses.MeanSquaredError          #losses.smooth_l1_loss.SmoothL1Loss
+#    beta: 0.5
 
   callbacks:
     _target_: callbacks.callbacks.EMACallback
-    t_n: 30000  # int
+    t_n: 30000
     t_0: 0.999
     t_e: 0.9999
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.001
-    beta_1: 0.9 #
-    beta_2: 0.99 #
+    learning_rate: 0.0005
+    beta_1: 0.9
+    beta_2: 0.99
 
   train_steps_per_epoch: 10
 
   processor:
-    _target_: processors.processor_images.Processor
+    _target_: processors.processor_wav_files.Processor
     t_axis: 16
     prob2mask: 0.65
     masking_size: 1
     load_label: False
 
   batch_size:
-    train: 128
-    test: 32 #128
+    train: 64
+    test: 32
     valid: 64
 
   epochs: 15

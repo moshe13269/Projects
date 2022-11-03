@@ -1,7 +1,7 @@
 import tensorflow as tf
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv2D, Dropout, Dense, AveragePooling2D, Reshape
+from tensorflow.python.keras.layers import Conv1D, Dropout, Dense, AveragePooling2D, Reshape
 
 
 def clac_conv_output():
@@ -28,22 +28,12 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                   is_group_norm=False,
                   conv_bias=False):
 
-            (dim0, kernel0, stride0) = layers_param[0]
-            (dim1, kernel1, stride1) = layers_param[1]
+            (dim, kernel, stride) = layers_param
 
-            def make_conv0():
-                conv = Conv2D(filters=dim0,
-                              kernel_size=kernel0,
-                              strides=stride0,
-                              use_bias=conv_bias,
-                              padding='same',
-                              kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
-                return conv
-
-            def make_conv1():
-                conv = Conv2D(filters=dim1,
-                              kernel_size=kernel1,
-                              strides=stride1,
+            def make_conv():
+                conv = Conv1D(filters=dim,
+                              kernel_size=kernel,
+                              strides=stride,
                               use_bias=conv_bias,
                               padding='same',
                               kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
@@ -53,32 +43,26 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
             if is_layer_norm and activation is not None:
                 return tf.keras.Sequential([
-                    make_conv0(),
+                    make_conv(),
                     Dropout(rate=dropout),
                     tf.keras.layers.LayerNormalization(),
                     tf.keras.layers.Activation(activation),
-                    make_conv1(),
-                    Dropout(rate=dropout),
-                    tf.keras.layers.LayerNormalization(),
                 ])
 
             elif is_group_norm and activation is not None:
                 return tf.keras.Sequential([
-                    make_conv0(),
+                    make_conv(),
                     Dropout(rate=dropout),
                     tfa.layers.GroupNormalization(),
                     tf.keras.layers.Activation(activation),
-                    make_conv1(),
-                    Dropout(rate=dropout),
-                    tfa.layers.GroupNormalization(),
                 ])
 
             else:
-                return tf.keras.Sequential([make_conv0(),
-                                            Dropout(rate=dropout),
-                                            tf.keras.layers.Activation(activation),
-                                            make_conv1(),
-                                            Dropout(rate=dropout)])
+                return tf.keras.Sequential([
+                    make_conv(),
+                    Dropout(rate=dropout),
+                    tf.keras.layers.Activation(activation),
+                    ])
 
         layers = []
 
@@ -103,7 +87,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.fc = Dense(units=units, activation=activation)
 
-    def call(self, x, **kwargs): #call(self, x):  #
+    def call(self, x, **kwargs):  # call(self, x):  #
         # BxT -> BxTxC
 
         for conv in self.conv_layers:
@@ -117,7 +101,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((4, 32, 32, 3))
+    data = tf.random.normal((4, 1000))
     conv_layers: List[List[Tuple[int, int, int]]] = [[(64, 3, 1), (64, 3, 1)],
                                                      [(128, 3, 2), (128, 3, 1)],
                                                      [(128, 3, 1), (128, 3, 1)],

@@ -61,6 +61,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                     make_conv1(),
                     Dropout(rate=dropout),
                     tf.keras.layers.LayerNormalization(),
+                    tf.keras.layers.Activation(activation)
                 ])
 
             elif is_group_norm and activation is not None:

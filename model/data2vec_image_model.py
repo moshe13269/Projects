@@ -8,26 +8,26 @@ from tensorflow.python.keras import Input
 from dataclasses import dataclass, field
 
 
-class BaseModel:
-
-    in1 = tf.keras.layers.Input(shape=(32, 32, 3,))
-    in2 = tf.keras.layers.Input(shape=(10,))
-    conv1 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
-    relu = tf.keras.layers.Activation(tf.nn.relu)
-    conv2 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
-    flatten = tf.keras.layers.Flatten()
-    dense = tf.keras.layers.Dense(units=10)
-    softmax = tf.keras.layers.Activation(tf.nn.softmax)
-
-    @staticmethod
-    def call():
-        outputs = BaseModel.relu(BaseModel.conv1(BaseModel.in1))
-        outputs = BaseModel.relu(BaseModel.conv2(outputs))
-        outputs = BaseModel.flatten(outputs)
-        outputs = BaseModel.dense(outputs)
-        # outputs = outputs-BaseModel.in2
-        outputs = BaseModel.softmax(outputs-BaseModel.in2)
-        return tf.keras.Model(inputs=[BaseModel.in1, BaseModel.in2], outputs=outputs)
+# class BaseModel:
+#
+#     in1 = tf.keras.layers.Input(shape=(32, 32, 3,))
+#     in2 = tf.keras.layers.Input(shape=(10,))
+#     conv1 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
+#     relu = tf.keras.layers.Activation(tf.nn.relu)
+#     conv2 = tf.keras.layers.Conv2D(filters=512, kernel_size=3, padding='same')
+#     flatten = tf.keras.layers.Flatten()
+#     dense = tf.keras.layers.Dense(units=10)
+#     softmax = tf.keras.layers.Activation(tf.nn.softmax)
+#
+#     @staticmethod
+#     def call():
+#         outputs = BaseModel.relu(BaseModel.conv1(BaseModel.in1))
+#         outputs = BaseModel.relu(BaseModel.conv2(outputs))
+#         outputs = BaseModel.flatten(outputs)
+#         outputs = BaseModel.dense(outputs)
+#         # outputs = outputs-BaseModel.in2
+#         outputs = BaseModel.softmax(outputs-BaseModel.in2)
+#         return tf.keras.Model(inputs=[BaseModel.in1, BaseModel.in2], outputs=outputs)
 
 
 class Data2VecModel:

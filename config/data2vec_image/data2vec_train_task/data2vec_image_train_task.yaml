@@ -23,7 +23,7 @@ TrainTask:
     _target_: model.data2vec_image_model.Data2VecModel
 
     len_latent_space: 16 #
-    tau: 0.9
+    tau: 0.999
 
     conv_encoder:
       _target_: layers.conv_image_encoder.ConvFeatureExtractionModel
@@ -103,18 +103,6 @@ TrainTask:
         - 1
         - 2
 
-#      conv_input_shape:
-#        - 32
-#        - 32
-#        - 3
-
-#
-#      conv_outputs_shape:
-#        - 16
-#        - 16
-#        - 512
-#        -
-
       dropout: 0.0
       conv_bias: False
 
@@ -146,15 +134,15 @@ TrainTask:
 
   callbacks:
     _target_: callbacks.callbacks.EMACallback
-    t_n: 30000  # int
+    t_n: 30000
     t_0: 0.999
     t_e: 0.9999
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.001
-    beta_1: 0.9 #
-    beta_2: 0.99 #
+    learning_rate: 0.0005
+    beta_1: 0.9
+    beta_2: 0.99
 
   train_steps_per_epoch: 10
 
@@ -167,7 +155,7 @@ TrainTask:
 
   batch_size:
     train: 64
-    test: 32 #128
+    test: 32
     valid: 64
 
   epochs: 15
