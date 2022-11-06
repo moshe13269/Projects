@@ -6,7 +6,7 @@ from tensorflow.python.keras.layers import Conv1D, Dropout, Dense, AveragePoolin
 
 class ConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
-                 conv_layers: List[List[Tuple[int, int, int]]],
+                 conv_layers: List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
                  activation: str,
                  units: int,
@@ -63,8 +63,8 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         layers = []
 
         for i, layers_param in enumerate(conv_layers):
-            assert len(layers_param) == 2 and len(layers_param[0]) == len(layers_param[1]) == 3, \
-                "invalid conv definition: " + str(layers_param)
+            # assert len(layers_param) == 2 and len(layers_param[0]) == len(layers_param[1]) == 3, \
+            #     "invalid conv definition: " + str(layers_param)
             # (dim, kernel, stride) = cl
             for j in range(num_duplicate_layer[i]):
                 layers.append(

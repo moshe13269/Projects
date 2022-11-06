@@ -4,30 +4,30 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\wav_fake
-    type_files: npy
+    path2load: C:\Users\moshe\PycharmProjects\datasets\dx_wav
+    type_files: wav
     labels: False
-    dataset_names: fake_wav
+    dataset_names: dx_wav
 
   input_shape:
     -
       -
-      - 1000
+      - 16384
     -
       -
       - 210
 
   model:
-    _target_: model.data2vec_image_model.Data2VecModel
+    _target_: model.data2vec_wav_model.Data2VecModel
 
     len_latent_space: 210
     tau: 0.9
 
-    input1:
-      - 10000
+    inputs1:
+      - 16384
       - 1
 
-    input2:
+    inputs2:
       - 210
 
     conv_encoder:

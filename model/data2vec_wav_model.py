@@ -15,6 +15,8 @@ class Data2VecModel:
     ffn: FFN
     tau: float
     top_k_transformer: int
+    inputs1: Tuple[int, int, int]
+    inputs2: Tuple[int, int, int]
 
     def __init__(self,
                  masking: bool,
