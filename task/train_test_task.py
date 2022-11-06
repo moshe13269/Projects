@@ -1,16 +1,10 @@
 import mlflow
 import mlflow.keras
-import datetime
 import tensorflow as tf
 from hydra.utils import instantiate
-# from tensorflow.data import AUTOTUNE
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 from utils.utils import outputs_conv_size
-
-# from data2vec_train_task.self_supervised_model import Wav2Vec
-# from losses.diversity_loss import DiversityLoss
-# from losses.contrastive_loss import ContrastiveLoss
 
 
 class TrainTask:
