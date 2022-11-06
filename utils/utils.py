@@ -1,4 +1,3 @@
-
 def padding_same(k, s, w):
     """
     k = filter size
@@ -21,20 +20,7 @@ def clac_conv_layer_output(w, k, s, p=None):
     return ((w - k + 2 * p) / s) + 1  # [(w−k+2*p)/s] + 1
 
 
-def clac_conv2d_output(conv_layers_params, inputs_size):
-    w = inputs_size
-
-    for i, layers_param in enumerate(conv_layers_params):
-        (dim0, kernel0, stride0) = layers_param[0]
-        (dim1, kernel1, stride1) = layers_param[1]
-
-        w = clac_conv_layer_output(w, kernel0, stride0)
-        w = clac_conv_layer_output(w, kernel1, stride1)
-
-    return w
-
-
-def clac_conv1d_output(conv_layers_params, inputs_size):
+def clac_conv_output(conv_layers_params, inputs_size):
     w = inputs_size
 
     for i, layers_param in enumerate(conv_layers_params):
@@ -43,3 +29,21 @@ def clac_conv1d_output(conv_layers_params, inputs_size):
         w = clac_conv_layer_output(w, kernel, stride)
 
     return w
+
+
+def flat_list(list_of_list):
+    flatten_list = []
+    for sublist in list_of_list:
+        for item in sublist:
+            flatten_list.append(item)
+    return flatten_list
+
+
+def repeated_conv_layers(conv_layers, num_duplicate_layer):
+    repeated_list = [list(conv_layers[i]) * num_duplicate_layer[i] for i in range(len(num_duplicate_layer))]
+    return flat_list(repeated_list)
+
+
+def outputs_conv_size(conv_layers, num_duplicate_layer, inputs_size):
+    layers_params = repeated_conv_layers(conv_layers, num_duplicate_layer)
+    return int(clac_conv_output(layers_params, inputs_size)/2)

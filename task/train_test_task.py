@@ -6,7 +6,7 @@ from hydra.utils import instantiate
 # from tensorflow.data import AUTOTUNE
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
-
+from utils.utils import outputs_conv_size
 
 # from data2vec_train_task.self_supervised_model import Wav2Vec
 # from losses.diversity_loss import DiversityLoss
@@ -36,6 +36,10 @@ class TrainTask:
         self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
 
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
+        self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
+                                                  cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
+                                                  cfg.data2vec_train_task.TrainTask.input_shape[0][1])
+
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 
         self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
