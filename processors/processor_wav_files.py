@@ -33,6 +33,9 @@ class Processor:
         top_k = rand_uniform[indexes_top_k]
         min_from_top_k = np.nanmin(top_k, axis=-1)
         mask = np.where(np.sign(rand_uniform - min_from_top_k) >= 0, 1., 0.)
+        for i in range(self.masking_size):
+            mask = mask + np.roll(mask, 1)
+        mask = np.where(mask >= 1., 1., 0.)
         return np.ndarray.astype(mask, np.float32)
 
     def load_data(self, path2data):
@@ -58,7 +61,7 @@ if __name__ == '__main__':
 
     dataset = Dataset(path2load=r'C:\Users\moshe\PycharmProjects\datasets\dx_wav',
                       labels=False, type_files='wav', dataset_names='dx_wav')
-    processor = Processor(t_axis=50, prob2mask=0.4, masking_size=2, load_label=False)
+    processor = Processor(t_axis=50, prob2mask=0.065, masking_size=10, load_label=False)
     train_dataset = tf.data.Dataset.from_tensor_slices(dataset.dataset_names_train[:10])
 
 
@@ -71,6 +74,6 @@ if __name__ == '__main__':
 
     iterator = train_dataset.as_numpy_iterator()
     for i in range(1):
-        d = iterator.next()[0][0]
+        d = iterator.next()
         print(d)
         print(d.shape)
