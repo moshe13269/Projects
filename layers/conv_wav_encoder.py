@@ -4,10 +4,6 @@ import tensorflow_addons as tfa
 from tensorflow.python.keras.layers import Conv1D, Dropout, Dense, AveragePooling2D, Reshape
 
 
-def clac_conv_output():
-    pass
-
-
 class ConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[List[Tuple[int, int, int]]],
