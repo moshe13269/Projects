@@ -1,3 +1,10 @@
+
+import os
+import numpy as np
+from scipy.io import wavfile
+
+
+
 def padding_same(k, s, w):
     """
     k = filter size
@@ -44,6 +51,21 @@ def repeated_conv_layers(conv_layers, num_duplicate_layer):
     return flat_list(repeated_list)
 
 
+def check_names(path):
+    if not os.path.exists(os.path.dirname(path)):
+        if path.endswith('.npy'):
+            file = np.load(path)
+            return file.shape[0]
+        elif path.endswith('.wav'):
+            _, file = wavfile.read(path)
+            return file.shape[0]
+    return path
+
+
 def outputs_conv_size(conv_layers, num_duplicate_layer, inputs_size):
+    """
+    :param inputs_size: int - the input size or path to input size (which will load)
+    """
+    inputs_size = check_names(inputs_size)
     layers_params = repeated_conv_layers(conv_layers, num_duplicate_layer)
     return int(clac_conv_output(layers_params, inputs_size)/2)
