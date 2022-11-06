@@ -15,12 +15,12 @@ TrainTask:
       - 16384
     -
       -
-      - 210
+      - 50
 
   model:
     _target_: model.data2vec_wav_model.Data2VecModel
 
-    len_latent_space: 210
+    len_latent_space: 50
     tau: 0.9
 
     inputs1:
@@ -28,7 +28,7 @@ TrainTask:
       - 1
 
     inputs2:
-      - 210
+      - 50
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -100,7 +100,7 @@ TrainTask:
       dim_conv: 1
 
   loss:
-    _target_: tf.keras.losses.MeanSquaredError
+    _target_: losses.l2_loss.L2Loss #tf.keras.losses.MeanSquaredError
 
   callbacks:
 #    -
@@ -124,19 +124,19 @@ TrainTask:
     beta_1: 0.9
     beta_2: 0.99
 
-  train_steps_per_epoch: 10
+  train_steps_per_epoch: 350
 
   processor:
     _target_: processors.processor_wav_files.Processor
-    t_axis: 10000
-    prob2mask: 0.65
-    masking_size: 1
+    t_axis: 50
+    prob2mask: 0.4
+    masking_size: 2
     load_label: False
 
   batch_size:
-    train: 64
-    test: 32
-    valid: 64
+    train: 16
+    test: 16
+    valid: 16
 
   epochs: 15
   path2save_model: C:\Users\moshe\PycharmProjects\save_models\models

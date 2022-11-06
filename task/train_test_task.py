@@ -32,7 +32,7 @@ class TrainTask:
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
         self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
                                                   cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
-                                                  self.dataset_class.dataset_names)
+                                                  self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False)
                                                   # cfg.data2vec_train_task.TrainTask.input_shape[0][1])
 
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
@@ -153,7 +153,7 @@ class TrainTask:
                           verbose=1,
                           validation_data=val_dataset,
                           callbacks=self.callbacks,
-                          steps_per_epoch=self.train_steps_per_epoch,
+                          # steps_per_epoch=self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

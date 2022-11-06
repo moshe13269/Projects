@@ -45,6 +45,7 @@ class Processor:
             label = self.create_mask()
 
         samplerate, data = wavfile.read(path2data)
+        data = data.reshape(data.shape[0], 1)
 
         data = np.ndarray.astype(data, np.float32)
         label = np.ndarray.astype(label, np.float32)
@@ -55,18 +56,19 @@ class Processor:
 if __name__ == '__main__':
     from dataset.dataset import Dataset
 
-    dataset = Dataset(path2load=r'C:\Users\moshe\PycharmProjects\datasets\cifar10',
-                      labels=False, type_files='npy', dataset_names='cifar10')
-    processor = Processor(t_axis=16, prob2mask=0.1, masking_size=1, load_label=False)
+    dataset = Dataset(path2load=r'C:\Users\moshe\PycharmProjects\datasets\dx_wav',
+                      labels=False, type_files='wav', dataset_names='dx_wav')
+    processor = Processor(t_axis=50, prob2mask=0.4, masking_size=2, load_label=False)
     train_dataset = tf.data.Dataset.from_tensor_slices(dataset.dataset_names_train[:10])
+
+
     train_dataset = (train_dataset
-                     .shuffle(1024)
-                     .map(processor.load_data, num_parallel_calls=tf.data.AUTOTUNE)
-                     .cache()
-                     .repeat()
-                     .batch(2)
-                     .prefetch(tf.data.AUTOTUNE)
-                     )
+                    .shuffle(1024)
+                    .map(lambda item: tf.numpy_function(processor.load_data, [item], [tf.float32, tf.float32])
+                         , num_parallel_calls=tf.data.AUTOTUNE).
+                     map(lambda x, y: ((x, y), y)).cache().batch(2).prefetch(tf.data.AUTOTUNE))
+
+
     iterator = train_dataset.as_numpy_iterator()
     for i in range(1):
         d = iterator.next()[0][0]
