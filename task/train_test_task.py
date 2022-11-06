@@ -1,3 +1,5 @@
+
+import os
 import mlflow
 import mlflow.keras
 import tensorflow as tf
@@ -157,6 +159,8 @@ class TrainTask:
                           initial_epoch=0,
                           use_multiprocessing=True)
 
+                folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
+                mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
             # run_name = f'test_split_{test_inx}__val_split_{crossval_inx}'
             #
             # with self.logger.start_run(run_name=run_name, nested=True):
@@ -175,7 +179,7 @@ class TrainTask:
             #     mlflow.log_param("max_feat", max_features)
 
             # model.save(self.path2save_model)
-                mlflow.keras.save_model(model, self.path2save_model)
+
 
 
 if __name__ == '__main__':
