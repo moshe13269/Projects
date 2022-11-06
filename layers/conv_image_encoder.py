@@ -1,12 +1,7 @@
-
 import tensorflow as tf
 from typing import List, Tuple
 import tensorflow_addons as tfa
 from tensorflow.python.keras.layers import Conv2D, Dropout, Dense, AveragePooling2D, Reshape
-
-
-def clac_conv_output():
-    pass
 
 
 class ConvFeatureExtractionModel(tf.keras.layers.Layer):
@@ -105,7 +100,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.fc = Dense(units=units, activation=activation)
 
-    def call(self, x, **kwargs): # call(self, x):  #
+    def call(self, x, **kwargs):  # call(self, x):  #
         # BxT -> BxTxC
 
         for conv in self.conv_layers:
