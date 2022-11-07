@@ -101,6 +101,9 @@ TrainTask:
 
   loss:
     _target_: losses.l2_loss.L2Loss #tf.keras.losses.MeanSquaredError
+    tile_params:
+      - 1
+      - 512
 
   callbacks:
 #    -

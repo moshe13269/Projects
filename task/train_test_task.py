@@ -34,8 +34,8 @@ class TrainTask:
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
         self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
                                                   cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
-                                                  self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False)
-                                                  # cfg.data2vec_train_task.TrainTask.input_shape[0][1])
+                                                  # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
+                                                  self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
 
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 

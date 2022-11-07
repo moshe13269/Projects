@@ -34,7 +34,9 @@ class Processor:
         top_k = rand_uniform[indexes_top_k]
         min_from_top_k = np.nanmin(top_k, axis=-1)
         mask = np.where(np.sign(rand_uniform - min_from_top_k) >= 0, 1., 0.)
-
+        for i in range(self.masking_size):
+            mask = mask + np.roll(mask, 1)
+        mask = np.where(mask >= 1., 1., 0.)
         return np.ndarray.astype(mask, np.float32)
 
     def load_data(self, path2data):

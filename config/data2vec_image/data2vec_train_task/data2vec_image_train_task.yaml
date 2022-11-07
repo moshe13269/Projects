@@ -139,6 +139,9 @@ TrainTask:
   loss:
     _target_: losses.smooth_l1_loss.SmoothL1Loss
     beta: 0.5
+    tile_params:
+      - 1
+      - 512
 
   callbacks:
 #    -
@@ -167,7 +170,7 @@ TrainTask:
   processor:
     _target_: processors.processor_images.Processor
     t_axis: 16
-    prob2mask: 0.4
+    prob2mask: 0.065
     masking_size: 2
     load_label: False
 
