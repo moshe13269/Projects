@@ -132,8 +132,8 @@ TrainTask:
   processor:
     _target_: processors.processor_wav_files.Processor
     t_axis: 50
-    prob2mask: 0.065 #0.4
-    masking_size: 10 #5
+    prob2mask: 0.1 #0.4
+    masking_size: 7 #5
     load_label: False
 
   batch_size:
