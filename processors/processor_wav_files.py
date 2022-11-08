@@ -1,6 +1,6 @@
-
 import pickle
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from scipy.io import wavfile
 
@@ -28,7 +28,7 @@ class Processor:
     # the masking area is '1' and the unmasking by '0'
     def create_mask(self):
         rand_uniform = np.random.uniform(high=1., size=(self.t_axis,))
-        #top k:
+        # top k:
         indexes_top_k = np.argpartition(rand_uniform, -self.point2mask)[-self.point2mask:]
         top_k = rand_uniform[indexes_top_k]
         min_from_top_k = np.nanmin(top_k, axis=-1)
@@ -40,14 +40,14 @@ class Processor:
 
     def load_data(self, path2data):
         if self.load_label:
-            path2label = path2data.replace('data', 'labels')
-            label_file = open(path2label, 'r')
-            label = pickle.load(label_file)
-        #     # todo: convert to onehot vector
+            # path2label = path2data
+            # path2label = path2label.replace('data', 'labels')
+            label = np.load(path2data)
         else:
             label = self.create_mask()
 
         samplerate, data = wavfile.read(path2data)
+        # data = (data - np.mean(data)) / np.var(data)
         data = data.reshape(data.shape[0], 1)
 
         data = np.ndarray.astype(data, np.float32)
@@ -64,13 +64,11 @@ if __name__ == '__main__':
     processor = Processor(t_axis=50, prob2mask=0.065, masking_size=10, load_label=False)
     train_dataset = tf.data.Dataset.from_tensor_slices(dataset.dataset_names_train[:10])
 
-
     train_dataset = (train_dataset
-                    .shuffle(1024)
-                    .map(lambda item: tf.numpy_function(processor.load_data, [item], [tf.float32, tf.float32])
-                         , num_parallel_calls=tf.data.AUTOTUNE).
+                     .shuffle(1024)
+                     .map(lambda item: tf.numpy_function(processor.load_data, [item], [tf.float32, tf.float32])
+                          , num_parallel_calls=tf.data.AUTOTUNE).
                      map(lambda x, y: ((x, y), y)).cache().batch(2).prefetch(tf.data.AUTOTUNE))
-
 
     iterator = train_dataset.as_numpy_iterator()
     for i in range(1):

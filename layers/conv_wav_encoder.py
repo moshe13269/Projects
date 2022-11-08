@@ -73,7 +73,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                         layers_param,
                         activation,
                         is_layer_norm=mode == "layer_norm",
-                        is_group_norm=mode == "default" and i == 0,
+                        is_group_norm=mode == "default" ,#and i == 0,
                         conv_bias=conv_bias,
                     )
                 )

@@ -4,7 +4,7 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\dx_wav
+    path2load: C:\Users\moshe\PycharmProjects\datasets\tal_noise
     type_files: wav
     labels: False
     dataset_names: dx_wav
@@ -21,7 +21,7 @@ TrainTask:
     _target_: model.data2vec_wav_model.Data2VecModel
 
     len_latent_space: 50
-    tau: 0.9
+    tau: 0.95
 
     inputs1:
       - 16384
@@ -74,7 +74,7 @@ TrainTask:
         - 1
         - 1
 
-      dropout: 0.0
+      dropout: 0.1
       conv_bias: True
 
     masking: True
@@ -132,8 +132,8 @@ TrainTask:
   processor:
     _target_: processors.processor_wav_files.Processor
     t_axis: 50
-    prob2mask: 0.1 #0.4
-    masking_size: 7 #5
+    prob2mask: 0.065
+    masking_size: 6 #5
     load_label: False
 
   batch_size:
@@ -141,7 +141,7 @@ TrainTask:
     test: 16
     valid: 16
 
-  epochs: 2
+  epochs: 15
   path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
   model_name: data2vec
 

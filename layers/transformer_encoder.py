@@ -8,7 +8,8 @@ def point_wise_feed_forward_network(
 ):
     return tf.keras.Sequential([
         tf.keras.layers.Dense(dff, activation='relu'),  # Shape `(batch_size, seq_len, dff)`.
-        tf.keras.layers.Dense(d_model)  # Shape `(batch_size, seq_len, d_model)`.
+        tf.keras.layers.Dense(d_model),  # Shape `(batch_size, seq_len, d_model)`.
+        tf.keras.layers.Activation('gelu') ####
     ])
 
 
@@ -67,6 +68,7 @@ class EncoderLayer(tf.keras.layers.Layer):
 
         # Dropout for the point-wise feed-forward network.
         self.dropout1 = tf.keras.layers.Dropout(dropout_rate)
+        self.activation = tf.keras.layers.Activation('gelu')
 
     def call(self, x, training):
         # Multi-head self-attention output (`tf.keras.layers.MultiHeadAttention `).
@@ -87,7 +89,7 @@ class EncoderLayer(tf.keras.layers.Layer):
         # Point-wise feed-forward network output after layer normalization and a residual skip connection.
         out2 = self.layer_norm2(out1 + ffn_output)  # Shape `(batch_size, input_seq_len, d_model)`.
 
-        return out2
+        return self.activation(out2)  ####
 
 
 class TransformerEncoder(tf.keras.Model):

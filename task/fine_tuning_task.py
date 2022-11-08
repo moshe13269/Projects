@@ -32,10 +32,10 @@ class TrainTask:
         self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
 
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
-        self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
-                                                  cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
-                                                  # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
-                                                  self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
+        # self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
+        #                                           cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
+        #                                           # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
+        #                                           self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
 
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 
@@ -63,9 +63,9 @@ class TrainTask:
                                                               test_size=0.05,
                                                               random_state=1)
 
-            self.train_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_train, y_train)))
-            self.test_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_test, y_test)))
-            self.val_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_val, y_val)))
+            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)) #(list(zip(X_train, y_train)))
+            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)) #(list(zip(X_test, y_test)))
+            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))#(list(zip(X_val, y_val)))
 
         else:
             if dataset_had_split:
@@ -88,31 +88,27 @@ class TrainTask:
 
         train_dataset = (self.train_dataset
                          .shuffle(1024)
-                         .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
-                              , num_parallel_calls=tf.data.AUTOTUNE).map(
-            lambda x, y: ((x, y), y))  # map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
+                         .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
+                              , num_parallel_calls=tf.data.AUTOTUNE)
                          .cache()
-                         # .repeat()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
                          )
 
         test_dataset = (self.test_dataset
                         .shuffle(1024)
-                        .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
-                             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
+                        .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
+                             , num_parallel_calls=tf.data.AUTOTUNE)
                         .cache()
-                        # .repeat()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
                         )
 
         val_dataset = (self.val_dataset
                        .shuffle(1024)
-                       .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
-                            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
+                       .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
+                            , num_parallel_calls=tf.data.AUTOTUNE)
                        .cache()
-                       # .repeat()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
                        )
@@ -154,16 +150,13 @@ class TrainTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          callbacks=self.callbacks,
+                          # callbacks=self.callbacks,
                           # steps_per_epoch=self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
-                tf.keras.models.save_model(model=model, filepath=os.path.join(self.path2save_model, folder_name))
-                mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name, '_' + str(1)))
-
-
+                mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
             # run_name = f'test_split_{test_inx}__val_split_{crossval_inx}'
             #
             # with self.logger.start_run(run_name=run_name, nested=True):
@@ -182,6 +175,7 @@ class TrainTask:
             #     mlflow.log_param("max_feat", max_features)
 
             # model.save(self.path2save_model)
+
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
-
 import os
 import numpy as np
+import pandas as pd
 from scipy.io import wavfile
 
 
@@ -70,5 +70,5 @@ def outputs_conv_size(conv_layers, num_duplicate_layer, inputs_size, p, avg_pool
     inputs_size = check_names(inputs_size)
     layers_params = repeated_conv_layers(conv_layers, num_duplicate_layer)
     if avg_pooling:
-        return int(clac_conv_output(layers_params, inputs_size, p)/2)
+        return int(clac_conv_output(layers_params, inputs_size, p) / 2)
     return int(clac_conv_output(layers_params, inputs_size, p))

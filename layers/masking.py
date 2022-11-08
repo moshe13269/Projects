@@ -16,7 +16,8 @@ class Masking(tf.keras.layers.Layer):
     def build(self, input_shape):
         self.learnable_mask = self.add_weight(shape=(1, 1, self.num_channels),
                                               trainable=True,
-                                              initializer='random_normal')
+                                              initializer='random_normal',
+                                              name='masking')
 
     def call(self, data, **kwargs):
         latent_z, mask = data
