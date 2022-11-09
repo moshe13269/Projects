@@ -4,115 +4,78 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\cifar10
-    type_files: npy
+    path2load: C:\Users\moshe\PycharmProjects\datasets\tal_noise
+    type_files: wav
     labels: False
-    dataset_names: cifar10
+    dataset_names: dx_wav
 
   input_shape:
     -
       -
-      - 32
-      - 32
-      - 3
+      - 16384
     -
       -
-      - 16
+      - 50
 
   model:
-    _target_: model.data2vec_image_model.Data2VecModel
+    _target_: model.data2vec_wav_model.Data2VecModel
 
-    len_latent_space: 16 #
-    tau: 0.999
+    len_latent_space: 50
+    tau: 0.95
 
     inputs1:
-      - 32
-      - 32
-      - 3
+      - 16384
+      - 1
 
     inputs2:
-      - 16
+      - 50
 
     conv_encoder:
-      _target_: layers.conv_image_encoder.ConvFeatureExtractionModel
+      _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
       activation: gelu
       units: 512
       conv_layers:
         -
-          -
-            - 64
-            - 3
-            - 1
-          -
-            - 64
-            - 3
-            - 1
+          - 512
+          - 10
+          - 5
+
         -
-          -
-            - 128
-            - 3
-            - 2
-          -
-            - 128
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 128
-            - 3
-            - 1
-          -
-            - 128
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 256
-            - 3
-            - 1
-          -
-            - 256
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 256
-            - 3
-            - 1
-          -
-            - 256
-            - 3
-            - 1
+          - 512
+          - 3
+          - 2
         -
-          -
-            - 512
-            - 3
-            - 2
-          -
-            - 512
-            - 3
-            - 1
+          - 512
+          - 2
+          - 2
         -
-          -
-            - 512
-            - 3
-            - 1
-          -
-            - 512
-            - 3
-            - 1
+          - 512
+          - 2
+          - 2
 
       num_duplicate_layer:
-        - 2
         - 1
-        - 2
         - 1
-        - 2
         - 1
-        - 2
+        - 1
+        - 1
+        - 1
+        - 1
 
-      dropout: 0.0
-      conv_bias: False
+      dropout: 0.1
+      conv_bias: True
 
     masking: True
     masking_layer:
@@ -137,8 +100,7 @@ TrainTask:
       dim_conv: 1
 
   loss:
-    _target_: losses.smooth_l1_loss.SmoothL1Loss
-    beta: 0.5
+    _target_: losses.l2_loss.L2Loss #tf.keras.losses.MeanSquaredError
     tile_params:
       - 1
       - 512
@@ -165,19 +127,19 @@ TrainTask:
     beta_1: 0.9
     beta_2: 0.99
 
-  train_steps_per_epoch: 10
+  train_steps_per_epoch: 350
 
   processor:
-    _target_: processors.processor_images.Processor
-    t_axis: 16
+    _target_: processors.processor_wav_files.Processor
+    t_axis: 50
     prob2mask: 0.065
-    masking_size: 2
+    masking_size: 6 #5
     load_label: False
 
   batch_size:
-    train: 64
-    test: 32
-    valid: 64
+    train: 16
+    test: 16
+    valid: 16
 
   epochs: 15
   path2save_model: C:\Users\moshe\PycharmProjects\save_models\models

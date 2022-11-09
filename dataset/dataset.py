@@ -43,7 +43,12 @@ class Dataset:
                                    os.path.splitext(file)[-1].lower()[1:] == self.type_files and
                                    'label' not in join(path2load, 'test', 'data', file)]
         if self.labels:
-            self.labels_names = None
+            # self.labels_names = None
+            self.labels_names_train = [path.replace('wav', 'npy').replace('data\\', 'labels\\')
+                                       for path in self.dataset_names_train]
+
+            self.labels_names_test = [path.replace('wav', 'npy').replace('data\\', 'labels\\')
+                                       for path in self.dataset_names_test]
         else:
             self.labels_names_train = [join(path2load, 'labels', file)
                                        for file in listdir(join(path2load, 'train', 'labels'))
@@ -57,20 +62,20 @@ class Dataset:
                                       os.path.splitext(file)[-1].lower()[1:] == self.type_files and
                                       'label' in join(path2load, 'dataset', file)]
 
-        if self.labels:
-            def check_dataset():
-                # todo self.dataset_names take care where no had train - test
-                dataset_type_file = os.path.splitext(self.dataset_names_train[0])[-1].lower()
-                label_type_file = os.path.splitext(self.labels_names_train[0])[-1].lower()
-
-                assert len(self.dataset_names_train) == len(self.labels_names_train), \
-                    print('The number of data samples and the labels is unequal')
-                for index in range(len(self.dataset_names_train)):
-                    if self.dataset_names_train[index].replace('dataset', '').replace(dataset_type_file, '') \
-                            != self.labels_names_train[index].replace('labels', '').replace(label_type_file, ''):
-                        sys.exit('The names of the files in the index: %d is not the same name in the dataset and the '
-                                 'labels lists\n Dataset: %s\n Labels: %s'
-                                 % (index, self.dataset_names_train[index], self.labels_names_train[index]))
-
-            check_dataset()
+        # if self.labels:
+        #     def check_dataset():
+        #         # todo self.dataset_names take care where no had train - test
+        #         dataset_type_file = os.path.splitext(self.dataset_names_train[0])[-1].lower()
+        #         label_type_file = os.path.splitext(self.labels_names_train[0])[-1].lower()
+        #
+        #         assert len(self.dataset_names_train) == len(self.labels_names_train), \
+        #             print('The number of data samples and the labels is unequal')
+        #         for index in range(len(self.dataset_names_train)):
+        #             if self.dataset_names_train[index].replace('dataset', '').replace(dataset_type_file, '') \
+        #                     != self.labels_names_train[index].replace('labels', '').replace(label_type_file, ''):
+        #                 sys.exit('The names of the files in the index: %d is not the same name in the dataset and the '
+        #                          'labels lists\n Dataset: %s\n Labels: %s'
+        #                          % (index, self.dataset_names_train[index], self.labels_names_train[index]))
+        #
+        #     check_dataset()
             # self.dataset_names = list(zip(self.dataset_names, self.labels_names))
