@@ -4,7 +4,7 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\cifar10
+    path2load: /home/moshelaufer/datasets/images/cifar10/
     type_files: npy
     labels: False
     dataset_names: cifar10
@@ -166,16 +166,16 @@ TrainTask:
     load_label: False
 
   batch_size:
-    train: 32 #128
-    test: 32 #128
-    valid: 32 #32
+    train: 512
+    test: 512
+    valid: 512
 
   epochs: 2
-  path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
+  path2save_model: /home/moshelaufer/save_models/data2vec_images/models/
   model_name: data2vec
 
   results:
     _target_: results.results.Results
-    path2save_results: C:\Users\moshe\PycharmProjects\save_models\results
+    path2save_results: /home/moshelaufer/save_models/data2vec_images/results/
     num_class: 100
 
