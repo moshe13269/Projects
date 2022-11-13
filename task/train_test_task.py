@@ -127,7 +127,7 @@ class TrainTestTask:
         #                        log_models=True,
         #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
         #                        keras_model=model)
-        with tf.device('/device:GPU:1'):
+        with tf.device('/device:GPU:0'):
             with mlflow.start_run():
                 # log parameters
                 # mlflow.log_param("hidden_layers", args.hidden_layers)
@@ -185,6 +185,6 @@ class TrainTestTask:
 
 
 if __name__ == '__main__':
-    task = TrainTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
+    task = TrainTestTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
                      path2load_dataset=r"C:\Users\moshel\Desktop\cscscs")
     task.run()

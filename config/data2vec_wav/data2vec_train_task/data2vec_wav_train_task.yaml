@@ -15,12 +15,12 @@ TrainTask:
       - 16384
     -
       -
-      - 127 #85 #50
+      - 50 #127 #85 #50
 
   model:
     _target_: model.data2vec_wav_model.Data2VecModel
 
-    len_latent_space: 127 #85 #50
+    len_latent_space: 50 #127 #85 #50
     tau: 0.9998
 
     inputs1:
@@ -28,7 +28,7 @@ TrainTask:
       - 1
 
     inputs2:
-      - 127 #85 #50
+      - 50 #127 #85 #50
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -37,8 +37,8 @@ TrainTask:
       conv_layers:
         -
           - 512
-          - 4 #10
-          - 2 #3 #5
+          - 10 #4 #10
+          - 5 #2 #3 #5
 
         -
           - 512
@@ -58,11 +58,11 @@ TrainTask:
           - 2
         -
           - 512
-          - 3 #2
+          - 2 #3 #2
           - 2
         -
           - 512
-          - 3 #2
+          - 2 #3 #2
           - 2
 
       num_duplicate_layer:
@@ -88,7 +88,7 @@ TrainTask:
       activation: gelu
       num_layers: 2
 
-    top_k_transformer: 6
+    top_k_transformer: 8 #6
 
     transformer_encoder:
       _target_: layers.transformer_encoder.TransformerEncoder
@@ -141,7 +141,7 @@ TrainTask:
 
   processor:
     _target_: processors.processor_wav_files.Processor
-    t_axis: 127 #85 #50
+    t_axis: 50 #127 #85 #50
     prob2mask: 0.48
     masking_size: 1 #5
     load_label: False
