@@ -60,11 +60,12 @@ TrainTask:
 
   batch_size:
     train: 16
-    test: 16
+    test: 1
     valid: 16
 
-  epochs: 15
+  epochs: 1
   path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
+  path2save_csv: C:\Users\moshe\PycharmProjects\save_models\results
   model_name: data2vec
 
   results:
