@@ -1,18 +1,15 @@
 import tensorflow as tf
 from typing import List, Tuple
-from layers.masking import Masking
-from layers.ffn import FFN
-from layers.transformer_encoder import TransformerEncoder
-from layers.conv_image_encoder import ConvFeatureExtractionModel
+import layers
 
 
 class Data2VecModel:
     masking: bool
-    masking_layer: Masking
+    masking_layer: layers.Masking
     len_latent_space: int
-    conv_encoder: ConvFeatureExtractionModel
-    transformer_encoder: TransformerEncoder
-    ffn: FFN
+    conv_encoder: layers.ConvFeatureExtractionModel
+    transformer_encoder: layers.TransformerEncoder
+    ffn: layers.FFN
     tau: float
     top_k_transformer: int
     inputs1: Tuple[int, int, int]
@@ -20,11 +17,11 @@ class Data2VecModel:
 
     def __init__(self,
                  masking: bool,
-                 masking_layer: Masking,
+                 masking_layer: layers.Masking,
                  len_latent_space: int,
-                 conv_encoder: ConvFeatureExtractionModel,
-                 transformer_encoder: TransformerEncoder,
-                 ffn: FFN,
+                 conv_encoder: layers.ConvFeatureExtractionModel,
+                 transformer_encoder: layers.TransformerEncoder,
+                 ffn: layers.FFN,
                  tau: float,
                  top_k_transformer: int,
                  inputs1: Tuple[int, int, int],
@@ -83,17 +80,17 @@ if __name__ == '__main__':
                                                      [(512, 3, 1), (512, 3, 1)]]
 
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 1, 1, 3, 1, 2)
-    conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
+    conv = layers.ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
                                       num_duplicate_layer=num_duplicate_layer)
 
     mask_ = tf.where(tf.random.uniform(shape=(100, 16), maxval=1) > 0.9, 1., 0.)
     inputs = [tf.Variable(tf.random.normal((100, 32, 32, 3))), tf.Variable(mask_)]
-    mask = Masking(num_channels=512)
+    mask = layers.Masking(num_channels=512)
     # mask.build((None, 16))
 
-    encoder = TransformerEncoder(num_layers=24, d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
+    encoder = layers.TransformerEncoder(num_layers=24, d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
 
-    ffn = FFN(dff=512, activation='gelu', num_layers=1)
+    ffn = layers.FFN(dff=512, activation='gelu', num_layers=1)
 
     model = Data2VecModel(masking=True,
                           masking_layer=mask,
