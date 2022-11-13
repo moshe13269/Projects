@@ -1,12 +1,12 @@
 
 import os
+import utils
 import mlflow
 import mlflow.keras
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
-from utils.utils import outputs_conv_size
 
 
 class TrainTask:
@@ -32,7 +32,7 @@ class TrainTask:
         self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
 
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
-        self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
+        self.processor.t_axis = utils.outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
                                                   cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
                                                   # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
                                                   self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav

@@ -6,7 +6,6 @@ import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
-from utils.utils import outputs_conv_size
 
 
 class TrainTask:
