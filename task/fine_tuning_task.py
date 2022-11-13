@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
 
-class TrainTask:
+class FineTuningTask:
 
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg

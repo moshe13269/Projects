@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
 
-class TrainTask:
+class TrainTestTask:
 
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
@@ -154,7 +154,7 @@ class TrainTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          callbacks=self.callbacks,
+                          # callbacks=self.callbacks,
                           # steps_per_epoch=self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
@@ -185,6 +185,6 @@ class TrainTask:
 
 
 if __name__ == '__main__':
-    task = TrainTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
+    task = TrainTestTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
                      path2load_dataset=r"C:\Users\moshel\Desktop\cscscs")
     task.run()
