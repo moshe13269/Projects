@@ -123,6 +123,14 @@ TrainTask:
       train_steps_per_epoch: 1125 #563
       epochs: 15
 
+    -
+      _target_: tf.keras.callbacks.ModelCheckpoint
+      filepath: /home/moshelaufer/PycharmProjects/results/models/checkpoint/data2vec_wav
+      save_weights_only: True
+      save_best_only: True
+      save_freq: 2
+      initial_value_threshold: 16
+
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
     learning_rate: 0.0000005
@@ -145,7 +153,7 @@ TrainTask:
 
   epochs: 100
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
-  model_name: data2vec
+  model_name: data2vec_wav
 
   results:
     _target_: results.results.Results
