@@ -1,7 +1,8 @@
-
 import os
 import mlflow
 import mlflow.keras
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
@@ -20,6 +21,7 @@ class TrainTask:
         self.val_dataset = None
 
         self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
+        self.path2save_csv = self.cfg.data2vec_train_task.TrainTask.get('path2save_csv')
 
         self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
         self.model = instantiate(cfg.data2vec_train_task.TrainTask.model)
@@ -39,6 +41,23 @@ class TrainTask:
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 
         self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
+
+    def test_model(self, model, test_dataset):
+
+        with tf.device('/device:GPU:0'):
+            len_dataset = int(test_dataset.__len__().numpy())
+            results = np.zeros((len_dataset * 2, 16))
+
+            test_dataset = test_dataset.as_numpy_iterator()
+
+            for step in range(len_dataset):
+                x, y = test_dataset.next()
+                prediction = model.predict(x)
+                results[step * 2] = prediction
+                results[step * 2 + 1] = y
+            pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'predicted_param.csv'))
+
+        print("Model prediction had been saved")
 
     def run(self):
 
@@ -62,9 +81,9 @@ class TrainTask:
                                                               test_size=0.05,
                                                               random_state=1)
 
-            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)) #(list(zip(X_train, y_train)))
-            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)) #(list(zip(X_test, y_test)))
-            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))#(list(zip(X_val, y_val)))
+            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))  # (list(zip(X_train, y_train)))
+            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))  # (list(zip(X_test, y_test)))
+            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))  # (list(zip(X_val, y_val)))
 
         else:
             if dataset_had_split:
@@ -87,8 +106,10 @@ class TrainTask:
 
         train_dataset = (self.train_dataset
                          .shuffle(1024)
-                         .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
-                              , num_parallel_calls=tf.data.AUTOTUNE)
+                         .map(
+            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE)
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
@@ -96,8 +117,10 @@ class TrainTask:
 
         test_dataset = (self.test_dataset
                         .shuffle(1024)
-                        .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
-                             , num_parallel_calls=tf.data.AUTOTUNE)
+                        .map(
+            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE)
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
@@ -105,8 +128,10 @@ class TrainTask:
 
         val_dataset = (self.val_dataset
                        .shuffle(1024)
-                       .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
-                            , num_parallel_calls=tf.data.AUTOTUNE)
+                       .map(
+            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE)
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
@@ -118,66 +143,21 @@ class TrainTask:
 
         mlflow.keras.autolog()
 
-        # mlflow.keras.log_model(registered_model_name=self.model_name + str(datetime.datetime.now()),
-        #                        log_models=True,
-        #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
-        #                        keras_model=model)
         with tf.device('/device:GPU:0'):
             with mlflow.start_run():
-                # log parameters
-                # mlflow.log_param("hidden_layers", args.hidden_layers)
-                # mlflow.log_param("output", args.output)
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
-                # log metrics
-                # mlflow.log_metric("binary_loss", ktrain_cls.get_binary_loss(history))
-                # mlflow.log_metric("binary_acc", ktrain_cls.get_binary_acc(history))
-                # mlflow.log_metric("validation_loss", ktrain_cls.get_binary_loss(history))
-                # mlflow.log_metric("validation_acc", ktrain_cls.get_validation_acc(history))
-                # mlflow.log_metric("average_loss", results[0])
-                # mlflow.log_metric("average_acc", results[1])
 
-                # log artifacts (matplotlib images for loss/accuracy)
-                # mlflow.log_artifacts(r'C:\Users\moshe\PycharmProjects\mlflow\image')
-                # log model
-                # mlflow.keras.log_model(model, r'C:\Users\moshe\PycharmProjects\mlflow')
-
-
-
-            # with mlflow.start_run():
                 model.fit(x=train_dataset,
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
                           # callbacks=self.callbacks,
-                          # steps_per_epoch=self.train_steps_per_epoch,
+                          steps_per_epoch=5,
                           initial_epoch=0,
                           use_multiprocessing=True)
 
+                self.test_model(model, val_dataset)
+
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
-            # run_name = f'test_split_{test_inx}__val_split_{crossval_inx}'
-            #
-            # with self.logger.start_run(run_name=run_name, nested=True):
-
-            # prediction = self.model.evaluate(x=self.test_dataset)
-
-            # # option
-            # results = self.results(prediction)
-            # mlflow.log_artifact() # path: str
-            # mlflow.log_image() # image:ndarray
-
-            # with mlflow.start_run() as run:
-            #     mlflow.keras.log_model(self.data2vec_train_task, "models")
-            #     mlflow.log_param("num_trees", n_estimators)
-            #     mlflow.log_param("maxdepth", max_depth)
-            #     mlflow.log_param("max_feat", max_features)
-
-            # model.save(self.path2save_model)
-
-
-
-if __name__ == '__main__':
-    task = TrainTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
-                     path2load_dataset=r"C:\Users\moshel\Desktop\cscscs")
-    task.run()
