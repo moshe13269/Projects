@@ -127,7 +127,7 @@ class TrainTestTask:
         #                        log_models=True,
         #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
         #                        keras_model=model)
-        with tf.device('/device:GPU:0'):
+        with tf.device('/device:GPU:1'):
             with mlflow.start_run():
                 # log parameters
                 # mlflow.log_param("hidden_layers", args.hidden_layers)

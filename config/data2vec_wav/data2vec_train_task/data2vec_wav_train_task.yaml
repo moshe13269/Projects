@@ -124,7 +124,7 @@ TrainTask:
       epochs: 15
 
     -
-      _target_: tf.keras.callbacks.ModelCheckpoint
+      _target_: tensorflow.keras.callbacks.ModelCheckpoint
       filepath: /home/moshelaufer/PycharmProjects/results/models/checkpoint/data2vec_wav
       save_weights_only: True
       save_best_only: True
