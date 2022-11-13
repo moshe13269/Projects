@@ -2,6 +2,8 @@
 import os
 import mlflow
 import mlflow.keras
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
@@ -20,6 +22,7 @@ class FineTuningTask:
         self.val_dataset = None
 
         self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
+        self.path2save_csv = self.cfg.data2vec_train_task.TrainTask.get('path2save_csv')
 
         self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
         self.model = instantiate(cfg.data2vec_train_task.TrainTask.model)
@@ -39,6 +42,21 @@ class FineTuningTask:
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 
         self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
+
+    def evaluate_model(self, model, test_set):
+
+        num_sample = int(test_set.__len__().numpy())
+        test_set = test_set.as_numpy_iterator()
+
+        results = np.zeros((num_sample * 2, 16))
+
+        for sample in range(num_sample):
+            x, y = test_set.next()
+            y_ = model.predict(x)
+            results[2 * y, 2 * y + 1, :] = y_
+            results[2 * y + 1, 2 * y + 2, :] = y
+
+        pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
 
     def run(self):
 
@@ -118,33 +136,12 @@ class FineTuningTask:
 
         mlflow.keras.autolog()
 
-        # mlflow.keras.log_model(registered_model_name=self.model_name + str(datetime.datetime.now()),
-        #                        log_models=True,
-        #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
-        #                        keras_model=model)
         with tf.device('/device:GPU:0'):
             with mlflow.start_run():
-                # log parameters
-                # mlflow.log_param("hidden_layers", args.hidden_layers)
-                # mlflow.log_param("output", args.output)
+
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
-                # log metrics
-                # mlflow.log_metric("binary_loss", ktrain_cls.get_binary_loss(history))
-                # mlflow.log_metric("binary_acc", ktrain_cls.get_binary_acc(history))
-                # mlflow.log_metric("validation_loss", ktrain_cls.get_binary_loss(history))
-                # mlflow.log_metric("validation_acc", ktrain_cls.get_validation_acc(history))
-                # mlflow.log_metric("average_loss", results[0])
-                # mlflow.log_metric("average_acc", results[1])
 
-                # log artifacts (matplotlib images for loss/accuracy)
-                # mlflow.log_artifacts(r'C:\Users\moshe\PycharmProjects\mlflow\image')
-                # log model
-                # mlflow.keras.log_model(model, r'C:\Users\moshe\PycharmProjects\mlflow')
-
-
-
-            # with mlflow.start_run():
                 model.fit(x=train_dataset,
                           epochs=self.epochs,
                           verbose=1,
@@ -154,30 +151,7 @@ class FineTuningTask:
                           initial_epoch=0,
                           use_multiprocessing=True)
 
+                self.evaluate_model(model, train_dataset)
+
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
-            # run_name = f'test_split_{test_inx}__val_split_{crossval_inx}'
-            #
-            # with self.logger.start_run(run_name=run_name, nested=True):
-
-            # prediction = self.model.evaluate(x=self.test_dataset)
-
-            # # option
-            # results = self.results(prediction)
-            # mlflow.log_artifact() # path: str
-            # mlflow.log_image() # image:ndarray
-
-            # with mlflow.start_run() as run:
-            #     mlflow.keras.log_model(self.data2vec_train_task, "models")
-            #     mlflow.log_param("num_trees", n_estimators)
-            #     mlflow.log_param("maxdepth", max_depth)
-            #     mlflow.log_param("max_feat", max_features)
-
-            # model.save(self.path2save_model)
-
-
-
-if __name__ == '__main__':
-    task = TrainTask(epochs=3, path2save_model=r"C:\Users\moshel\Desktop\cscscs",
-                     path2load_dataset=r"C:\Users\moshel\Desktop\cscscs")
-    task.run()
