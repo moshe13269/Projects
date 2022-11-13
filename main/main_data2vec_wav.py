@@ -1,7 +1,7 @@
 import os
 import hydra
-from task.train_test_task import TrainTask
 from omegaconf import DictConfig, OmegaConf
+from task import TrainTask
 
 
 @hydra.main(config_path=os.path.join('../config', 'data2vec_wav'), config_name='config')

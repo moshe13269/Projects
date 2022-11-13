@@ -12,8 +12,8 @@ class L2Loss(tf.keras.losses.Loss, ABC):
         teacher_encoding, student_encoding = tf.split(y_pred, num_or_size_splits=2, axis=0)
         a = tf.reduce_sum(tf.where(tf.expand_dims(y_true, axis=2) == 1.0, 1., 0.)) * 512
         b = tf.reduce_sum(tf.where(tf.expand_dims(y_true, axis=2) == 0.0, 1., 0.)) * 512
-        res = tf.reduce_mean((teacher_encoding * tf.expand_dims(y_true, axis=2) - student_encoding * tf.expand_dims(y_true, axis=2))**2) * (a + b)
-        return res#/a
+        res = (teacher_encoding * tf.expand_dims(y_true, axis=2) - student_encoding * tf.expand_dims(y_true, axis=2))**2
+        return res #/a
 
         # return self.loss(teacher_encoding * tf.expand_dims(y_true, axis=2), student_encoding * tf.expand_dims(y_true, axis=2)) * (50/16)
 

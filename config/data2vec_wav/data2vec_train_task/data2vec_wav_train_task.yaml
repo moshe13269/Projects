@@ -4,7 +4,7 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\tal_noise
+    path2load: /home/moshelaufer/PycharmProjects/datasets/tal_noise
     type_files: wav
     labels: False
     dataset_names: dx_wav
@@ -21,7 +21,7 @@ TrainTask:
     _target_: model.data2vec_wav_model.Data2VecModel
 
     len_latent_space: 127 #85 #50
-    tau: 0.9999
+    tau: 0.9998
 
     inputs1:
       - 16384
@@ -88,7 +88,7 @@ TrainTask:
       activation: gelu
       num_layers: 2
 
-    top_k_transformer: 8
+    top_k_transformer: 6
 
     transformer_encoder:
       _target_: layers.transformer_encoder.TransformerEncoder
@@ -100,7 +100,8 @@ TrainTask:
       dim_conv: 1
 
   loss:
-    _target_: losses.l2_loss.L2Loss #tf.keras.losses.MeanSquaredError
+    _target_: losses.smooth_l1_loss.SmoothL1Loss #losses.l2_loss.L2Loss
+    beta: 0.5
     tile_params:
       - 1
       - 1
@@ -114,8 +115,8 @@ TrainTask:
 #      t_e: 0.9999
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
-      initial_lr: 0.0001
-      peak: 0.00005
+      initial_lr: 0.000001
+      peak: 0.0005
       steps2warp_up: 0.03
       steps2hold: 0.67
       decay: 0.3
@@ -124,7 +125,7 @@ TrainTask:
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.0005
+    learning_rate: 0.0000005
     beta_1: 0.9
     beta_2: 0.99
 
@@ -133,21 +134,21 @@ TrainTask:
   processor:
     _target_: processors.processor_wav_files.Processor
     t_axis: 127 #85 #50
-    prob2mask: 0.2
-    masking_size: 2 #5
+    prob2mask: 0.48
+    masking_size: 1 #5
     load_label: False
 
   batch_size:
-    train: 4 #8
+    train: 32 #8
     test: 16
-    valid: 4 #8
+    valid: 32 #8
 
-  epochs: 15
-  path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
+  epochs: 100
+  path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: data2vec
 
   results:
     _target_: results.results.Results
-    path2save_results: C:\Users\moshe\PycharmProjects\save_models\results
+    path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
     num_class: 100
 

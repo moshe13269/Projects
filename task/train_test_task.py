@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from utils.utils import outputs_conv_size
 
 
-class TrainTask:
+class TestTask:
 
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
@@ -154,7 +154,7 @@ class TrainTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          callbacks=self.callbacks,
+                          # callbacks=self.callbacks,
                           # steps_per_epoch=self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
