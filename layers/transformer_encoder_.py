@@ -148,6 +148,8 @@ class EncoderTransformer(tf.keras.layers.Layer):
 
         self.layer_norm_teacher = InstanceNormalization()
 
+        self.add = tf.keras.layers.Add()
+
     def call(self, x, top_k_transformer=None):
         # `x` is token-IDs shape: (batch, seq_len)
         x = self.pos_embedding(x)  # Shape `(batch_size, seq_len, d_model)`.
@@ -163,7 +165,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
 
         else:
 
-            top_k_layers = tf.zeros_like(x)
+            top_k_layers = [] #tf.zeros_like(x)
             index_k0 = len(self.enc_layers) - top_k_transformer
             counter = 0
 
@@ -175,9 +177,10 @@ class EncoderTransformer(tf.keras.layers.Layer):
                 # x = encoder_layer(x, training=training)
 
                 if counter >= index_k0:
-                    top_k_layers += x
-
-            return top_k_layers / top_k_transformer
+                    # top_k_layers += x
+                    top_k_layers.append(x) #= self.add([top_k_layers, x])
+            
+            return self.add(top_k_layers) / top_k_transformer #top_k_layers / top_k_transformer
 
 
 if __name__ == '__main__':
