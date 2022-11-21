@@ -1,5 +1,7 @@
 
 import tensorflow as tf
+import tensorflow_addons as tfa
+from tensorflow_addons.layers import InstanceNormalization
 
 
 def point_wise_feed_forward_network(
@@ -89,7 +91,7 @@ class EncoderLayer(tf.keras.layers.Layer):
         # Point-wise feed-forward network output after layer normalization and a residual skip connection.
         out2 = self.layer_norm2(out1 + ffn_output)  # Shape `(batch_size, input_seq_len, d_model)`.
 
-        return self.activation(out2)  ####
+        return out2 #self.activation(out2)  ####
 
 
 class TransformerEncoder(tf.keras.Model):
@@ -129,6 +131,8 @@ class TransformerEncoder(tf.keras.Model):
                 dff=dff,
                 dropout_rate=dropout_rate)
             for _ in range(num_layers)]
+
+        self.layer_norm_teacher = InstanceNormalization()#[InstanceNormalization() for i in range(len(self.enc_layers))]
         # Dropout.
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
 
@@ -146,11 +150,20 @@ class TransformerEncoder(tf.keras.Model):
             top_k_layers = tf.zeros_like(x)
             index_k0 = len(self.enc_layers) - top_k_transformer
             counter = 0
+
             for encoder_layer in self.enc_layers:
+            # for i in range(len(self.enc_layers)):
+
+                x = self.layer_norm_teacher(encoder_layer(x, training=training))
+
+                # encoder_layer = self.enc_layers[i]
                 counter += 1
-                x = encoder_layer(x, training=training)
+                # x = encoder_layer(x, training=training)
+
                 if counter >= index_k0:
+                    # x = self.layer_norm_teacher[i](x)  ####
                     top_k_layers += x
+
             return top_k_layers / top_k_transformer  #x / top_k_transformer  # Shape `(batch_size, input_seq_len, d_model)`.
 
 

@@ -44,10 +44,12 @@ class Dataset:
                                    'label' not in join(path2load, 'test', 'data', file)]
         if self.labels:
             # self.labels_names = None
-            self.labels_names_train = [path.replace('wav', 'npy').replace('data\\', 'labels\\')
+            self.labels_names_train = [path.replace('wav', 'npy').replace(os.path.join('train', 'data'),
+                                                                          os.path.join('train', 'labels'))      #.replace('data\\', 'labels\\')
                                        for path in self.dataset_names_train]
 
-            self.labels_names_test = [path.replace('wav', 'npy').replace('data\\', 'labels\\')
+            self.labels_names_test = [path.replace('wav', 'npy').replace(os.path.join('test', 'data'),
+                                                                         os.path.join('test', 'labels'))
                                        for path in self.dataset_names_test]
         else:
             self.labels_names_train = [join(path2load, 'labels', file)

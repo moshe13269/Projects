@@ -60,7 +60,7 @@ class TrainTestTask:
 
             X_train, X_val, y_train, y_val = train_test_split(X_train,
                                                               y_train,
-                                                              test_size=0.05,
+                                                              test_size=0.1,
                                                               random_state=1)
 
             self.train_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_train, y_train)))
@@ -79,7 +79,7 @@ class TrainTestTask:
 
             X_test, X_val, y_test, y_val = train_test_split(X_test,
                                                             X_test,
-                                                            test_size=0.05,
+                                                            test_size=0.1,
                                                             random_state=1)
 
             self.train_dataset = tf.data.Dataset.from_tensor_slices(X_train)
@@ -127,13 +127,16 @@ class TrainTestTask:
         #                        log_models=True,
         #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
         #                        keras_model=model)
-        with tf.device('/device:GPU:0'):
+        with tf.device('/gpu:1'):
             with mlflow.start_run():
                 # log parameters
                 # mlflow.log_param("hidden_layers", args.hidden_layers)
                 # mlflow.log_param("output", args.output)
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
+                # mlflow.log_param('learn_rate', model.cal)
+                # tf.keras.backend.get_value(self.model.optimizer.learning_rate)
+                mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
                 # log metrics
                 # mlflow.log_metric("binary_loss", ktrain_cls.get_binary_loss(history))
                 # mlflow.log_metric("binary_acc", ktrain_cls.get_binary_acc(history))
@@ -154,8 +157,8 @@ class TrainTestTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          # callbacks=self.callbacks,
-                          # steps_per_epoch=self.train_steps_per_epoch,
+                          callbacks=self.callbacks,
+                          # steps_per_epoch=5,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

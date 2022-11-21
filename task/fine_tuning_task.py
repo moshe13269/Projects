@@ -1,7 +1,6 @@
-
 import os
 import mlflow
-import mlflow.keras
+import mlflow.tensorflow
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -34,10 +33,6 @@ class FineTuningTask:
         self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
 
         self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
-        # self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
-        #                                           cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
-        #                                           # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
-        #                                           self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
 
         self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
 
@@ -53,8 +48,10 @@ class FineTuningTask:
         for sample in range(num_sample):
             x, y = test_set.next()
             y_ = model.predict(x)
-            results[2 * y, 2 * y + 1, :] = y_
-            results[2 * y + 1, 2 * y + 2, :] = y
+            results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
+            results[2 * sample + 1: 2 * sample + 2, :] = y.squeeze()
+            # a = model.layers[2](model.layers[1](model.layers[0](x)))
+            # a1 = tf.reduce_max(model.layers[2](model.layers[1](model.layers[0](x))), axis=-1)
 
         pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
 
@@ -77,12 +74,12 @@ class FineTuningTask:
 
             X_train, X_val, y_train, y_val = train_test_split(X_train,
                                                               y_train,
-                                                              test_size=0.05,
+                                                              test_size=0.1,
                                                               random_state=1)
 
-            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)) #(list(zip(X_train, y_train)))
-            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)) #(list(zip(X_test, y_test)))
-            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))#(list(zip(X_val, y_val)))
+            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))
+            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
         else:
             if dataset_had_split:
@@ -105,8 +102,10 @@ class FineTuningTask:
 
         train_dataset = (self.train_dataset
                          .shuffle(1024)
-                         .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
-                              , num_parallel_calls=tf.data.AUTOTUNE)
+                         .map(
+            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE)
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
@@ -114,8 +113,10 @@ class FineTuningTask:
 
         test_dataset = (self.test_dataset
                         .shuffle(1024)
-                        .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
-                             , num_parallel_calls=tf.data.AUTOTUNE)
+                        .map(
+            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE)
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
@@ -123,8 +124,10 @@ class FineTuningTask:
 
         val_dataset = (self.val_dataset
                        .shuffle(1024)
-                       .map(lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)], [tf.float32, tf.float32])
-                            , num_parallel_calls=tf.data.AUTOTUNE)
+                       .map(
+            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE)
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
@@ -134,11 +137,12 @@ class FineTuningTask:
 
         model.compile(optimizer=self.optimizer, loss=self.loss)
 
+        # mlflow.set_tracking_uri("file:////home/moshelaufer/PycharmProjects/mlflow/")
+
         mlflow.keras.autolog()
 
-        with tf.device('/device:GPU:0'):
+        with tf.device('/GPU:0'):
             with mlflow.start_run():
-
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
 
@@ -146,12 +150,17 @@ class FineTuningTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
+                          # steps_per_epoch=100,
                           # callbacks=self.callbacks,
-                          # steps_per_epoch=self.train_steps_per_epoch,
+                          # self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
 
-                self.evaluate_model(model, train_dataset)
+                # mlflow.keras.log_model(model, "file:///home/moshelaufer/PycharmProjects/mlflow/")
+
+                self.evaluate_model(model, test_dataset)
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
+                tf.keras.models.save_model(model=model, filepath=os.path.join(self.path2save_model, folder_name +
+                                                                              'model_ft'))

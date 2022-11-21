@@ -8,7 +8,7 @@ from scipy.io import wavfile
 from os.path import isfile, join
 
 
-def split_dataset(path2dataset, file_type, prob2choose_train, path2save):
+def split_dataset(path2dataset, path2dataset_labels, file_type, prob2choose_train, path2save):
     files_list = [f for f in listdir(path2dataset) if isfile(join(path2dataset, f)) and f.endswith(file_type)]
 
     arrange = np.arange(len(files_list))
@@ -20,7 +20,8 @@ def split_dataset(path2dataset, file_type, prob2choose_train, path2save):
         dst = join(path2save, 'train', 'data', files_list[index])
         shutil.copyfile(src, dst)
 
-        src = join(path2dataset, files_list[index]).replace('audio_output', 'labels').replace('wav', 'npy')
+        src = join(path2dataset_labels, files_list[index].replace('wav', 'npy'))
+        # src = join(path2dataset, files_list[index]).replace('audio_output', 'labels').replace('wav', 'npy')
         dst = join(path2save, 'train', 'labels', files_list[index].replace('wav', 'npy'))
         shutil.copyfile(src, dst)
 
@@ -29,8 +30,9 @@ def split_dataset(path2dataset, file_type, prob2choose_train, path2save):
         dst = join(path2save, 'test', 'data', files_list[index])
         shutil.copyfile(src, dst)
 
-        src = join(path2dataset, files_list[index]).replace('audio_output', 'labels').replace('wav', 'npy')
-        dst = join(path2save, 'test', 'labels', files_list[index])
+        src = join(path2dataset_labels, files_list[index].replace('wav', 'npy'))
+        # src = join(path2dataset, files_list[index]).replace('audio_output', 'labels').replace('wav', 'npy')
+        dst = join(path2save, 'test', 'labels', files_list[index].replace('wav', 'npy'))
         shutil.copyfile(src, dst)
     print('The dataset had been created')
 
@@ -77,12 +79,13 @@ def del_silence(path2dataset):
     print('del %d' % counter)
 
 
-path2dataset = r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\audio_output'
+path2dataset = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/' #r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\audio_output'
 file_type = 'wav'
-prob2choose_train = 0.9
-path2save = r'C:\Users\moshe\PycharmProjects\datasets\tal_noise'
+prob2choose_train = 0.8
+path2save = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_1/' #r'C:\Users\moshe\PycharmProjects\datasets\tal_noise'
 del_files(path2save)
-split_dataset(path2dataset, file_type, prob2choose_train, path2save)
+path2dataset_labels = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_labels/'
+split_dataset(path2dataset, path2dataset_labels, file_type, prob2choose_train, path2save)
 del_silence(path2save)
 
 
