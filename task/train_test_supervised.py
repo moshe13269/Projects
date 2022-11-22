@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
 
-class FineTuningTask:
+class TrainTestTaskSupervised:
 
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
@@ -29,8 +29,6 @@ class FineTuningTask:
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
-        self.train_steps_per_epoch = self.cfg.train_task.TrainTask.get('train_steps_per_epoch')
-        self.input_shape = [tuple(lst) for lst in self.cfg.train_task.TrainTask.get('input_shape')]
 
         self.processor = instantiate(cfg.train_task.TrainTask.processor)
 
@@ -50,8 +48,6 @@ class FineTuningTask:
             y_ = model.predict(x)
             results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
             results[2 * sample + 1: 2 * sample + 2, :] = y.squeeze()
-            # a = model.layers[2](model.layers[1](model.layers[0](x)))
-            # a1 = tf.reduce_max(model.layers[2](model.layers[1](model.layers[0](x))), axis=-1)
 
         pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
 
@@ -60,45 +56,25 @@ class FineTuningTask:
         dataset_had_split = len(self.dataset_class.dataset_names_train) > 0 and \
                             len(self.dataset_class.dataset_names_test) > 0
 
-        if self.dataset_class.labels:
-            if dataset_had_split:
-                X_train = self.dataset_class.dataset_names_train
-                y_train = self.dataset_class.labels_names_train
-                X_test = self.dataset_class.dataset_names_test
-                y_test = self.dataset_class.labels_names_test
-            else:
-                X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names,
-                                                                    self.dataset_class.labels_names,
-                                                                    test_size=0.2,
-                                                                    random_state=1)
-
-            X_train, X_val, y_train, y_val = train_test_split(X_train,
-                                                              y_train,
-                                                              test_size=0.1,
-                                                              random_state=1)
-
-            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))
-            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
-
+        if dataset_had_split:
+            X_train = self.dataset_class.dataset_names_train
+            y_train = self.dataset_class.labels_names_train
+            X_test = self.dataset_class.dataset_names_test
+            y_test = self.dataset_class.labels_names_test
         else:
-            if dataset_had_split:
-                X_train = self.dataset_class.dataset_names_train
-                X_test = self.dataset_class.dataset_names_test
-            else:
-                X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names_train,
-                                                                    self.dataset_class.labels_names_train,
-                                                                    test_size=0.2,
-                                                                    random_state=1)
+            X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names,
+                                                                self.dataset_class.labels_names,
+                                                                test_size=0.2,
+                                                                random_state=1)
 
-            X_test, X_val, y_test, y_val = train_test_split(X_test,
-                                                            X_test,
-                                                            test_size=0.05,
-                                                            random_state=1)
+        X_train, X_val, y_train, y_val = train_test_split(X_train,
+                                                          y_train,
+                                                          test_size=0.1,
+                                                          random_state=1)
 
-            self.train_dataset = tf.data.Dataset.from_tensor_slices(X_train)
-            self.test_dataset = tf.data.Dataset.from_tensor_slices(X_test)
-            self.val_dataset = tf.data.Dataset.from_tensor_slices(X_val)
+        self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+        self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))
+        self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
         train_dataset = (self.train_dataset
                          .shuffle(1024)
@@ -137,10 +113,9 @@ class FineTuningTask:
 
         model.compile(optimizer=self.optimizer, loss=self.loss)
 
-
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:0'):
+        with tf.device('/GPU:2'):
             with mlflow.start_run():
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
@@ -149,9 +124,7 @@ class FineTuningTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          # steps_per_epoch=100,
                           # callbacks=self.callbacks,
-                          # self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

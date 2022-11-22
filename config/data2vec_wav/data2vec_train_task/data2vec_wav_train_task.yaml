@@ -21,7 +21,7 @@ TrainTask:
     _target_: model.data2vec_wav_model.Data2VecModel
 
     len_latent_space: 85 #509 #50 #127 #85 #50
-    tau: 0.9999 #0.9998
+    tau: 0.9998 #0.9999
 
     inputs1:
       - 16384
@@ -117,7 +117,7 @@ TrainTask:
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
       initial_lr: 0.0000005
-      peak: 0.000005
+      peak: 0.00001
       end: 0.0000001
       steps2warp_up: 0.03
       steps2hold: 0.67
@@ -152,8 +152,8 @@ TrainTask:
   processor:
     _target_: processors.processor_wav_files.Processor
     t_axis: 85 #509 #50 #127 #85 #50
-    prob2mask: 0.4 #0.065
-    masking_size: 1 #5
+    prob2mask: 0.2 #0.065
+    masking_size: 2 #5
     load_label: False
 
   batch_size:

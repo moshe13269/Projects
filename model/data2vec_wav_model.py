@@ -8,7 +8,7 @@ class Data2VecModel:
     masking_layer: layers.Masking
     len_latent_space: int
     conv_encoder: layers.ConvFeatureExtractionModel
-    transformer_encoder: layers.TransformerEncoder
+    transformer_encoder: layers.EncoderTransformer
     ffn: layers.FFN
     tau: float
     top_k_transformer: int
@@ -20,7 +20,7 @@ class Data2VecModel:
                  masking_layer: layers.Masking,
                  len_latent_space: int,
                  conv_encoder: layers.ConvFeatureExtractionModel,
-                 transformer_encoder: layers.TransformerEncoder,
+                 transformer_encoder: layers.EncoderTransformer,
                  ffn: layers.FFN,
                  tau: float,
                  top_k_transformer: int,
@@ -52,7 +52,7 @@ class Data2VecModel:
 
         student_encoding = self.transformer_encoder(masked_latent_space,
                                                     training=True,
-                                                    top_k_transformer=1)
+                                                    top_k_transformer=None)
 
         teacher_encoding = self.transformer_encoder(teacher_inputs, training=False,
                                                     top_k_transformer=self.top_k_transformer)

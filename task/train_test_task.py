@@ -14,26 +14,26 @@ class TrainTestTask:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
 
-        self.dataset_class = instantiate(cfg.data2vec_train_task.TrainTask.dataset_class)
+        self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
 
         self.train_dataset = None
         self.test_dataset = None
         self.val_dataset = None
 
-        self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
+        self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
 
-        self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
-        self.model = instantiate(cfg.data2vec_train_task.TrainTask.model)
-        self.loss = instantiate(cfg.data2vec_train_task.TrainTask.loss)
-        self.epochs = self.cfg.data2vec_train_task.TrainTask.get('epochs')
-        self.callbacks = instantiate(cfg.data2vec_train_task.TrainTask.callbacks)
-        self.optimizer = instantiate(cfg.data2vec_train_task.TrainTask.optimizer)
-        self.train_steps_per_epoch = self.cfg.data2vec_train_task.TrainTask.get('train_steps_per_epoch')
-        self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
+        self.model_name = self.cfg.train_task.TrainTask.get('model_name')
+        self.model = instantiate(cfg.train_task.TrainTask.model)
+        self.loss = instantiate(cfg.train_task.TrainTask.loss)
+        self.epochs = self.cfg.train_task.TrainTask.get('epochs')
+        self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
+        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
+        self.train_steps_per_epoch = self.cfg.train_task.TrainTask.get('train_steps_per_epoch')
+        self.input_shape = [tuple(lst) for lst in self.cfg.train_task.TrainTask.get('input_shape')]
 
-        self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
-        self.processor.t_axis = utils.outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
-                                                  cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
+        self.processor = instantiate(cfg.train_task.TrainTask.processor)
+        self.processor.t_axis = utils.outputs_conv_size(cfg.train_task.TrainTask.model.conv_encoder.conv_layers,
+                                                  cfg.train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
                                                   # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
                                                   self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
 
@@ -92,7 +92,6 @@ class TrainTestTask:
                               , num_parallel_calls=tf.data.AUTOTUNE).map(
             lambda x, y: ((x, y), y))  # map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
                          .cache()
-                         # .repeat()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
                          )
@@ -102,7 +101,6 @@ class TrainTestTask:
                         .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
                              , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
                         .cache()
-                        # .repeat()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
                         )
@@ -112,7 +110,6 @@ class TrainTestTask:
                        .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
                             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
                        .cache()
-                       # .repeat()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
                        )
@@ -123,11 +120,7 @@ class TrainTestTask:
 
         mlflow.keras.autolog()
 
-        # mlflow.keras.log_model(registered_model_name=self.model_name + str(datetime.datetime.now()),
-        #                        log_models=True,
-        #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
-        #                        keras_model=model)
-        with tf.device('/gpu:1'):
+        with tf.device('/gpu:0'):
             with mlflow.start_run():
                 # log parameters
                 # mlflow.log_param("hidden_layers", args.hidden_layers)

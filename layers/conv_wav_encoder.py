@@ -17,8 +17,6 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
 
-        # self.reshape = Reshape((16, 512,))
-
         def block(layers_param,
                   activation,
                   is_layer_norm=False,
@@ -64,16 +62,14 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         layers = []
 
         for i, layers_param in enumerate(conv_layers):
-            # assert len(layers_param) == 2 and len(layers_param[0]) == len(layers_param[1]) == 3, \
-            #     "invalid conv definition: " + str(layers_param)
-            # (dim, kernel, stride) = cl
+
             for j in range(num_duplicate_layer[i]):
                 layers.append(
                     block(
                         layers_param,
                         activation,
                         is_layer_norm=mode == "layer_norm",
-                        is_group_norm=mode == "default" ,#and i == 0,
+                        is_group_norm=mode == "default",
                         conv_bias=conv_bias,
                     )
                 )
@@ -84,16 +80,12 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.fc = Dense(units=units, activation=activation)
 
-    def call(self, x, **kwargs):  # call(self, x):  #
+    def call(self, x, **kwargs):
         # BxT -> BxTxC
 
         for conv in self.conv_layers:
-            # inputs = x
             x = conv(x)
-            # x = self.activation(x)
 
-        # x = self.avg_pool(x)
-        # x = self.reshape(x)
         return self.activation(self.fc(x))
 
 
