@@ -47,7 +47,7 @@ class Processor:
             label = self.create_mask()
 
         samplerate, data = wavfile.read(path2data)
-        data = (data - np.mean(data)) / np.var(data)  ##
+        # data = (data - np.mean(data)) / np.var(data)  ##
         data = data.reshape(data.shape[0], 1)
 
         data = np.ndarray.astype(data, np.float32)

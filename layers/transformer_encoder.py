@@ -23,6 +23,7 @@ class PositionalEmbedding(tf.keras.layers.Layer):
 
         self.activation = tf.keras.layers.Activation(activation)
         self.layer_norm = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.add = tf.keras.layers.Add()
 
         if dim_conv == 1:  ##
             self.conv = tf.keras.layers.Conv1D(filters=filters, kernel_size=kernel_size, strides=stride,
@@ -32,7 +33,7 @@ class PositionalEmbedding(tf.keras.layers.Layer):
                                                activation=activation, padding='same')
 
     def call(self, inputs, **kwargs):
-        return self.layer_norm(self.conv(inputs) + inputs)
+        return self.layer_norm(self.add([self.conv(inputs), inputs]))
 
 
 class FeedForward(tf.keras.layers.Layer):
@@ -149,6 +150,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
         self.layer_norm_teacher = InstanceNormalization()
 
         self.add = tf.keras.layers.Add()
+        self.subtract = tf.keras.layers.Subtract()
 
     def call(self, x, top_k_transformer=None):
         # `x` is token-IDs shape: (batch, seq_len)
@@ -165,7 +167,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
 
         else:
 
-            top_k_layers = [] #tf.zeros_like(x)
+            top_k_layers = []
             index_k0 = len(self.enc_layers) - top_k_transformer
             counter = 0
 
@@ -174,13 +176,11 @@ class EncoderTransformer(tf.keras.layers.Layer):
                 x = self.layer_norm_teacher(encoder_layer(x))
 
                 counter += 1
-                # x = encoder_layer(x, training=training)
 
                 if counter >= index_k0:
-                    # top_k_layers += x
-                    top_k_layers.append(x) #= self.add([top_k_layers, x])
+                    top_k_layers.append(x)
             
-            return self.add(top_k_layers) / top_k_transformer #top_k_layers / top_k_transformer
+            return self.subtract([self.add(top_k_layers), top_k_transformer])
 
 
 if __name__ == '__main__':

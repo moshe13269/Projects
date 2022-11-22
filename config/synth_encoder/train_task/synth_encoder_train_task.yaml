@@ -77,7 +77,7 @@ TrainTask:
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 12
+      num_layers: 6
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -95,7 +95,7 @@ TrainTask:
       save_weights_only: False
       save_best_only: True
       save_freq: 'epoch'
-      initial_value_threshold: 20
+      initial_value_threshold: 1
       monitor: 'loss'
       verbose: 1
 
@@ -113,7 +113,7 @@ TrainTask:
     test: 1
     valid: 128
 
-  epochs: 30
+  epochs: 120
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/

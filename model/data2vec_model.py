@@ -190,7 +190,7 @@ class Data2VecModel(tf.keras.Model):
     #
     # @classmethod
     # def build_model(cls, cfg: Data2VecAudioConfig, task=None):
-    #     """Build a new data2vec_train_task instance."""
+    #     """Build a new train_task instance."""
     #
     #     return cls(cfg)
     #
@@ -361,10 +361,10 @@ class Data2VecModel(tf.keras.Model):
     #     }
     #
     #     with torch.no_grad():
-    #         self.ema.data2vec_train_task.eval()
+    #         self.ema.train_task.eval()
     #
     #         if self.cfg.ema_transformer_only:
-    #             y, layer_results = self.ema.data2vec_train_task.extract_features(
+    #             y, layer_results = self.ema.train_task.extract_features(
     #                 pre_encoder_features,
     #                 padding_mask=padding_mask,
     #                 min_layer=self.cfg.encoder_layers - self.average_top_k_layers,
@@ -375,7 +375,7 @@ class Data2VecModel(tf.keras.Model):
     #                 "layer_results": layer_results,
     #             }
     #         else:
-    #             y = self.ema.data2vec_train_task.extract_features(
+    #             y = self.ema.train_task.extract_features(
     #                 source=source,
     #                 padding_mask=orig_padding_mask,
     #                 mask=False,

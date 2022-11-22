@@ -120,7 +120,7 @@ class TrainTestTask:
 
         mlflow.keras.autolog()
 
-        with tf.device('/gpu:0'):
+        with tf.device('/gpu:1'):
             with mlflow.start_run():
                 # log parameters
                 # mlflow.log_param("hidden_layers", args.hidden_layers)
@@ -172,7 +172,7 @@ class TrainTestTask:
             # mlflow.log_image() # image:ndarray
 
             # with mlflow.start_run() as run:
-            #     mlflow.keras.log_model(self.data2vec_train_task, "models")
+            #     mlflow.keras.log_model(self.train_task, "models")
             #     mlflow.log_param("num_trees", n_estimators)
             #     mlflow.log_param("maxdepth", max_depth)
             #     mlflow.log_param("max_feat", max_features)
