@@ -115,7 +115,7 @@ class TrainTestTaskSupervised:
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:2'):
+        with tf.device('/GPU:0'):
             with mlflow.start_run():
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
@@ -125,6 +125,7 @@ class TrainTestTaskSupervised:
                           verbose=1,
                           validation_data=val_dataset,
                           # callbacks=self.callbacks,
+                          # steps_per_epoch=1,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

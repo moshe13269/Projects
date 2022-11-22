@@ -2,7 +2,7 @@
 import tensorflow as tf
 from layers.masking import Masking
 from layers.ffn import FFN
-from layers.transformer_encoder import TransformerEncoder
+from layers.transformer_encoder_draft import TransformerEncoder
 from layers.archive.conv_feature_encoder import ConvFeatureExtractionModel
 from tensorflow.python.keras import Input
 
