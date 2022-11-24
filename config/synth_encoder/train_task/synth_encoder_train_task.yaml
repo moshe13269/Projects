@@ -29,8 +29,8 @@ TrainTask:
       conv_layers:
         -
           - 512
-          - 10
-          - 5
+          - 6
+          - 3
 
         -
           - 512
@@ -55,12 +55,12 @@ TrainTask:
         -
           - 512
           - 2
-          - 2
+          - 1
 
         -
           - 512
           - 2
-          - 2
+          - 1
 
       num_duplicate_layer:
         - 1
@@ -73,11 +73,13 @@ TrainTask:
 
       dropout: 0.1
       conv_bias: True
+#      mode: none
 
+    top_k_transformer: 6
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 6
+      num_layers: 8
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -101,7 +103,7 @@ TrainTask:
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.0001
+    learning_rate: 0.000003
     beta_1: 0.9
     beta_2: 0.99
 
@@ -109,11 +111,11 @@ TrainTask:
     _target_: processors.processor_synth_encoder.Processor
 
   batch_size:
-    train: 128
+    train: 32
     test: 1
-    valid: 128
+    valid: 32
 
-  epochs: 120
+  epochs: 250
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/

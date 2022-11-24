@@ -48,7 +48,7 @@ class Data2VecModel:
     def build(self):
         latent_wav = self.conv_encoder(self.inputs1)
 
-        teacher_outputs = tf.stop_gradient(tf.identity(latent_wav))
+        teacher_outputs = tf.identity(latent_wav)
 
         masked_latent_space = self.masking_layer([latent_wav, self.inputs2])
 
@@ -56,15 +56,15 @@ class Data2VecModel:
                                                    training=True,
                                                    top_k_transformer=None)
 
-        teacher_outputs = tf.stop_gradient(self.transformer_encoder(teacher_outputs, training=False,
-                                                                    top_k_transformer=self.top_k_transformer))
+        teacher_outputs = self.transformer_encoder(teacher_outputs, training=False,
+                                                                    top_k_transformer=self.top_k_transformer)
 
-        teacher_outputs = tf.stop_gradient(self.add([self.mul([teacher_outputs, self.tau]),
-                                                     self.mul([self.subtract([1., self.tau]), student_outputs])]))
+        teacher_outputs = self.add([tf.multiply(teacher_outputs, self.tau),
+                                                     tf.multiply(tf.subtract(1., self.tau), student_outputs)])
 
-        teacher_outputs = tf.stop_gradient(teacher_outputs)
+        # teacher_outputs = tf.stop_gradient(teacher_outputs)
 
-        teacher_outputs = tf.stop_gradient(self.mul([teacher_outputs, tf.expand_dims(self.inputs2, axis=2)]))
+        teacher_outputs = self.mul([teacher_outputs, tf.expand_dims(self.inputs2, axis=2)])
         student_outputs = self.mul([student_outputs, tf.expand_dims(self.inputs2, axis=2)])
 
         outputs = tf.concat([student_outputs, teacher_outputs], axis=0)

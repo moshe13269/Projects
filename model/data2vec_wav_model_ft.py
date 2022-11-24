@@ -23,13 +23,13 @@ class Data2VecModelFT:
         self.model.trainable = model_trainable
         self.conv_encoder = self.model.layers[1]
         self.conv_encoder.trainable = model_trainable
-        self.transformer_encoder = self.model.layers[6]
+        self.transformer_encoder = self.model.layers[5]
         self.transformer_encoder.trainable = model_trainable
         self.top_k_transformer = top_k_transformer
         self.inputs = tf.keras.layers.Input(inputs)
-        self.fc1 = tf.keras.layers.Dense(512, activation='relu')
-        self.fc2 = tf.keras.layers.Dense(1, activation='relu')
-        self.fc3 = tf.keras.layers.Dense(16, activation='sigmoid')
+        self.fc1 = tf.keras.layers.Dense(1, activation='relu')
+        self.fc2 = tf.keras.layers.Dense(16, activation='relu')
+        self.fc3 = tf.keras.layers.Dense(16, activation='relu')
         self.flatten = tf.keras.layers.Flatten()
         self.top_k_transformer = top_k_transformer
 
@@ -37,14 +37,14 @@ class Data2VecModelFT:
         latent_space = self.conv_encoder(self.inputs)
 
         outputs = self.transformer_encoder(latent_space,
-                                           training=True,
-                                           top_k_transformer=self.top_k_transformer)
+                                           training=False,
+                                           top_k_transformer=None)
 
         # outputs = tf.keras.layers.Activation('relu')(outputs)
 
         outputs = self.fc1(outputs)
-        outputs = self.fc2(outputs)
-        outputs = self.fc3(tf.squeeze(outputs, axis=-1))
+        outputs = self.fc2(tf.squeeze(outputs, axis=-1))
+        outputs = self.fc3(outputs)
 
         # outputs = tf.keras.layers.Activation('sigmoid')(outputs)
         return tf.keras.Model(inputs=self.inputs, outputs=outputs)

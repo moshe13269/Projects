@@ -11,7 +11,7 @@ class Processor:
         label = np.load(path2data[1])
         samplerate, data = wavfile.read(path2data[0])
         data = data.reshape(data.shape[0], 1)
-
+        data = (data - np.mean(data)) / np.std(data)
         data = np.ndarray.astype(data, np.float32)
         label = np.ndarray.astype(label, np.float32)
 

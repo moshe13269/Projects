@@ -2,10 +2,10 @@ from abc import ABC
 import tensorflow as tf
 
 
-class L2Loss(tf.keras.losses.Loss, ABC):
+class L2LossMasked(tf.keras.losses.Loss, ABC):
 
     def __init__(self):
-        super(L2Loss, self).__init__()
+        super(L2LossMasked, self).__init__()
         self.loss = tf.keras.losses.MeanSquaredError()
         self.subtract = tf.keras.layers.Subtract()
         self.mul = tf.keras.layers.Multiply()

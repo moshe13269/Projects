@@ -15,7 +15,7 @@ TrainTask:
       - 16384
     -
       -
-      - 509 #50
+      - 50
 
   model:
     _target_: model.data2vec_wav_model_ft.Data2VecModelFT
@@ -27,7 +27,7 @@ TrainTask:
     top_k_transformer: 1
     model_trainable: False
 
-    path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/
+    path2load_model: /home/moshelaufer/PycharmProjects/results/models/53/ #/home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/ #
 
   loss:
     _target_: losses.l2_regression.L2LossReg #tf.keras.losses.MeanSquaredError

@@ -180,7 +180,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
                 if counter >= index_k0:
                     top_k_layers.append(x)
             
-            return self.subtract([self.add(top_k_layers), top_k_transformer])
+            return tf.divide(self.add(top_k_layers), top_k_transformer)
 
 
 if __name__ == '__main__':

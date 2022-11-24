@@ -24,8 +24,9 @@ class Masking(tf.keras.layers.Layer):
     def call(self, data, **kwargs):
         latent_z, mask = data
         mask = tf.expand_dims(mask, axis=-1)
+
         latent_z_masked = self.add([self.mul([mask, self.learnable_mask]),
-                                    self.mul([self.subtract([1., mask]), latent_z])])
+                                    self.mul([tf.subtract(1., mask), latent_z])])
 
         return latent_z_masked
 

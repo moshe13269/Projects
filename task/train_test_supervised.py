@@ -115,10 +115,15 @@ class TrainTestTaskSupervised:
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:0'):
+        with tf.device('/GPU:2'):
             with mlflow.start_run():
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
+                mlflow.log_param("epochs", self.epochs)
+                mlflow.log_param("loss_function", self.loss)
+                # mlflow.log_param('learn_rate', model.cal)
+                # tf.keras.backend.get_value(self.model.optimizer.learning_rate)
+                mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
 
                 model.fit(x=train_dataset,
                           epochs=self.epochs,

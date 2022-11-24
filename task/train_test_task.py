@@ -37,9 +37,9 @@ class TrainTestTask:
                                                   # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
                                                   self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
 
-        self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
+        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
 
-        self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
+        self.results = instantiate(cfg.train_task.TrainTask.results)
 
     def run(self):
 

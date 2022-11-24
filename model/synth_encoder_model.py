@@ -6,40 +6,45 @@ import layers
 class SynthEncoder:
     transformer_encoder: layers.EncoderTransformer
     inputs: Tuple[int, int, int]
+    top_k_transformer: int
     conv_encoder: layers.ConvFeatureExtractionModel
 
     def __init__(self,
                  conv_encoder: layers.ConvFeatureExtractionModel,
                  transformer_encoder: layers.EncoderTransformer,
+                 top_k_transformer: int,
                  inputs: Tuple[int, int, int],
                  ):
         super().__init__()
 
         self.inputs = tf.keras.layers.Input(inputs)
+        self.top_k_transformer = top_k_transformer
 
         self.conv_encoder = conv_encoder
         self.transformer_encoder = transformer_encoder
 
-        self.dropout = tf.keras.layers.Dropout(0.25)
+        self.dropout = tf.keras.layers.Dropout(0.1)
 
         self.fc1 = tf.keras.layers.Dense(1, activation='relu')
         self.fc2 = tf.keras.layers.Dense(16, activation='relu')
         self.fc3 = tf.keras.layers.Dense(16, activation='sigmoid')
 
-        self.reshape = tf.keras.layers.Reshape(target_shape=(50,))
+        self.reshape = tf.keras.layers.Reshape(target_shape=(338,))
+        self.permute = tf.keras.layers.Permute((1, 2))
 
     def build(self):
         outputs = self.conv_encoder(self.inputs)
 
         outputs = self.transformer_encoder(outputs,
                                            training=True,
-                                           top_k_transformer=None)
+                                           top_k_transformer=self.top_k_transformer)
 
-        outputs = self.dropout(outputs)
+        outputs = self.permute(outputs)
+        # outputs = self.dropout(outputs)
         outputs = self.dropout(self.fc1(outputs))
         outputs = self.reshape(outputs)
-        outputs = self.dropout(self.fc2(outputs))
-        outputs = self.fc3(outputs)
+        outputs = self.fc2(outputs)
+        # outputs = self.fc3(outputs)
 
         return tf.keras.Model(inputs=[self.inputs], outputs=outputs)
 
