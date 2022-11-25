@@ -21,14 +21,23 @@ class Masking(tf.keras.layers.Layer):
                                               initializer='random_normal',
                                               name='masking')
 
+        # self.learnable_mask = tf.ones((1,1,512))*7.
+
     def call(self, data, **kwargs):
         latent_z, mask = data
-        mask = tf.expand_dims(mask, axis=-1)
+        # mask = tf.expand_dims(mask, axis=-1)
 
-        latent_z_masked = self.add([self.mul([mask, self.learnable_mask]),
-                                    self.mul([tf.subtract(1., mask), latent_z])])
+        # latent_z_masked = self.add([self.mul([mask, self.learnable_mask]),
+        #                             self.mul([tf.subtract(1., mask), latent_z])])
 
-        return latent_z_masked
+        masked_data = (1. - tf.expand_dims(mask, axis=-1)) * latent_z
+        l_m__ = self.learnable_mask * tf.expand_dims(mask, axis=-1)
+        return masked_data + l_m__
+
+        # unmasked = latent_z * (1. - tf.expand_dims(mask, axis=-1))
+        # mask = tf.expand_dims(latent_z, axis=-1) * self.learnable_mask
+        # return mask + unmasked
+        # return latent_z_masked
 
 
 if __name__ == '__main__':

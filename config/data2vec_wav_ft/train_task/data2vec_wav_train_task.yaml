@@ -27,7 +27,7 @@ TrainTask:
     top_k_transformer: 1
     model_trainable: False
 
-    path2load_model: /home/moshelaufer/PycharmProjects/results/models/53/ #/home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/ #
+    path2load_model: /home/moshelaufer/PycharmProjects/results/models/69/ #/home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/ #
 
   loss:
     _target_: losses.l2_regression.L2LossReg #tf.keras.losses.MeanSquaredError
@@ -61,11 +61,11 @@ TrainTask:
     _target_: processors.processor_wav_files_ft.Processor
 
   batch_size:
-    train: 32
+    train: 128
     test: 1
-    valid: 32
+    valid: 128
 
-  epochs: 20
+  epochs: 50
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/
   model_name: data2vec_wav_ft
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv

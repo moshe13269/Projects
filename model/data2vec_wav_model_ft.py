@@ -29,9 +29,10 @@ class Data2VecModelFT:
         self.inputs = tf.keras.layers.Input(inputs)
         self.fc1 = tf.keras.layers.Dense(1, activation='relu')
         self.fc2 = tf.keras.layers.Dense(16, activation='relu')
-        self.fc3 = tf.keras.layers.Dense(16, activation='relu')
+        self.fc3 = tf.keras.layers.Dense(16, activation='sigmoid')
         self.flatten = tf.keras.layers.Flatten()
         self.top_k_transformer = top_k_transformer
+        self.reshape = tf.keras.layers.Reshape((16,))
 
     def build(self):
         latent_space = self.conv_encoder(self.inputs)
@@ -44,7 +45,7 @@ class Data2VecModelFT:
 
         outputs = self.fc1(outputs)
         outputs = self.fc2(tf.squeeze(outputs, axis=-1))
-        outputs = self.fc3(outputs)
+        outputs = self.fc3(self.reshape(outputs))
 
         # outputs = tf.keras.layers.Activation('sigmoid')(outputs)
         return tf.keras.Model(inputs=self.inputs, outputs=outputs)
