@@ -9,8 +9,6 @@ class Data2VecModel:
     len_latent_space: int
     conv_encoder: layers.ConvFeatureExtractionModel
     transformer_encoder: layers.EncoderTransformer
-    ffn: layers.FFN
-    tau: float
     top_k_transformer: int
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
@@ -20,9 +18,8 @@ class Data2VecModel:
                  masking_layer: layers.Masking,
                  len_latent_space: int,
                  conv_encoder: layers.ConvFeatureExtractionModel,
-                 transformer_encoder: layers.EncoderTransformer,
-                 ffn: layers.FFN,
-                 tau: float,
+                 transformer_encoder_s: layers.EncoderTransformer,
+                 transformer_encoder_t: layers.EncoderTransformer,
                  top_k_transformer: int,
                  inputs1: Tuple[int, int, int],
                  inputs2: Tuple[int, int, int],
@@ -34,9 +31,10 @@ class Data2VecModel:
 
         self.len_latent_space = len_latent_space
         self.conv_encoder = conv_encoder
-        self.transformer_encoder = transformer_encoder
-        self.ffn = ffn
-        self.tau = tau
+        self.transformer_encoder_s = transformer_encoder_s
+        self.transformer_encoder_s._name = 'transformer_encoder_s'
+        self.transformer_encoder_t = transformer_encoder_t
+        self.transformer_encoder_t._name = 'transformer_encoder_t'
         self.top_k_transformer = top_k_transformer
         self.add = tf.keras.layers.Add()
         self.subtract = tf.keras.layers.Subtract()
@@ -46,32 +44,21 @@ class Data2VecModel:
         self.inputs2 = tf.keras.layers.Input(inputs2)
 
     def build(self):
-        latent_wav = self.conv_encoder(self.inputs1)
+        # self.transformer_encoder_s._name = 'transformer_encoder_s'
+        # self.transformer_encoder_t._name = 'transformer_encoder_t'
 
-        teacher_outputs = tf.identity(latent_wav)
+        latent_student = self.conv_encoder(self.inputs1)
 
-        masked_latent_space = self.masking_layer([latent_wav, self.inputs2])
+        masked_latent_space = self.masking_layer([latent_student, self.inputs2])
 
-        student_outputs = self.transformer_encoder(masked_latent_space,
-                                                   training=True,
-                                                   top_k_transformer=None)
+        student_outputs = self.transformer_encoder_s(masked_latent_space,
+                                                     training=True,
+                                                     top_k_transformer=None)
 
-        teacher_outputs = tf.stop_gradient(teacher_outputs)
+        latent_teacher = tf.stop_gradient(self.conv_encoder(self.inputs1))
 
-        teacher_outputs = self.transformer_encoder(teacher_outputs, training=False,
-                                                                    top_k_transformer=self.top_k_transformer)
-
-        teacher_outputs = tf.stop_gradient(teacher_outputs)
-
-        teacher_outputs = self.add([tf.multiply(teacher_outputs, self.tau),
-                                                     tf.multiply(tf.subtract(1., self.tau), student_outputs)])
-
-        teacher_outputs = tf.stop_gradient(teacher_outputs)
-
-        teacher_outputs = self.mul([teacher_outputs, tf.expand_dims(self.inputs2, axis=2)])
-        student_outputs = self.mul([student_outputs, tf.expand_dims(self.inputs2, axis=2)])
-
-        teacher_outputs = tf.stop_gradient(teacher_outputs)
+        teacher_outputs = tf.stop_gradient(self.transformer_encoder_t(latent_teacher, training=False,
+                                                                      top_k_transformer=self.top_k_transformer))
 
         outputs = tf.concat([student_outputs, teacher_outputs], axis=0)
 

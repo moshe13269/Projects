@@ -18,6 +18,7 @@ class EMACallback(tf.keras.callbacks.Callback):
                  t_e: float,
                  ):
         super(EMACallback, self).__init__()
+        self.tau = t_0
         self.t_n = t_n
         self.t_0 = t_0
         self.t_e = t_e
@@ -26,11 +27,28 @@ class EMACallback(tf.keras.callbacks.Callback):
 
     def on_train_batch_begin(self, batch, logs=None):
 
-        tau = float(tf.keras.backend.get_value(self.model.tau))
-        if tau < self.t_e:
-            tau += self.step
+        if self.tau < self.t_e:
+            self.tau += self.step
 
-        tf.keras.backend.set_value(self.model.tau, tau)
+        # self.model.transformer_encoder_s.get_weights()
+        #
+        # layer_b.set_weights(layer_a.get_weights())
+
+        # student transformer: model.layers[5];  teacher transformer: model.layers[6]
+        teacher_weight = self.model.layers[6].get_weights()
+        student_weight = self.model.layers[5].get_weights()
+        for i in range(len(teacher_weight)):
+            teacher_weight[i] = teacher_weight[i] * self.tau + student_weight[i] * (1.-self.tau)
+
+        self.model.layers[6].set_weights(teacher_weight)
+        self.model.layers[6].pos_embedding.set_weights(self.model.layers[5].pos_embedding.get_weights())
+
+        # tf.keras.backend.set_value(self.model.layers[6].get_weights(),
+        #                            self.model.layers[5].get_weights() * self.tau +
+        #                            self.model.layers[6].get_weights() * (1.-self.tau))
+
+        # tf.keras.backend.set_value(self.model.layers[6].pos_embedding.get_weights(),
+        #                            self.model.layers[5].pos_embedding.get_weights())
 
 
 class LearnRateSchedulerTriStage(tf.keras.callbacks.Callback):

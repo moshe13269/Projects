@@ -140,7 +140,7 @@ class FineTuningTask:
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:1'):
+        with tf.device('/GPU:0'):
             with mlflow.start_run():
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)

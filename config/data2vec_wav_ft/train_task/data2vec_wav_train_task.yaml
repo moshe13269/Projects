@@ -27,17 +27,17 @@ TrainTask:
     top_k_transformer: 1
     model_trainable: False
 
-    path2load_model: /home/moshelaufer/PycharmProjects/results/models/69/ #/home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/ #
+    path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/ #/home/moshelaufer/PycharmProjects/results/models/69/
 
   loss:
     _target_: losses.l2_regression.L2LossReg #tf.keras.losses.MeanSquaredError
 
   callbacks:
-#    -
-#      _target_: callbacks.callbacks.EMACallback
-#      t_n: 30000
-#      t_0: 0.999
-#      t_e: 0.9999
+    -
+      _target_: callbacks.callbacks.EMACallback
+      t_n: 30000
+      t_0: 0.999
+      t_e: 0.9999
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
       initial_lr: 0.0001
@@ -65,7 +65,7 @@ TrainTask:
     test: 1
     valid: 128
 
-  epochs: 50
+  epochs: 40
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/
   model_name: data2vec_wav_ft
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv

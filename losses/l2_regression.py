@@ -9,9 +9,6 @@ class L2LossReg(tf.keras.losses.Loss, ABC):
         self.loss = tf.keras.losses.MeanSquaredError()
 
     def call(self, y_true, y_pred):
-        # tf.print(tf.shape(y_true))
+        # tf.print(tf.shape(y_true), tf.shape(y_pred))
         y_true = tf.squeeze(y_true, axis=1)
-        # tf.print(tf.shape(y_pred), tf.shape(y_true))
-        # tf.print(y_true)
-        # return tf.reduce_mean(y_pred)
-        return self.loss(y_true, y_pred) * 10. #(y_true - y_pred)**2
+        return self.loss(y_true, y_pred)

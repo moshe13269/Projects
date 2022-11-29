@@ -23,7 +23,7 @@ class Data2VecModelFT:
         self.model.trainable = model_trainable
         self.conv_encoder = self.model.layers[1]
         self.conv_encoder.trainable = model_trainable
-        self.transformer_encoder = self.model.layers[5]
+        self.transformer_encoder = self.model.layers[6]
         self.transformer_encoder.trainable = model_trainable
         self.top_k_transformer = top_k_transformer
         self.inputs = tf.keras.layers.Input(inputs)

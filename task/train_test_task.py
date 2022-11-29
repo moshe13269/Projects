@@ -120,7 +120,7 @@ class TrainTestTask:
 
         mlflow.keras.autolog()
 
-        with tf.device('/gpu:1'):
+        with tf.device('/gpu:0'):
             with mlflow.start_run():
                 # log parameters
                 # mlflow.log_param("hidden_layers", args.hidden_layers)
