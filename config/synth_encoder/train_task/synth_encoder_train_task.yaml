@@ -24,13 +24,13 @@ TrainTask:
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
-      activation: gelu
+      activation: relu
       units: 512
       conv_layers:
         -
           - 512
-          - 8 #6
-          - 4 #3
+          - 10 #6
+          - 5 #3
 
         -
           - 512
@@ -52,15 +52,15 @@ TrainTask:
           - 3
           - 2
 
-#        -
-#          - 512
-#          - 2
-#          - 2 #1
-#
-#        -
-#          - 512
-#          - 2
-#          - 2 #1
+        -
+          - 512
+          - 2
+          - 2 #1
+
+        -
+          - 512
+          - 2
+          - 2 #1
 
       num_duplicate_layer:
         - 1
@@ -111,11 +111,11 @@ TrainTask:
     _target_: processors.processor_synth_encoder.Processor
 
   batch_size:
-    train: 64
+    train: 128
     test: 1
-    valid: 64
+    valid: 128
 
-  epochs: 50
+  epochs: 30
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/

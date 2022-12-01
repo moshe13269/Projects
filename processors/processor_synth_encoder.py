@@ -7,12 +7,22 @@ from scipy.io import wavfile
 
 class Processor:
 
+    def __init__(self, path2num_classes):
+        self.num_classes = np.load(path2num_classes)
+
+    def label2onehot(self, label):
+        onehot_labels = []
+        for i in range(label.shape[0]):
+            onehot_labels.append(tf.keras.utils.to_categorical(label[i], num_classes=self.num_classes[i]))
+        return np.asarray(onehot_labels)
+
     def load_data(self, path2data):
         label = np.load(path2data[1])
         samplerate, data = wavfile.read(path2data[0])
         data = data.reshape(data.shape[0], 1)
         data = (data - np.mean(data)) / np.std(data)
         data = np.ndarray.astype(data, np.float32)
+        label = self.label2onehot(label)
         label = np.ndarray.astype(label, np.float32)
 
         return data, label

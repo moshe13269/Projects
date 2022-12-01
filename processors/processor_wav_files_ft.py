@@ -7,7 +7,7 @@ from scipy.io import wavfile
 class Processor:
 
     def load_data(self, path2data):
-        label = np.load(path2data[1])
+        label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
         data = data.reshape(data.shape[0], 1)
         data = (data - np.mean(data)) / np.std(data)

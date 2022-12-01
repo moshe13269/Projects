@@ -10,5 +10,5 @@ class L2LossReg(tf.keras.losses.Loss, ABC):
 
     def call(self, y_true, y_pred):
         # tf.print(tf.shape(y_true), tf.shape(y_pred))
-        y_true = tf.squeeze(y_true, axis=1)
-        return self.loss(y_true, y_pred)
+        # y_true = tf.squeeze(y_true, axis=1)
+        return tf.reduce_mean((y_true - y_pred)**2) #self.loss(y_true, y_pred)

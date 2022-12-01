@@ -27,9 +27,9 @@ class SynthEncoder:
 
         self.fc1 = tf.keras.layers.Dense(1, activation='relu')
         self.fc2 = tf.keras.layers.Dense(16, activation='relu')
-        self.fc3 = tf.keras.layers.Dense(16, activation='sigmoid')
+        self.fc3 = tf.keras.layers.Dense(16, activation=None)
 
-        self.reshape = tf.keras.layers.Reshape(target_shape=(255,))  #target_shape=(338,)
+        self.reshape = tf.keras.layers.Reshape(target_shape=(50,))  #target_shape=(338,)
         self.permute = tf.keras.layers.Permute((1, 2))
         self.activation = tf.keras.layers.Activation('relu')
 
@@ -42,17 +42,17 @@ class SynthEncoder:
 
         # outputs = self.permute(outputs)
         # outputs = self.dropout(outputs)
-        outputs = self.fc1(self.activation(outputs))
+        outputs = self.fc1(outputs)
         outputs = self.reshape(outputs)
         outputs = self.dropout(self.fc2(outputs))
-        outputs = self.fc3(outputs)
+        outputs = tf.keras.activations.sigmoid(self.fc3(outputs))
 
         return tf.keras.Model(inputs=[self.inputs], outputs=outputs)
 
 
 if __name__ == '__main__':
     data = tf.random.normal((2, 32, 32))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 8, 4),
+    conv_layers: List[Tuple[int, int, int]] = [(512, 6, 3),
                                                (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 3, 2),
