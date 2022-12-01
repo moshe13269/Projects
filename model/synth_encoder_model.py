@@ -4,14 +4,18 @@ import layers
 
 
 class SynthEncoder:
-    transformer_encoder: layers.EncoderTransformer
+
     inputs: Tuple[int, int, int]
     top_k_transformer: int
+
     conv_encoder: layers.ConvFeatureExtractionModel
+    transformer_encoder: layers.EncoderTransformer
+    linear_classifier: layers.LinearClassifier
 
     def __init__(self,
                  conv_encoder: layers.ConvFeatureExtractionModel,
                  transformer_encoder: layers.EncoderTransformer,
+                 linear_classifier: layers.LinearClassifier,
                  top_k_transformer: int,
                  inputs: Tuple[int, int, int],
                  ):
@@ -22,16 +26,17 @@ class SynthEncoder:
 
         self.conv_encoder = conv_encoder
         self.transformer_encoder = transformer_encoder
+        self.linear_classifier = linear_classifier
 
-        self.dropout = tf.keras.layers.Dropout(0.1)
+        # self.dropout = tf.keras.layers.Dropout(0.1)
 
-        self.fc1 = tf.keras.layers.Dense(1, activation='relu')
-        self.fc2 = tf.keras.layers.Dense(16, activation='relu')
-        self.fc3 = tf.keras.layers.Dense(16, activation=None)
+        # self.fc1 = tf.keras.layers.Dense(1, activation='relu')
+        # self.fc2 = tf.keras.layers.Dense(16, activation='relu')
+        # self.fc3 = tf.keras.layers.Dense(16, activation=None)
 
-        self.reshape = tf.keras.layers.Reshape(target_shape=(50,))  #target_shape=(338,)
-        self.permute = tf.keras.layers.Permute((1, 2))
-        self.activation = tf.keras.layers.Activation('relu')
+        # self.reshape = tf.keras.layers.Reshape(target_shape=(50,))  #target_shape=(338,)
+        # self.permute = tf.keras.layers.Permute((1, 2))
+        # self.activation = tf.keras.layers.Activation('relu')
 
     def build(self):
         outputs = self.conv_encoder(self.inputs)
@@ -40,25 +45,27 @@ class SynthEncoder:
                                            training=True,
                                            top_k_transformer=None)
 
+        outputs = self.linear_classifier(outputs)
+
         # outputs = self.permute(outputs)
         # outputs = self.dropout(outputs)
-        outputs = self.fc1(outputs)
-        outputs = self.reshape(outputs)
-        outputs = self.dropout(self.fc2(outputs))
-        outputs = tf.keras.activations.sigmoid(self.fc3(outputs))
+        # outputs = self.fc1(outputs)
+        # outputs = self.reshape(outputs)
+        # outputs = self.dropout(self.fc2(outputs))
+        # outputs = tf.keras.activations.sigmoid(self.fc3(outputs))
 
         return tf.keras.Model(inputs=[self.inputs], outputs=outputs)
 
 
 if __name__ == '__main__':
     data = tf.random.normal((2, 32, 32))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 6, 3),
+    conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5),
                                                (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 3, 2),
-                                               (512, 3, 2)]#,
-                                               # (512, 2, 2),
-                                               # (512, 2, 2)]
+                                               (512, 3, 2),
+                                               (512, 2, 2),
+                                               (512, 2, 2)]
 
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
     conv = layers.ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
@@ -77,5 +84,7 @@ if __name__ == '__main__':
                          top_k_transformer=2)
 
     m = model.build()
+    # outputs = m(inputs)
+    # print(outputs.shape)
     m.summary()
 
