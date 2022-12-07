@@ -77,7 +77,7 @@ TrainTask:
 
 
     conv_decoder:
-      _target_: layers.conv_wav_decoder.ConvFeatureExtractionModel
+      _target_: layers.conv_wav_decoder.ConvDecoderModel
       activation: relu
       units: 512
       conv_layers:
@@ -157,6 +157,8 @@ TrainTask:
       dim_conv: 1
       activation: gelu
 
+    params_predictor:
+      _target_: layers.params_predictor.ParamsPredictor
 #    linear_classifier:
 #      _target_: layers.linear_classifier.LinearClassifier
 #      activation: softmax

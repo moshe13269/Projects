@@ -11,12 +11,14 @@ class SynthEncoder:
     transformer_encoder: layers.EncoderTransformer
     transformer_decoder: layers.DecoderTransformer
     conv_decoder: layers.ConvDecoderModel
+    params_predictor: layers.ParamsPredictor
 
     def __init__(self,
                  conv_encoder: layers.ConvFeatureExtractionModel,
                  transformer_encoder: layers.EncoderTransformer,
                  transformer_decoder: layers.DecoderTransformer,
                  conv_decoder: layers.ConvDecoderModel,
+                 params_predictor: layers.ParamsPredictor,
                  top_k_transformer: int,
                  inputs: Tuple[int, int, int],
 
@@ -31,17 +33,8 @@ class SynthEncoder:
 
         self.transformer_decoder = transformer_decoder
         self.conv_decoder = conv_decoder
-        # self.linear_classifier = linear_classifier
 
-        self.dropout1 = tf.keras.layers.Dropout(0.1)
-        self.dropout2 = tf.keras.layers.Dropout(0.1)
-        self.fc1 = tf.keras.layers.Dense(1, activation='relu')
-        self.fc2 = tf.keras.layers.Dense(16, activation='relu')
-        self.fc3 = tf.keras.layers.Dense(16, activation='sigmoid')
-
-        self.reshape = tf.keras.layers.Reshape(target_shape=(50,))  # target_shape=(338,)
-        # self.permute = tf.keras.layers.Permute((1, 2))
-        # self.activation = tf.keras.layers.Activation('relu')
+        self.params_predictor = params_predictor
 
     def build(self):
         outputs_conv_encoder = self.conv_encoder(self.inputs)
@@ -50,22 +43,16 @@ class SynthEncoder:
                                                                training=True,
                                                                top_k_transformer=3)
 
-        outputs_transformer_decoder = self.transformer_encoder(x=outputs_conv_encoder,
+        outputs_transformer_decoder = self.transformer_decoder(x=outputs_conv_encoder,
                                                                context=outputs_transformer_encoder,
                                                                training=True,
                                                                top_k_transformer=3)
 
         outputs_wav = self.conv_decoder(outputs_transformer_decoder)
 
-        # outputs = self.permute(outputs)
-        outputs = self.dropout1(outputs_transformer_encoder)
-        outputs = self.fc1(outputs)
-        outputs = self.reshape(outputs)
-        outputs = self.dropout2(self.fc2(outputs))
-        outputs_params = self.fc3(outputs)  # tf.keras.activations.sigmoid(self.fc3(outputs))
+        outputs_params = self.params_predictor(outputs_transformer_encoder)
 
         return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, outputs_conv_encoder,
-                                                             # outputs_transformer_encoder,
                                                              outputs_transformer_decoder,
                                                              outputs_wav])
 
