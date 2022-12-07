@@ -111,7 +111,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
     d_model: int
     num_attention_heads: int
     dff: int
-    input_vocab_size: int
+    # input_vocab_size: int
     dropout_rate: float
     dim_conv: int
     activation: str

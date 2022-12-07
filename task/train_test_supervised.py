@@ -3,9 +3,11 @@ import mlflow
 import mlflow.tensorflow
 import numpy as np
 import pandas as pd
+from copy import copy
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
+from keras.utils.vis_utils import plot_model
 from sklearn.model_selection import train_test_split
 
 
@@ -25,7 +27,8 @@ class TrainTestTaskSupervised:
 
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         self.model = instantiate(cfg.train_task.TrainTask.model)
-        self.loss = instantiate(cfg.train_task.TrainTask.loss)
+        loss = instantiate(cfg.train_task.TrainTask.loss)
+        self.loss = [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
@@ -45,7 +48,7 @@ class TrainTestTaskSupervised:
 
         for sample in range(num_sample):
             x, y = test_set.next()
-            y_ = model.predict(x)
+            y_ = model.predict_on_batch(x) #model.predict(x)
             results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
             results[2 * sample + 1: 2 * sample + 2, :] = y.squeeze()
 
@@ -77,7 +80,7 @@ class TrainTestTaskSupervised:
         self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
         train_dataset = (self.train_dataset
-                         .shuffle(1024)
+                         .shuffle(1024, reshuffle_each_iteration=True)
                          .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
@@ -99,7 +102,7 @@ class TrainTestTaskSupervised:
                         )
 
         val_dataset = (self.val_dataset
-                       .shuffle(1024)
+                       .shuffle(1024, reshuffle_each_iteration=True)
                        .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
@@ -110,17 +113,19 @@ class TrainTestTaskSupervised:
                        )
 
         model = self.model.build()
-
+        plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
+                   show_layer_names=True)
         model.compile(optimizer=self.optimizer, loss=self.loss)
 
         mlflow.keras.autolog()
 
         with tf.device('/GPU:1'):
             with mlflow.start_run():
+                mlflow.keras.log_model(model, "models")
                 mlflow.log_param("epochs", self.epochs)
-                mlflow.log_param("loss_function", self.loss)
+                # mlflow.log_param("loss_function", self.loss)
                 mlflow.log_param("epochs", self.epochs)
-                mlflow.log_param("loss_function", self.loss)
+                # mlflow.log_param("loss_function", self.loss)
                 # mlflow.log_param('learn_rate', model.cal)
                 # tf.keras.backend.get_value(self.model.optimizer.learning_rate)
                 mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))

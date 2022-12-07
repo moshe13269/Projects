@@ -4,20 +4,22 @@ import layers
 
 
 class SynthEncoder:
-
     inputs: Tuple[int, int, int]
     top_k_transformer: int
 
     conv_encoder: layers.ConvFeatureExtractionModel
     transformer_encoder: layers.EncoderTransformer
-    linear_classifier: layers.LinearClassifier
+    transformer_decoder: layers.DecoderTransformer
+    conv_decoder: layers.ConvDecoderModel
 
     def __init__(self,
                  conv_encoder: layers.ConvFeatureExtractionModel,
                  transformer_encoder: layers.EncoderTransformer,
-                 linear_classifier: layers.LinearClassifier,
+                 transformer_decoder: layers.DecoderTransformer,
+                 conv_decoder: layers.ConvDecoderModel,
                  top_k_transformer: int,
                  inputs: Tuple[int, int, int],
+
                  ):
         super().__init__()
 
@@ -26,35 +28,46 @@ class SynthEncoder:
 
         self.conv_encoder = conv_encoder
         self.transformer_encoder = transformer_encoder
-        self.linear_classifier = linear_classifier
 
-        # self.dropout = tf.keras.layers.Dropout(0.1)
+        self.transformer_decoder = transformer_decoder
+        self.conv_decoder = conv_decoder
+        # self.linear_classifier = linear_classifier
 
-        # self.fc1 = tf.keras.layers.Dense(1, activation='relu')
-        # self.fc2 = tf.keras.layers.Dense(16, activation='relu')
-        # self.fc3 = tf.keras.layers.Dense(16, activation=None)
+        self.dropout1 = tf.keras.layers.Dropout(0.1)
+        self.dropout2 = tf.keras.layers.Dropout(0.1)
+        self.fc1 = tf.keras.layers.Dense(1, activation='relu')
+        self.fc2 = tf.keras.layers.Dense(16, activation='relu')
+        self.fc3 = tf.keras.layers.Dense(16, activation='sigmoid')
 
-        # self.reshape = tf.keras.layers.Reshape(target_shape=(50,))  #target_shape=(338,)
+        self.reshape = tf.keras.layers.Reshape(target_shape=(50,))  # target_shape=(338,)
         # self.permute = tf.keras.layers.Permute((1, 2))
         # self.activation = tf.keras.layers.Activation('relu')
 
     def build(self):
-        outputs = self.conv_encoder(self.inputs)
+        outputs_conv_encoder = self.conv_encoder(self.inputs)
 
-        outputs = self.transformer_encoder(outputs,
-                                           training=True,
-                                           top_k_transformer=None)
+        outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
+                                                               training=True,
+                                                               top_k_transformer=3)
 
-        outputs = self.linear_classifier(outputs)
+        outputs_transformer_decoder = self.transformer_encoder(x=outputs_conv_encoder,
+                                                               context=outputs_transformer_encoder,
+                                                               training=True,
+                                                               top_k_transformer=3)
+
+        outputs_wav = self.conv_decoder(outputs_transformer_decoder)
 
         # outputs = self.permute(outputs)
-        # outputs = self.dropout(outputs)
-        # outputs = self.fc1(outputs)
-        # outputs = self.reshape(outputs)
-        # outputs = self.dropout(self.fc2(outputs))
-        # outputs = tf.keras.activations.sigmoid(self.fc3(outputs))
+        outputs = self.dropout1(outputs_transformer_encoder)
+        outputs = self.fc1(outputs)
+        outputs = self.reshape(outputs)
+        outputs = self.dropout2(self.fc2(outputs))
+        outputs_params = self.fc3(outputs)  # tf.keras.activations.sigmoid(self.fc3(outputs))
 
-        return tf.keras.Model(inputs=[self.inputs], outputs=outputs)
+        return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, outputs_conv_encoder,
+                                                             # outputs_transformer_encoder,
+                                                             outputs_transformer_decoder,
+                                                             outputs_wav])
 
 
 if __name__ == '__main__':
@@ -87,4 +100,3 @@ if __name__ == '__main__':
     # outputs = m(inputs)
     # print(outputs.shape)
     m.summary()
-

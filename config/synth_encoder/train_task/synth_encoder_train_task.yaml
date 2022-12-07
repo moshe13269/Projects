@@ -7,7 +7,7 @@ TrainTask:
     path2load: /home/moshelaufer/PycharmProjects/datasets/tal_noise_1
     type_files: wav
     labels: True
-    dataset_names: dx_wav
+    dataset_names: tal_noise_1
 
   input_shape:
     -
@@ -75,11 +75,71 @@ TrainTask:
       conv_bias: True
 #      mode: none
 
+
+    conv_decoder:
+      _target_: layers.conv_wav_decoder.ConvFeatureExtractionModel
+      activation: relu
+      units: 512
+      conv_layers:
+        -
+          - 512
+          - 2
+          - 2
+          - 1
+
+        -
+          - 512
+          - 2
+          - 2
+          - 1
+
+        -
+          - 512
+          - 3
+          - 2
+          - 1
+
+        -
+          - 512
+          - 3
+          - 2
+          - 1
+
+        -
+          - 512
+          - 3
+          - 2
+          - 0
+
+        -
+          - 512
+          - 3
+          - 2
+          - 0
+
+        -
+          - 512
+          - 10
+          - 5
+          - 4
+
+      num_duplicate_layer:
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+
+      dropout: 0.1
+      conv_bias: True
+
     top_k_transformer: 6
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 4
+      num_layers: 6
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -87,8 +147,58 @@ TrainTask:
       dim_conv: 1
       activation: gelu
 
+    transformer_decoder:
+      _target_: layers.transformer_decoder.DecoderTransformer
+      num_layers: 6
+      d_model: 512
+      num_attention_heads: 12
+      dff: 768
+      dropout_rate: 0.1
+      dim_conv: 1
+      activation: gelu
+
+#    linear_classifier:
+#      _target_: layers.linear_classifier.LinearClassifier
+#      activation: softmax
+#      outputs_dimension_per_outputs:
+#        - 16
+#        - 16
+#        - 8
+#        - 8
+#        - 9
+#        - 8
+#        - 9
+#        - 9
+#        - 2
+#        - 4
+#        - 4
+#        - 4
+#        - 17
+#        - 17
+#        - 17
+#        - 17
   loss:
-    _target_: losses.l2_regression.L2LossReg
+    _target_: losses.l2_regression.L2LossReg     #losses.l2_loss.L2Loss
+#  loss:
+#    _target_: losses.multi_cross_entropy_loss.MultiCELoss
+#    num_params: 16
+#    num_classes_per_param:
+#        - 16
+#        - 16
+#        - 8
+#        - 8
+#        - 9
+#        - 8
+#        - 9
+#        - 9
+#        - 2
+#        - 4
+#        - 4
+#        - 4
+#        - 17
+#        - 17
+#        - 17
+#        - 17
 
   callbacks:
     -
@@ -103,22 +213,43 @@ TrainTask:
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.001
+    learning_rate: 0.000005
     beta_1: 0.9
     beta_2: 0.99
 
   processor:
     _target_: processors.processor_synth_encoder.Processor
+    num_classes:
+      - 16
+      - 16
+      - 8
+      - 8
+      - 9
+      - 8
+      - 9
+      - 9
+      - 2
+      - 4
+      - 4
+      - 4
+      - 17
+      - 17
+      - 17
+      - 17
+
+#    path2sets: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_labels/list_of_set_labels.pkl
+
 
   batch_size:
-    train: 128
+    train: 256
     test: 1
-    valid: 128
+    valid: 256
 
-  epochs: 30
+  epochs: 280
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
-  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/1/
+  num_outputs: 16
 
   results:
     _target_: results.results.Results

@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow_addons.layers import InstanceNormalization
 
 
 class PositionalEmbedding(tf.keras.layers.Layer):
@@ -120,33 +121,85 @@ class DecoderLayer(tf.keras.layers.Layer):
 
 
 class DecoderTransformer(tf.keras.layers.Layer):
-    def __init__(self, *, num_layers, d_model, num_heads, dff, vocab_size,
+
+    num_layers: int
+    d_model: int
+    num_attention_heads: int
+    dff: int
+    dropout_rate: float
+    dim_conv: int
+    activation: str
+
+    def __init__(self, *,
+                 num_layers,
+                 d_model,
+                 num_attention_heads,
+                 dff,
+                 activation: str,
+                 dim_conv=1,
                  dropout_rate=0.1):
+
         super(DecoderTransformer, self).__init__()
-        self._name = 'fdfdf'
+        self._name = 'DecoderTransformer'
         self.d_model = d_model
         self.num_layers = num_layers
 
-        self.pos_embedding = PositionalEmbedding(vocab_size=vocab_size,
-                                                 d_model=d_model)
+        # self.pos_embedding = PositionalEmbedding(vocab_size=vocab_size,
+        #                                          d_model=d_model)
+
+        self.pos_embedding = PositionalEmbedding(kernel_size=3,
+                                                 filters=d_model,
+                                                 stride=1,
+                                                 dim_conv=dim_conv,
+                                                 activation=activation,
+                                                 )
+
         self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.dec_layers = [
-            DecoderLayer(d_model=d_model, num_heads=num_heads,
+            DecoderLayer(d_model=d_model, num_heads=num_attention_heads,
                          dff=dff, dropout_rate=dropout_rate)
             for _ in range(num_layers)]
 
         self.last_attn_scores = None
 
-    def call(self, x, context):
+        self.layer_norm_teacher = InstanceNormalization()
+
+        self.add = tf.keras.layers.Add()
+        self.subtract = tf.keras.layers.Subtract()
+
+    def call(self, x, context, top_k_transformer=None):
+
         # `x` is token-IDs shape (batch, target_seq_len)
+
         x = self.pos_embedding(x)  # (batch_size, target_seq_len, d_model)
 
         x = self.dropout(x)
 
-        for i in range(self.num_layers):
-            x = self.dec_layers[i](x, context)
+        if top_k_transformer is None:
 
-        self.last_attn_scores = self.dec_layers[-1].last_attn_scores
+            for i in range(self.num_layers):
+                x = self.dec_layers[i](x, context)
 
-        # The shape of x is (batch_size, target_seq_len, d_model).
-        return x
+            self.last_attn_scores = self.dec_layers[-1].last_attn_scores
+
+            # The shape of x is (batch_size, target_seq_len, d_model).
+            return x
+
+        else:
+
+            top_k_layers = []
+            index_k0 = len(self.dec_layers) - top_k_transformer
+            counter = 0
+
+            for decoder_layer in self.dec_layers:
+
+                x = self.layer_norm_teacher(decoder_layer(x, context))
+
+                counter += 1
+
+                if counter >= index_k0:
+                    top_k_layers.append(x)
+
+            return tf.divide(self.add(top_k_layers), top_k_transformer)
+
+

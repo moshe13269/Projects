@@ -1,4 +1,5 @@
 import os
+import pickle
 import numpy as np
 import pandas as pd
 
@@ -23,6 +24,14 @@ class LabelsConverter:
                 data_frame[i, j] = self.class_data[j]['set'].index(data_frame[i, j])
         return data_frame
 
+    @staticmethod
+    def save_set(chosen_column, filtered_data_frame, path2save):
+        lst_set = []
+        for colum in chosen_column:
+            lst_set.append(set(filtered_data_frame[colum]))
+        with open(os.path.join(path2save, 'list_of_set_labels.pkl'), 'wb') as handle:
+            pickle.dump(lst_set, handle)
+
 
 def choose_params_from_csv(path2csv):
     chosen_column = []
@@ -42,6 +51,7 @@ def paras_labels(path2csv, path2save):
 
     chosen_column, data_frame, files_names = choose_params_from_csv(path2csv)
     filtered_data_frame = data_frame.loc[:, chosen_column]
+    labelsconverter.save_set(chosen_column, filtered_data_frame, path2save)
     labelsconverter.float_labels2category_labels(filtered_data_frame, chosen_column)
     filtered_data_frame = labelsconverter.convert_float2classes(filtered_data_frame)
     # filtered_data_frame = filtered_data_frame.to_numpy()

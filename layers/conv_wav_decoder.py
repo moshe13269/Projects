@@ -1,10 +1,10 @@
 import tensorflow as tf
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv1D, Dropout, Dense, AveragePooling1D, Reshape
+from tensorflow.python.keras.layers import Conv1DTranspose, Dropout, Dense, AveragePooling1D, Reshape
 
 
-class ConvFeatureExtractionModel(tf.keras.layers.Layer):
+class ConvDecoderModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
@@ -13,7 +13,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                  dropout: float = 0.0,
                  mode: str = "default",
                  conv_bias: bool = False):
-        super(ConvFeatureExtractionModel, self).__init__()
+        super(ConvDecoderModel, self).__init__()
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
 
@@ -23,15 +23,15 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                   is_group_norm=False,
                   conv_bias=False):
 
-            (dim, kernel, stride) = layers_param
+            (dim, kernel, stride, output_padding) = layers_param
 
             def make_conv():
-                conv = Conv1D(filters=dim,
-                              kernel_size=kernel,
-                              strides=stride,
-                              use_bias=conv_bias,
-                              # padding='same',
-                              kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
+                conv = Conv1DTranspose(filters=dim,
+                                       kernel_size=kernel,
+                                       strides=stride,
+                                       use_bias=conv_bias,
+                                       output_padding=output_padding,  # padding='same', #
+                                       kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
                 return conv
 
             assert (is_layer_norm and is_group_norm) == False, "layer norm and group norm are exclusive"
@@ -78,7 +78,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.avg_pool = AveragePooling1D()
 
-        self.fc = Dense(units=units, activation=activation)
+        self.fc = Dense(units=units, activation=None)
 
     def call(self, x, **kwargs):
         # BxT -> BxTxC
@@ -86,20 +86,21 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         for conv in self.conv_layers:
             x = conv(x)
 
-        return self.activation(self.fc(x))
+        return self.fc(x)
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((4, 16384, 1))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 3, 2),
-                                               (512, 3, 2),
-                                               (512, 3, 2),
-                                               (512, 3, 2),
-                                               (512, 2, 2),
-                                               (512, 2, 2)]
+    data = tf.random.normal((4, 50, 512))
+    conv_layers: List[Tuple[int, int, int, int]] = [(512, 2, 2, 1),
+                                                    (512, 2, 2, 1),
+                                                    (512, 3, 2, 1),
+                                                    (512, 3, 2, 1),
+                                                    (512, 3, 2, 0),
+                                                    (512, 3, 2, 0),
+                                                    (512, 10, 5, 4)]
 
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
-    conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
+    conv = ConvDecoderModel(conv_layers=conv_layers, activation='gelu', units=1,
                                       num_duplicate_layer=num_duplicate_layer)
     output = conv(data)
     print(output.shape)
