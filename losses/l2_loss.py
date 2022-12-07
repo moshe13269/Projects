@@ -14,5 +14,4 @@ class L2Loss(tf.keras.losses.Loss, ABC):
         student, teacher = tf.split(y_pred, num_or_size_splits=2, axis=0)
         # return self.subtract(y_true - y_pred)**2
         x = self.subtract([student, teacher])
-        return tf.reduce_mean(self.mul([x, x])) * 5. #10240.
-        # return self.loss(student, teacher)
+        return tf.reduce_mean(self.mul([x, x]))

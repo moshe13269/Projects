@@ -37,7 +37,8 @@ class SynthEncoder:
         self.params_predictor = params_predictor
 
     def build(self):
-        outputs_conv_encoder = self.conv_encoder(self.inputs)
+        inputs = self.inputs
+        outputs_conv_encoder = self.conv_encoder(inputs)
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
@@ -52,9 +53,11 @@ class SynthEncoder:
 
         outputs_params = self.params_predictor(outputs_transformer_encoder)
 
-        return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, outputs_conv_encoder,
-                                                             outputs_transformer_decoder,
-                                                             outputs_wav])
+        wavs = tf.keras.layers.concatenate([inputs, outputs_wav], axis=0)
+
+        latent = tf.keras.layers.concatenate([outputs_conv_encoder, outputs_transformer_decoder], axis=0)
+
+        return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, wavs, latent])
 
 
 if __name__ == '__main__':

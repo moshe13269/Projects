@@ -79,7 +79,7 @@ TrainTask:
     conv_decoder:
       _target_: layers.conv_wav_decoder.ConvDecoderModel
       activation: relu
-      units: 512
+      units: 1
       conv_layers:
         -
           - 512
@@ -159,48 +159,15 @@ TrainTask:
 
     params_predictor:
       _target_: layers.params_predictor.ParamsPredictor
-#    linear_classifier:
-#      _target_: layers.linear_classifier.LinearClassifier
-#      activation: softmax
-#      outputs_dimension_per_outputs:
-#        - 16
-#        - 16
-#        - 8
-#        - 8
-#        - 9
-#        - 8
-#        - 9
-#        - 9
-#        - 2
-#        - 4
-#        - 4
-#        - 4
-#        - 17
-#        - 17
-#        - 17
-#        - 17
+
   loss:
-    _target_: losses.l2_regression.L2LossReg     #losses.l2_loss.L2Loss
-#  loss:
-#    _target_: losses.multi_cross_entropy_loss.MultiCELoss
-#    num_params: 16
-#    num_classes_per_param:
-#        - 16
-#        - 16
-#        - 8
-#        - 8
-#        - 9
-#        - 8
-#        - 9
-#        - 9
-#        - 2
-#        - 4
-#        - 4
-#        - 4
-#        - 17
-#        - 17
-#        - 17
-#        - 17
+    - _target_: losses.l2_regression.L2LossReg
+#    - _target_: losses.soft_dtw_loss.SoftDTWLoss
+#      gamma: 1.
+    - _target_: losses.l2_loss.L2Loss
+    - _target_: losses.l2_loss.L2Loss
+#    - _target_: losses.soft_dtw_loss.SoftDTWLoss
+#      gamma: 1.
 
   callbacks:
     -
@@ -243,11 +210,11 @@ TrainTask:
 
 
   batch_size:
-    train: 256
+    train: 64
     test: 1
-    valid: 256
+    valid: 64
 
-  epochs: 280
+  epochs: 120
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/1/

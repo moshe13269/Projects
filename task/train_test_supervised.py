@@ -27,8 +27,8 @@ class TrainTestTaskSupervised:
 
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         self.model = instantiate(cfg.train_task.TrainTask.model)
-        loss = instantiate(cfg.train_task.TrainTask.loss)
-        self.loss = [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
+        # loss = instantiate(cfg.train_task.TrainTask.loss)
+        self.loss = instantiate(cfg.train_task.TrainTask.loss) #[copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
@@ -48,7 +48,7 @@ class TrainTestTaskSupervised:
 
         for sample in range(num_sample):
             x, y = test_set.next()
-            y_ = model.predict_on_batch(x) #model.predict(x)
+            y_ = model.predict_on_batch(x)[0] #model.predict(x)
             results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
             results[2 * sample + 1: 2 * sample + 2, :] = y.squeeze()
 
@@ -84,7 +84,7 @@ class TrainTestTaskSupervised:
                          .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE)
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y)))
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
@@ -95,7 +95,7 @@ class TrainTestTaskSupervised:
                         .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE)
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y)))
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
@@ -106,7 +106,7 @@ class TrainTestTaskSupervised:
                        .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE)
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y)))
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
@@ -115,20 +115,17 @@ class TrainTestTaskSupervised:
         model = self.model.build()
         plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
                    show_layer_names=True)
-        model.compile(optimizer=self.optimizer, loss=self.loss)
+        model.compile(optimizer=self.optimizer, loss=list(self.loss))
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:1'):
+        with tf.device('/GPU:3'):
             with mlflow.start_run():
-                mlflow.keras.log_model(model, "models")
-                mlflow.log_param("epochs", self.epochs)
+                # mlflow.keras.log_model(model, "models")
+                # mlflow.log_param("epochs", self.epochs)
                 # mlflow.log_param("loss_function", self.loss)
-                mlflow.log_param("epochs", self.epochs)
-                # mlflow.log_param("loss_function", self.loss)
-                # mlflow.log_param('learn_rate', model.cal)
-                # tf.keras.backend.get_value(self.model.optimizer.learning_rate)
-                mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
+                # mlflow.log_param("epochs", self.epochs)
+                # mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
 
                 model.fit(x=train_dataset,
                           epochs=self.epochs,
