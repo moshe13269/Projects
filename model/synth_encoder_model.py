@@ -42,12 +42,12 @@ class SynthEncoder:
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
-                                                               top_k_transformer=3)
+                                                               top_k_transformer=None)
 
         outputs_transformer_decoder = self.transformer_decoder(x=outputs_conv_encoder,
                                                                context=outputs_transformer_encoder,
                                                                training=True,
-                                                               top_k_transformer=3)
+                                                               top_k_transformer=None)
 
         outputs_wav = self.conv_decoder(outputs_transformer_decoder)
 

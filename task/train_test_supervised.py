@@ -50,7 +50,7 @@ class TrainTestTaskSupervised:
             x, y = test_set.next()
             y_ = model.predict_on_batch(x)[0] #model.predict(x)
             results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
-            results[2 * sample + 1: 2 * sample + 2, :] = y.squeeze()
+            results[2 * sample + 1: 2 * sample + 2, :] = y[0].squeeze()
 
         pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
 
@@ -115,11 +115,12 @@ class TrainTestTaskSupervised:
         model = self.model.build()
         plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
                    show_layer_names=True)
-        model.compile(optimizer=self.optimizer, loss=list(self.loss))
+        model.compile(optimizer=self.optimizer, loss=list(self.loss),
+                      loss_weights={'params_predictor': 1.5, 'concatenate': 0.125, 'concatenate_1': 5.})
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:3'):
+        with tf.device('/GPU:2'):
             with mlflow.start_run():
                 # mlflow.keras.log_model(model, "models")
                 # mlflow.log_param("epochs", self.epochs)

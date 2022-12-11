@@ -24,7 +24,7 @@ TrainTask:
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
-      activation: relu
+      activation: gelu
       units: 512
       conv_layers:
         -
@@ -78,7 +78,7 @@ TrainTask:
 
     conv_decoder:
       _target_: layers.conv_wav_decoder.ConvDecoderModel
-      activation: relu
+      activation: gelu
       units: 1
       conv_layers:
         -
@@ -135,11 +135,11 @@ TrainTask:
       dropout: 0.1
       conv_bias: True
 
-    top_k_transformer: 6
+    top_k_transformer: 1
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 6
+      num_layers: 4
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -149,7 +149,7 @@ TrainTask:
 
     transformer_decoder:
       _target_: layers.transformer_decoder.DecoderTransformer
-      num_layers: 6
+      num_layers: 8
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -165,9 +165,7 @@ TrainTask:
 #    - _target_: losses.soft_dtw_loss.SoftDTWLoss
 #      gamma: 1.
     - _target_: losses.l2_loss.L2Loss
-    - _target_: losses.l2_loss.L2Loss
-#    - _target_: losses.soft_dtw_loss.SoftDTWLoss
-#      gamma: 1.
+    - _target_: losses.cos_sim_loss.CosSimLoss
 
   callbacks:
     -
@@ -180,9 +178,30 @@ TrainTask:
       monitor: 'loss'
       verbose: 1
 
+    -
+      _target_: callbacks.callbacks.LearnRateSchedulerTriStage
+      initial_lr: 0.0000001
+      peak: 0.00005
+      end: 0.00000001
+      steps2warp_up: 0.03
+      steps2hold: 0.47 #0.67
+      decay: 0.5
+      train_steps_per_epoch: 313 #1250 #625
+      epochs: 1000
+
+    -
+      _target_: tensorflow.keras.callbacks.EarlyStopping
+      monitor: params_predictor
+      min_delta: 0.00005
+      patience: 15
+      mode: min
+      verbose: 1
+      restore_best_weights: True
+#      start_from_epoch: 200
+
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.000005
+    learning_rate: 0.000001
     beta_1: 0.9
     beta_2: 0.99
 
@@ -210,14 +229,14 @@ TrainTask:
 
 
   batch_size:
-    train: 64
+    train: 32
     test: 1
-    valid: 64
+    valid: 32
 
-  epochs: 120
+  epochs: 1000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
-  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/1/
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
   num_outputs: 16
 
   results:

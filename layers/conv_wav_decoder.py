@@ -20,7 +20,7 @@ class ConvDecoderModel(tf.keras.layers.Layer):
         def block(layers_param,
                   activation,
                   is_layer_norm=False,
-                  is_group_norm=False,
+                  is_group_norm=True,
                   conv_bias=False):
 
             (dim, kernel, stride, output_padding) = layers_param

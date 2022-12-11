@@ -4,19 +4,20 @@ import tensorflow_addons as tfa
 from tensorflow.python.keras.layers import Conv2D, Dropout, Dense, AveragePooling2D, Reshape
 
 
-class ConvFeatureExtractionModel(tf.keras.layers.Layer):
+class ImageConvFeatureExtractionModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[List[Tuple[int, int, int]]],  # List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
+                 reshape: Tuple[int, int],
                  activation: str,
                  units: int,
                  dropout: float = 0.0,
                  mode: str = "default",
                  conv_bias: bool = False):
-        super(ConvFeatureExtractionModel, self).__init__()
+        super(ImageConvFeatureExtractionModel, self).__init__()
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
-        self.reshape = Reshape((16, 512,))
+        self.reshape = Reshape(reshape)
 
         def block(layers_param,
                   activation,

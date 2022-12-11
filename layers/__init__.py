@@ -7,3 +7,4 @@ from layers.exp_moving_avg import EMA
 from layers.linear_classifier import LinearClassifier
 from layers.conv_wav_decoder import ConvDecoderModel
 from layers.params_predictor import ParamsPredictor
+from layers.conv_image_encoder import ImageConvFeatureExtractionModel
