@@ -17,8 +17,8 @@ class ParamsPredictor(tf.keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
 
-        outputs = self.dropout1(inputs)
-        outputs = self.fc1(outputs)
+        # outputs = self.dropout1(inputs)
+        outputs = self.fc1(inputs)
         outputs = self.reshape(outputs)
         outputs = self.dropout2(self.fc2(outputs))
         outputs_params = self.fc3(outputs)
