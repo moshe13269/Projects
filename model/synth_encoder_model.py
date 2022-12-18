@@ -57,7 +57,7 @@ class SynthEncoder:
 
         latent = tf.keras.layers.concatenate([outputs_conv_encoder, outputs_transformer_decoder], axis=0)
 
-        return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, wavs, latent])
+        return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, wavs, wavs, latent])
 
 
 if __name__ == '__main__':

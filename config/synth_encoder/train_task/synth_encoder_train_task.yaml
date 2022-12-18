@@ -162,9 +162,11 @@ TrainTask:
 
   loss:
     - _target_: losses.l2_regression.L2LossReg
+    - _target_: losses.SpectralConvergengeLoss.SpectralConvergengeLoss
+    - _target_: losses.LogSTFTMagnitudeLoss.LogSTFTMagnitudeLoss
 #    - _target_: losses.soft_dtw_loss.SoftDTWLoss
 #      gamma: 1.
-    - _target_: losses.l2_loss.L2Loss
+#    - _target_: losses.l2_loss.L2Loss
     - _target_: losses.cos_sim_loss.CosSimLoss
 
   callbacks:
@@ -187,12 +189,12 @@ TrainTask:
       steps2hold: 0.47 #0.67
       decay: 0.5
       train_steps_per_epoch: 313 #1250 #625
-      epochs: 1000
+      epochs: 250
 
     -
       _target_: tensorflow.keras.callbacks.EarlyStopping
       monitor: params_predictor
-      min_delta: 0.00005
+      min_delta: 0.0008
       patience: 15
       mode: min
       verbose: 1
@@ -207,6 +209,9 @@ TrainTask:
 
   processor:
     _target_: processors.processor_synth_encoder.Processor
+    std_mean_calc:
+      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
     num_classes:
       - 16
       - 16
@@ -233,7 +238,7 @@ TrainTask:
     test: 1
     valid: 32
 
-  epochs: 1000
+  epochs: 250
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/

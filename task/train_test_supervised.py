@@ -84,7 +84,7 @@ class TrainTestTaskSupervised:
                          .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y)))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y, y)))
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
@@ -95,7 +95,7 @@ class TrainTestTaskSupervised:
                         .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y)))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y, y)))
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
@@ -106,7 +106,7 @@ class TrainTestTaskSupervised:
                        .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y)))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y, y)))
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
@@ -116,11 +116,12 @@ class TrainTestTaskSupervised:
         plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
                    show_layer_names=True)
         model.compile(optimizer=self.optimizer, loss=list(self.loss),
-                      loss_weights={'params_predictor': 1.5, 'concatenate': 0.125, 'concatenate_1': 5.})
+                      loss_weights={'params_predictor': 1.5, 'concatenate': 1., 'concatenate_1': 0.005,
+                                    'concatenate_1_1': 0.0667})
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:2'):
+        with tf.device('/GPU:0'):
             with mlflow.start_run():
                 # mlflow.keras.log_model(model, "models")
                 # mlflow.log_param("epochs", self.epochs)

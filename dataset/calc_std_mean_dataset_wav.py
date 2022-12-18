@@ -20,7 +20,7 @@ class StdMeanCalc:
         for file in self.list_of_dataset_files:
             _, data = wavfile.read(file)
             self.dataset.append(data)
-        self.dataset = np.asarray(self.dataset)
+        self.dataset = np.asarray(self.dataset) #np.log(np.asarray(self.dataset) + 10**-10)
         self.std = self.dataset.std(axis=0)
         self.mean = self.dataset.mean(axis=0)
 
@@ -28,8 +28,9 @@ class StdMeanCalc:
         np.save(arr=self.mean, file=join(self.path2dataset, 'mean'))
         std_mean = self.std.mean()
         mean_mean = self.mean.mean()
-        print('Mean: %10.f, Std: %10.f' % (mean_mean, std_mean))
-        print('Std: %10.f' % (self.dataset.std()))
+        return mean_mean, std_mean
+        # print('Mean: %10.f, Std: %10.f' % (mean_mean, std_mean))
+        # print('Std: %10.f' % (self.dataset.std()))
 
 
 if __name__ == '__main__':

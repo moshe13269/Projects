@@ -1,5 +1,6 @@
 import os
 import pickle
+import dataset
 import numpy as np
 from typing import List
 import tensorflow as tf
@@ -7,10 +8,14 @@ from scipy.io import wavfile
 
 
 class Processor:
-    # num_classes: List[int]
+    std_mean_calc: dataset.StdMeanCalc
 
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, std_mean_calc):
         self.num_classes = np.array(num_classes)
+        self.std_mean_calc = std_mean_calc
+        norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
+        self.norm_vec_mean = norm_vec_mean
+        self.norm_vec_std = norm_vec_std
         # with open(path2sets, 'rb') as handle:
         #     self.list_of_sets = pickle.load(handle)
 
@@ -26,8 +31,9 @@ class Processor:
     def load_data(self, path2data):
         label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
+        # data = np.log(data + 10**-10)
+        data = (data - self.norm_vec_mean) / (self.norm_vec_std + 10**-10)
         data = data.reshape(data.shape[0], 1)
-        # data = (data - np.mean(data)) / np.std(data)
         data = np.ndarray.astype(data, np.float32)
         # label = self.label2onehot(label)
         label = np.ndarray.astype(label/self.num_classes, np.float32)
