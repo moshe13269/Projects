@@ -14,7 +14,6 @@ TrainTask:
       -
       - 16384
 
-
   model:
     _target_: model.synth_encoder_model.SynthEncoder
 
@@ -139,7 +138,7 @@ TrainTask:
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 4
+      num_layers: 8
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -160,14 +159,40 @@ TrainTask:
     params_predictor:
       _target_: layers.params_predictor.ParamsPredictor
 
+    linear_classifier:
+      _target_: layers.linear_classifier.LinearClassifier
+      activation: softmax
+      outputs_dimension_per_outputs:
+        - 16
+        - 16
+        - 8
+        - 8
+        - 9
+        - 8
+        - 9
+        - 9
+        - 2
+        - 4
+        - 4
+        - 4
+        - 17
+        - 17
+        - 17
+        - 17
+
   loss:
-    - _target_: losses.l2_regression.L2LossReg
+#    - _target_: losses.l2_regression.L2LossReg
     - _target_: losses.SpectralConvergengeLoss.SpectralConvergengeLoss
     - _target_: losses.LogSTFTMagnitudeLoss.LogSTFTMagnitudeLoss
+    - _target_: losses.cos_sim_loss.CosSimLoss
 #    - _target_: losses.soft_dtw_loss.SoftDTWLoss
 #      gamma: 1.
 #    - _target_: losses.l2_loss.L2Loss
-    - _target_: losses.cos_sim_loss.CosSimLoss
+
+  loss_ce:
+    _target_: losses.cross_entropy_loss.CELoss
+    num_classes: 1
+    index_y_true: 1
 
   callbacks:
     -
@@ -183,12 +208,12 @@ TrainTask:
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
       initial_lr: 0.0000001
-      peak: 0.00005
+      peak: 0.00003
       end: 0.00000001
       steps2warp_up: 0.03
       steps2hold: 0.47 #0.67
       decay: 0.5
-      train_steps_per_epoch: 313 #1250 #625
+      train_steps_per_epoch: 563 #1250 #625
       epochs: 250
 
     -
@@ -242,7 +267,7 @@ TrainTask:
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
-  num_outputs: 16
+  num_outputs: 19
 
   results:
     _target_: results.results.Results

@@ -12,6 +12,7 @@ class SynthEncoder:
     transformer_decoder: layers.DecoderTransformer
     conv_decoder: layers.ConvDecoderModel
     params_predictor: layers.ParamsPredictor
+    linear_classifier: layers.LinearClassifier
 
     def __init__(self,
                  conv_encoder: layers.ConvFeatureExtractionModel,
@@ -19,6 +20,7 @@ class SynthEncoder:
                  transformer_decoder: layers.DecoderTransformer,
                  conv_decoder: layers.ConvDecoderModel,
                  params_predictor: layers.ParamsPredictor,
+                 linear_classifier: layers.LinearClassifier,
                  top_k_transformer: int,
                  inputs: Tuple[int, int, int],
 
@@ -34,6 +36,8 @@ class SynthEncoder:
         self.transformer_decoder = transformer_decoder
         self.conv_decoder = conv_decoder
 
+        self.linear_classifier = linear_classifier
+
         self.params_predictor = params_predictor
 
     def build(self):
@@ -42,22 +46,25 @@ class SynthEncoder:
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
-                                                               top_k_transformer=None)
+                                                               top_k_transformer=4)
 
         outputs_transformer_decoder = self.transformer_decoder(x=outputs_conv_encoder,
                                                                context=outputs_transformer_encoder,
                                                                training=True,
-                                                               top_k_transformer=None)
+                                                               top_k_transformer=4)
 
         outputs_wav = self.conv_decoder(outputs_transformer_decoder)
 
-        outputs_params = self.params_predictor(outputs_transformer_encoder)
+        # outputs_params = self.params_predictor(outputs_transformer_encoder)
+        outputs_params_list = self.linear_classifier(outputs_transformer_encoder)
 
         wavs = tf.keras.layers.concatenate([inputs, outputs_wav], axis=0)
 
         latent = tf.keras.layers.concatenate([outputs_conv_encoder, outputs_transformer_decoder], axis=0)
 
-        return tf.keras.Model(inputs=[self.inputs], outputs=[outputs_params, wavs, wavs, latent])
+        outputs = [wavs, wavs, latent] + outputs_params_list
+
+        return tf.keras.Model(inputs=[self.inputs], outputs=outputs)# [outputs_params, wavs, wavs, latent])
 
 
 if __name__ == '__main__':

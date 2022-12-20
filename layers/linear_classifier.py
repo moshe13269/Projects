@@ -17,7 +17,7 @@ class LinearClassifier(tf.keras.layers.Layer):
 
     def __init__(self,
                  outputs_dimension_per_outputs,
-                 activation,
+                 activation: str = 'softmax',
                  **kwargs):
         super().__init__(**kwargs)
 

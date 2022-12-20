@@ -13,15 +13,12 @@ class SpectralConvergengeLoss(tf.keras.losses.Loss, ABC):
 
     def call(self, y_true, y_pred):
         x_mag, y_mag = tf.split(y_pred, num_or_size_splits=2, axis=0)
-        
+
         x_mag = self.reshape(x_mag)
         y_mag = self.reshape(y_mag)
         x_mag = tf.math.abs(tf.signal.stft(x_mag, frame_length=256, frame_step=128, fft_length=256))
         y_mag = tf.math.abs(tf.signal.stft(y_mag, frame_length=256, frame_step=128, fft_length=256))
 
-        # x_mag_norm = tf.norm(x_mag, ord='euclidean', axis=[-2, -1])
-        # y_mag_norm = tf.norm(y_mag, ord='euclidean', axis=[-2, -1])
-
-        x = tf.norm(self.subtract([y_mag, x_mag]), ord='euclidean', axis=[-2, -1]) / \
-            (tf.norm(y_mag, ord='euclidean', axis=[-2, -1]) + 10**-10)
-        return tf.reduce_mean(self.mul([x, x]))
+        x = tf.norm(self.subtract([y_mag, x_mag]), ord='fro', axis=[-2, -1]) / \
+            (tf.norm(y_mag, ord='fro', axis=[-2, -1]) + 10**-10)
+        return x # tf.reduce_mean(self.mul([x, x]))

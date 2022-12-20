@@ -22,13 +22,30 @@ class TrainTestTaskSupervised:
         self.test_dataset = None
         self.val_dataset = None
 
+        self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
+
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
         self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         self.model = instantiate(cfg.train_task.TrainTask.model)
-        # loss = instantiate(cfg.train_task.TrainTask.loss)
-        self.loss = instantiate(cfg.train_task.TrainTask.loss) #[copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
+
+        def ce_loss_instantiate(outputs_dimension_per_outputs):
+            loss_list = []
+            for i in range(len(outputs_dimension_per_outputs)):
+                loss = instantiate(cfg.train_task.TrainTask.loss_ce)
+                loss.index_y_true = i
+                loss.num_classes = outputs_dimension_per_outputs[i]
+                loss.set_indexes()
+                loss_list.append(loss)
+            return loss_list
+
+        self.loss_ce = \
+            ce_loss_instantiate(list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+
+        self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + self.loss_ce
+
+        # [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
@@ -48,7 +65,7 @@ class TrainTestTaskSupervised:
 
         for sample in range(num_sample):
             x, y = test_set.next()
-            y_ = model.predict_on_batch(x)[0] #model.predict(x)
+            y_ = model.predict_on_batch(x)[0]  # model.predict(x)
             results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
             results[2 * sample + 1: 2 * sample + 2, :] = y[0].squeeze()
 
@@ -84,7 +101,7 @@ class TrainTestTaskSupervised:
                          .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y, y)))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
@@ -95,7 +112,7 @@ class TrainTestTaskSupervised:
                         .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y, y)))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
@@ -106,7 +123,7 @@ class TrainTestTaskSupervised:
                        .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, (y, y, y, y)))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
@@ -116,12 +133,18 @@ class TrainTestTaskSupervised:
         plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
                    show_layer_names=True)
         model.compile(optimizer=self.optimizer, loss=list(self.loss),
-                      loss_weights={'params_predictor': 1.5, 'concatenate': 1., 'concatenate_1': 0.005,
-                                    'concatenate_1_1': 0.0667})
+                      loss_weights={'concatenate': 1., 'concatenate_1': 0.005,
+                                    'concatenate_1_1': 0.0667,
+                                    'linear_classifier': 1., 'linear_classifier_1': 1., 'linear_classifier_2': 1.,
+                                    'linear_classifier_3': 1., 'linear_classifier_4': 1., 'linear_classifier_5': 1.,
+                                    'linear_classifier_6': 1., 'linear_classifier_7': 1., 'linear_classifier_8': 1.,
+                                    'linear_classifier_9': 1., 'linear_classifier_10': 1., 'linear_classifier_11': 1.,
+                                    'linear_classifier_12': 1., 'linear_classifier_13': 1., 'linear_classifier_14': 1.,
+                                    'linear_classifier_15': 1.})
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:0'):
+        with tf.device('/GPU:3'):
             with mlflow.start_run():
                 # mlflow.keras.log_model(model, "models")
                 # mlflow.log_param("epochs", self.epochs)
