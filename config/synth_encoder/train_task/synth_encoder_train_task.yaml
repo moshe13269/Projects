@@ -1,0 +1,194 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load: /home/moshelaufer/PycharmProjects/datasets/tal_noise_1
+    type_files: wav
+    labels: True
+    dataset_names: tal_noise_1
+
+  input_shape:
+    -
+      -
+      - 16384
+
+  model:
+    _target_: model.synth_encoder_model.SynthEncoder
+
+    inputs:
+      - 16384
+      - 1
+
+    conv_encoder:
+      _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
+      activation: gelu
+      units: 512
+      conv_layers:
+        -
+          - 512
+          - 10 #6
+          - 5 #3
+
+        -
+          - 512
+          - 3
+          - 2
+
+        -
+          - 512
+          - 3
+          - 2
+
+        -
+          - 512
+          - 3
+          - 2
+
+        -
+          - 512
+          - 3
+          - 2
+
+        -
+          - 512
+          - 2
+          - 2 #1
+
+        -
+          - 512
+          - 2
+          - 2 #1
+
+      num_duplicate_layer:
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+
+      dropout: 0.1
+      conv_bias: True
+#      mode: none
+
+    top_k_transformer: 1
+
+    transformer_encoder:
+      _target_: layers.transformer_encoder.EncoderTransformer
+      num_layers: 8
+      d_model: 512
+      num_attention_heads: 12
+      dff: 768
+      dropout_rate: 0.1
+      dim_conv: 1
+      activation: gelu
+
+    linear_classifier:
+      _target_: layers.linear_classifier.LinearClassifier
+      activation: softmax
+      outputs_dimension_per_outputs:
+        - 16
+        - 16
+        - 8
+        - 8
+        - 9
+        - 8
+        - 9
+        - 9
+        - 2
+        - 4
+        - 4
+        - 4
+        - 17
+        - 17
+        - 17
+        - 17
+
+  loss:
+    -
+
+  loss_ce:
+    _target_: losses.cross_entropy_loss.CELoss
+    num_classes: 1
+    index_y_true: 1
+
+  callbacks:
+    -
+      _target_: tensorflow.keras.callbacks.ModelCheckpoint
+      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder/
+      save_weights_only: False
+      save_best_only: True
+      save_freq: 'epoch'
+      initial_value_threshold: 1
+      monitor: 'loss'
+      verbose: 1
+
+    -
+      _target_: callbacks.callbacks.LearnRateSchedulerTriStage
+      initial_lr: 0.0000001
+      peak: 0.00003
+      end: 0.00000001
+      steps2warp_up: 0.03
+      steps2hold: 0.47 #0.67
+      decay: 0.5
+      train_steps_per_epoch: 563 #1250 #625
+      epochs: 250
+
+    -
+      _target_: tensorflow.keras.callbacks.EarlyStopping
+      monitor: params_predictor
+      min_delta: 0.0008
+      patience: 15
+      mode: min
+      verbose: 1
+      restore_best_weights: True
+#      start_from_epoch: 200
+
+  optimizer:
+    _target_: tensorflow.keras.optimizers.Adam
+    learning_rate: 0.000001
+    beta_1: 0.9
+    beta_2: 0.99
+
+  processor:
+    _target_: processors.processor_synth_encoder.Processor
+    std_mean_calc:
+      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
+    num_classes:
+      - 16
+      - 16
+      - 8
+      - 8
+      - 9
+      - 8
+      - 9
+      - 9
+      - 2
+      - 4
+      - 4
+      - 4
+      - 17
+      - 17
+      - 17
+      - 17
+
+  batch_size:
+    train: 2
+    test: 1
+    valid: 2
+
+  epochs: 250
+  path2save_model: /home/moshelaufer/PycharmProjects/results/models
+  model_name: synth_encoder
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
+  num_outputs: 16
+
+  results:
+    _target_: results.results.Results
+    path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
+    num_class: 100
+
