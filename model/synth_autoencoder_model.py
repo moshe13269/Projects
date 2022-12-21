@@ -3,7 +3,7 @@ from typing import List, Tuple
 import layers
 
 
-class SynthEncoder:
+class SynthAutoEncoder:
     inputs: Tuple[int, int, int]
     top_k_transformer: int
 

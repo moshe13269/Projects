@@ -15,7 +15,7 @@ TrainTask:
       - 16384
 
   model:
-    _target_: model.synth_encoder_model.SynthEncoder
+    _target_: model.synth_autoencoder_model.SynthAutoEncoder
 
     inputs:
       - 16384
@@ -197,7 +197,7 @@ TrainTask:
   callbacks:
     -
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
-      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_encoder/
+      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder/
       save_weights_only: False
       save_best_only: True
       save_freq: 'epoch'
@@ -265,8 +265,8 @@ TrainTask:
 
   epochs: 250
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
-  model_name: synth_encoder
-  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
+  model_name: synth_autoencoder
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder/
   num_outputs: 19
 
   results:

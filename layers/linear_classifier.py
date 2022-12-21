@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Dropout, Reshape
 from typing import List, Tuple
 
 
@@ -14,17 +14,30 @@ class LinearClassifier(tf.keras.layers.Layer):
 
     outputs_dimension_per_outputs: List[int]
     activation: str = 'softmax'
+    dropout: float = 0.1
 
     def __init__(self,
                  outputs_dimension_per_outputs,
                  activation: str = 'softmax',
+                 dropout: float = 0.1,
                  **kwargs):
         super().__init__(**kwargs)
 
         def make_layers():
             layers = []
             for output_dim in self.outputs_dimension_per_outputs:
-                layers.append(Dense(units=output_dim, activation=self.activation))
+                layers.append(
+                    tf.keras.Sequential([
+                        Dropout(rate=dropout),
+                        Dense(units=1, activation='relu'),
+                        tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1)),
+                        Dropout(rate=dropout),
+                        Dense(units=output_dim, activation='relu'),
+                        Dropout(rate=dropout),
+                        Dense(units=output_dim, activation=self.activation),
+                    ])
+                )
+                # layers.append(Dense(units=output_dim, activation=self.activation))
             return layers
 
         self.outputs_dimension_per_outputs = outputs_dimension_per_outputs

@@ -12,7 +12,7 @@ class CELoss(tf.keras.losses.Loss):
         self.indexes = [i for i in range(self.num_classes)]
 
     def call(self, y_true, y_pred):
-        y_true = self.convert_matrix2one_hot(y_true)
+        y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
         return self.ce(y_true, y_pred)
 
     def convert_matrix2one_hot(self, y_true):
