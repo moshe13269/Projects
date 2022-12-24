@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Dropout, Reshape
+from tensorflow.keras.layers import Dense, Dropout, Reshape, Flatten
 from typing import List, Tuple
 
 
@@ -28,13 +28,12 @@ class LinearClassifier(tf.keras.layers.Layer):
             for output_dim in self.outputs_dimension_per_outputs:
                 layers.append(
                     tf.keras.Sequential([
-                        Dropout(rate=dropout),
-                        Dense(units=1, activation='relu'),
-                        tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1)),
-                        Dropout(rate=dropout),
-                        Dense(units=output_dim, activation='relu'),
-                        Dropout(rate=dropout),
-                        Dense(units=output_dim, activation=self.activation),
+                        # Dropout(rate=dropout),
+                        Flatten(),
+                        Dense(units=output_dim, activation='gelu'),
+                        # tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1)),
+                        Dense(units=output_dim, activation='gelu'),
+                        Dense(units=output_dim, activation=None),
                     ])
                 )
                 # layers.append(Dense(units=output_dim, activation=self.activation))

@@ -38,7 +38,7 @@ class SynthAutoEncoder:
 
         self.linear_classifier = linear_classifier
 
-        self.params_predictor = params_predictor
+        # self.params_predictor = params_predictor
 
     def build(self):
         inputs = self.inputs
@@ -46,12 +46,12 @@ class SynthAutoEncoder:
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
-                                                               top_k_transformer=4)
+                                                               top_k_transformer=None)
 
         outputs_transformer_decoder = self.transformer_decoder(x=outputs_conv_encoder,
                                                                context=outputs_transformer_encoder,
                                                                training=True,
-                                                               top_k_transformer=4)
+                                                               top_k_transformer=None)
 
         outputs_wav = self.conv_decoder(outputs_transformer_decoder)
 

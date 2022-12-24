@@ -40,7 +40,7 @@ def choose_params_from_csv(path2csv):
 
     for column in columns_names[1:]:
         column_values = data.loc[:, column]
-        if column_values.min() != column_values.max():
+        if len(set(column_values)) != 1: #column_values.min() != column_values.max():
             chosen_column.append(column)
     return chosen_column, data, data.loc[:, columns_names[0]]
 

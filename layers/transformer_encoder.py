@@ -160,8 +160,8 @@ class EncoderTransformer(tf.keras.layers.Layer):
         x = self.dropout(x)
 
         if top_k_transformer is None:
-            for i in range(self.num_layers):
-                x = self.enc_layers[i](x)
+            for encoder_layer in self.enc_layers:
+                x = encoder_layer(x)
 
             return x  # Shape `(batch_size, seq_len, d_model)`.
 
@@ -179,7 +179,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
 
                 if counter >= index_k0:
                     top_k_layers.append(x)
-            
+
             return tf.divide(self.add(top_k_layers), top_k_transformer)
 
 

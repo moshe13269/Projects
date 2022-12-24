@@ -45,7 +45,8 @@ class TrainTestTaskSupervised:
 
         if instantiate(cfg.train_task.TrainTask.loss)[0] is not None:
             self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + self.loss_ce
-        self.loss = self.loss_ce
+        else:
+            self.loss = self.loss_ce
 
         # [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
@@ -153,7 +154,7 @@ class TrainTestTaskSupervised:
                             'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
                             'linear_classifier_15': 1.2}
 
-        model.compile(optimizer=self.optimizer, loss=list(self.loss), loss_weights=loss_weights)
+        model.compile(optimizer=self.optimizer, loss=list(self.loss))#, loss_weights=loss_weights)
 
         mlflow.keras.autolog()
 

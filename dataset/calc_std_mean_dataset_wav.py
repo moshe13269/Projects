@@ -21,8 +21,8 @@ class StdMeanCalc:
             _, data = wavfile.read(file)
             self.dataset.append(data)
         self.dataset = np.asarray(self.dataset) #np.log(np.asarray(self.dataset) + 10**-10)
-        self.std = self.dataset.std(axis=0)
-        self.mean = self.dataset.mean(axis=0)
+        self.std = self.dataset.std()
+        self.mean = self.dataset.mean()
 
         np.save(arr=self.std, file=join(self.path2dataset, 'std'))
         np.save(arr=self.mean, file=join(self.path2dataset, 'mean'))

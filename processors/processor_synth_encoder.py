@@ -35,7 +35,7 @@ class Processor:
         label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
         # data = np.log(data + 10**-10)
-        data = (data - self.norm_vec_mean) / (self.norm_vec_std + 10**-10)
+        data = (data - self.norm_vec_mean) / self.norm_vec_std
         data = data.reshape(data.shape[0], 1)
         data = np.ndarray.astype(data, np.float32)
         label = self.label2onehot(label)

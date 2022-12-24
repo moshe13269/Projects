@@ -19,9 +19,9 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         def block(layers_param,
                   activation,
-                  is_layer_norm=False,
-                  is_group_norm=True,
-                  conv_bias=False):
+                  is_layer_norm=True,
+                  is_group_norm=False,
+                  conv_bias=True):
 
             (dim, kernel, stride) = layers_param
 
@@ -76,7 +76,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.conv_layers = layers
 
-        self.avg_pool = AveragePooling1D()
+        # self.avg_pool = AveragePooling1D()
 
         self.fc = Dense(units=units, activation=activation)
 
@@ -91,7 +91,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     data = tf.random.normal((4, 16384, 1))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5), (512, 3, 2),
+    conv_layers: List[Tuple[int, int, int]] = [(512, 6, 3), (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 3, 2),

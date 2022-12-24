@@ -28,8 +28,8 @@ TrainTask:
       conv_layers:
         -
           - 512
-          - 10 #6
-          - 5 #3
+          - 10 #
+          - 5 #
 
         -
           - 512
@@ -78,7 +78,7 @@ TrainTask:
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 8
+      num_layers: 12
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -118,7 +118,7 @@ TrainTask:
   callbacks:
     -
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
-      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder/
+      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_encoder/
       save_weights_only: False
       save_best_only: True
       save_freq: 'epoch'
@@ -129,18 +129,18 @@ TrainTask:
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
       initial_lr: 0.0000001
-      peak: 0.00003
+      peak: 0.000003
       end: 0.00000001
       steps2warp_up: 0.03
-      steps2hold: 0.47 #0.67
-      decay: 0.5
-      train_steps_per_epoch: 563 #1250 #625
-      epochs: 250
+      steps2hold: 0.67
+      decay: 0.3
+      train_steps_per_epoch: 141 #1250 #625
+      epochs: 350
 
     -
       _target_: tensorflow.keras.callbacks.EarlyStopping
-      monitor: params_predictor
-      min_delta: 0.0008
+      monitor: linear_classifier #params_predictor
+      min_delta: 0.001
       patience: 15
       mode: min
       verbose: 1
@@ -148,10 +148,10 @@ TrainTask:
 #      start_from_epoch: 200
 
   optimizer:
-    _target_: tensorflow.keras.optimizers.Adam
+    _target_: tensorflow.keras.optimizers.SGD #Adam
     learning_rate: 0.000001
-    beta_1: 0.9
-    beta_2: 0.99
+#    beta_1: 0.9
+#    beta_2: 0.99
 
   processor:
     _target_: processors.processor_synth_encoder.Processor
@@ -177,11 +177,11 @@ TrainTask:
       - 17
 
   batch_size:
-    train: 32
+    train: 128
     test: 1
-    valid: 32
+    valid: 128
 
-  epochs: 250
+  epochs: 350
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/

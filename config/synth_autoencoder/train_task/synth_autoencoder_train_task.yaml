@@ -138,7 +138,7 @@ TrainTask:
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 8
+      num_layers: 4
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -148,7 +148,7 @@ TrainTask:
 
     transformer_decoder:
       _target_: layers.transformer_decoder.DecoderTransformer
-      num_layers: 8
+      num_layers: 4
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -208,18 +208,18 @@ TrainTask:
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
       initial_lr: 0.0000001
-      peak: 0.00003
+      peak: 0.000008
       end: 0.00000001
       steps2warp_up: 0.03
-      steps2hold: 0.47 #0.67
-      decay: 0.5
+      steps2hold: 0.67
+      decay: 0.3
       train_steps_per_epoch: 563 #1250 #625
-      epochs: 250
+      epochs: 60
 
     -
       _target_: tensorflow.keras.callbacks.EarlyStopping
-      monitor: params_predictor
-      min_delta: 0.0008
+      monitor: linear_classifier #params_predictor
+      min_delta: 0.001
       patience: 15
       mode: min
       verbose: 1
@@ -263,7 +263,7 @@ TrainTask:
     test: 1
     valid: 32
 
-  epochs: 250
+  epochs: 60
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_autoencoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder/
