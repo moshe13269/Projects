@@ -10,4 +10,4 @@ class OrthonormalLoss(tf.keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         y_pred_transpose = tf.transpose(y_pred, perm=[0, 2, 1])
-        return y_pred_transpose @ y_pred - self.identity
+        return tf.norm(y_pred_transpose @ y_pred - self.identity,  ord='fro', axis=[-2, -1])

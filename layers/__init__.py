@@ -8,3 +8,4 @@ from layers.linear_classifier import LinearClassifier
 from layers.conv_wav_decoder import ConvDecoderModel
 from layers.params_predictor import ParamsPredictor
 from layers.conv_image_encoder import ImageConvFeatureExtractionModel
+from layers.split_2_negative_positive import SplitNegativePositive
