@@ -100,7 +100,7 @@ class TrainTestTaskSupervised:
         self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
         train_dataset = (self.train_dataset
-                         .shuffle(1024, reshuffle_each_iteration=True)
+                         .shuffle(self.train_dataset.cardinality().numpy(), reshuffle_each_iteration=True)
                          .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
@@ -122,7 +122,7 @@ class TrainTestTaskSupervised:
                         )
 
         val_dataset = (self.val_dataset
-                       .shuffle(1024, reshuffle_each_iteration=True)
+                       .shuffle(self.val_dataset.cardinality().numpy(), reshuffle_each_iteration=True)
                        .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])

@@ -1,0 +1,61 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load: /home/moshelaufer/PycharmProjects/datasets/tal_noise_1
+    type_files: wav
+    labels: True
+    dataset_names: tal_noise_1
+
+  input_shape:
+    -
+      -
+      - 16384
+
+  model:
+    _target_: tensorflow.keras.models.load_model
+    filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_encoder/1/
+    compile: False
+
+
+  processor:
+    _target_: processors.processor_synth_inference.Processor
+    std_mean_calc:
+      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
+    num_classes:
+      - 16
+      - 16
+      - 8
+      - 8
+      - 9
+      - 8
+      - 9
+      - 9
+      - 2
+      - 4
+      - 4
+      - 4
+      - 17
+      - 17
+      - 17
+      - 17
+
+  batch_size:
+    train: 128
+    test: 1
+    valid: 128
+
+  epochs: 80
+  path2save_model: /home/moshelaufer/PycharmProjects/results/models
+  model_name: synth_encoder
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
+  num_outputs: 16
+
+  results:
+    _target_: results.results.Results
+    path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
+    num_class: 100
+

@@ -38,7 +38,7 @@ class SynthEncoder:
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
-                                                               top_k_transformer=4)
+                                                               top_k_transformer=None)
 
         outputs = self.linear_classifier(outputs_transformer_encoder)
 

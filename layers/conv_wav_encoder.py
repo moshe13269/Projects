@@ -10,6 +10,8 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
                  activation: str,
                  units: int,
+                 is_group_norm: str = True,
+                 is_layer_norm: str = False,
                  dropout: float = 0.0,
                  mode: str = "default",
                  conv_bias: bool = False):
@@ -19,8 +21,8 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         def block(layers_param,
                   activation,
-                  is_layer_norm=True,
-                  is_group_norm=False,
+                  is_layer_norm,
+                  is_group_norm,
                   conv_bias=True):
 
             (dim, kernel, stride) = layers_param

@@ -11,34 +11,18 @@ class Processor:
     std_mean_calc: dataset.StdMeanCalc
 
     def __init__(self, num_classes, std_mean_calc):
-        self.num_classes = 17 #np.array(num_classes)
+        self.num_classes = 17
         self.std_mean_calc = std_mean_calc
         norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
         self.norm_vec_mean = norm_vec_mean
         self.norm_vec_std = norm_vec_std
-        # with open(path2sets, 'rb') as handle:
-        #     self.list_of_sets = pickle.load(handle)
-
-    def label2onehot(self, labels):
-        onehot_labels = np.zeros((16, 17))
-        for i in range(labels.shape[0]):
-            onehot_labels[i][int(labels[i])] = 1
-        return onehot_labels
-        # onehot_labels = []
-        # for label in range(labels):
-        #     ohe = np.eye(self.num_classes)[int(np.asarray([label]))]
-        #     onehot_labels.append(ohe.astype(np.float32))
-        # # print(tf.shape(data), tf.shape(label))
-        # return np.asarray(onehot_labels)
 
     def load_data(self, path2data):
         label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
-        # data = np.log(data + 10**-10)
         # data = (data - self.norm_vec_mean) / self.norm_vec_std
         data = data.reshape(data.shape[0], 1)
         data = np.ndarray.astype(data, np.float32)
-        label = self.label2onehot(label)
         label = np.ndarray.astype(label, np.float32)
 
         return data, label
