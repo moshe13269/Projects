@@ -35,7 +35,7 @@ class LinearClassifier(tf.keras.layers.Layer):
                         Dropout(rate=dropout),
                         # tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1)),
                         Dense(units=output_dim, activation='relu'),
-                        Dense(units=output_dim, activation='softmax'),
+                        Dense(units=output_dim, activation=None),
                     ])
                 )
                 # layers.append(Dense(units=output_dim, activation=self.activation))
@@ -50,6 +50,9 @@ class LinearClassifier(tf.keras.layers.Layer):
         outputs = []
 
         for layer in self.layers:
-            outputs.append(layer(inputs))
+            output = layer(inputs)
+            # output = tf.nn.softmax(output - tf.math.reduce_max(output, keepdims=True, axis=-1))
+            output = tf.math.log(tf.nn.softmax(output) + 10**-1)
+            outputs.append(output)
 
         return outputs

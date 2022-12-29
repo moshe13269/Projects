@@ -177,7 +177,7 @@ class TrainTestTaskSupervised:
 
                 # mlflow.keras.log_model(model, "file:///home/moshelaufer/PycharmProjects/mlflow/")
 
-                self.evaluate_model(model, test_dataset)
+                # self.evaluate_model(model, test_dataset)
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))

@@ -48,7 +48,7 @@ if __name__ == '__main__':
     from dataset.dataset import Dataset
     from dataset.calc_std_mean_dataset_wav import StdMeanCalc
 
-    dataset = Dataset(path2load='/home/moshelaufer/PycharmProjects/datasets/tal_noise_1',
+    dataset = Dataset(path2load=['/home/moshelaufer/PycharmProjects/datasets/tal_noise_1'],
                       labels=True, type_files='wav', dataset_names='tal_noise_1')
 
     num_classes: List[int] = [16, 16, 8, 8, 9, 8, 9, 9, 2, 4, 4, 4, 17, 17, 17, 17]
@@ -64,9 +64,9 @@ if __name__ == '__main__':
                      .map(lambda path2data, path2label:
                           tf.numpy_function(processor.load_data, [(path2data, path2label)],
                                             [tf.float32, tf.float32])
-                          , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(4)])))
+                          , num_parallel_calls=tf.data.AUTOTUNE)#.map(lambda x, y: (x, tuple([y for i in range(4)])))
                      .cache()
-                     .batch(2)
+                     .batch(1)
                      .prefetch(tf.data.AUTOTUNE)
                      )
 
@@ -75,7 +75,10 @@ if __name__ == '__main__':
     #                                                     [tf.float32, tf.float32]))
 
     iterator = train_dataset.as_numpy_iterator()
-    for i in range(1):
+    for i in range(5):
         d = iterator.next()
         print(d[1])
+        # print(tf.reduce_sum(tf.where(d[1][0] == d[1][1], 0., 1.)))
+        # print(tf.reduce_sum(tf.where(d[1][2] == d[1][3], 0., 1.)))
+        # # print(d[1])
 

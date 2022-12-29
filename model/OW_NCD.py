@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 class OWNCDModel:
     path2pretrain_model: str
+    resnet: tf.keras.applications.resnet50
 
     def __init__(self,
                  path2pretrain_model: str,

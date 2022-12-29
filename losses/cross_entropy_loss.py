@@ -15,7 +15,9 @@ class CELoss(tf.keras.losses.Loss):
         y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
         # tf.print(tf.shape(y_true), tf.shape(y_true))
         # y_pred = tf.nn.softmax(y_pred)
-        return self.ce(y_true, y_pred)
+        # return tf.reduce_mean(-tf.math.log(tf.reduce_sum(y_true * y_pred, axis=-1)))
+        return tf.reduce_mean(tf.reduce_sum(- tf.cast(y_true, dtype=tf.float32) * y_pred, axis=-1))
+        # return self.ce(y_true, y_pred)
 
     @tf.autograph.experimental.do_not_convert
     def convert_matrix2one_hot(self, y_true):

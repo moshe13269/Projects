@@ -79,12 +79,12 @@ def del_silence(path2dataset):
     print('del %d' % counter)
 
 
-path2dataset = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/' #r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\audio_output'
+path2dataset = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base_tester/'
 file_type = 'wav'
-prob2choose_train = 0.8
-path2save = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_1/' #r'C:\Users\moshe\PycharmProjects\datasets\tal_noise'
+prob2choose_train = 0.9
+path2save = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_tester/'
 del_files(path2save)
-path2dataset_labels = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_labels/'
+path2dataset_labels = '/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base_tester_labels/'
 split_dataset(path2dataset, path2dataset_labels, file_type, prob2choose_train, path2save)
 del_silence(path2save)
 

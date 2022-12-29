@@ -93,12 +93,12 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     data = tf.random.normal((4, 16384, 1))
-    conv_layers: List[Tuple[int, int, int]] = [(512, 6, 3), (512, 3, 2),
+    conv_layers: List[Tuple[int, int, int]] = [(512, 4, 2), (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 3, 2),
                                                (512, 2, 2),
-                                               (512, 2, 2)]
+                                               (512, 2, 1)]
 
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
     conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,

@@ -64,6 +64,6 @@ def paras_labels(path2csv, path2save):
     print('Labels files had been created')
 
 
-path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/full_parameters.csv" #r"C:\Users\moshe\PycharmProjects\commercial_synth_dataset\full_parameters.csv"
-path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_labels/" # r"C:\Users\moshe\PycharmProjects\commercial_synth_dataset\labels"
+path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base_tester/full_parameters.csv"
+path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base_tester_labels/"
 paras_labels(path2csv, path2save)
