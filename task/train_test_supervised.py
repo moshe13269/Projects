@@ -22,6 +22,9 @@ class TrainTestTaskSupervised:
         self.test_dataset = None
         self.val_dataset = None
 
+        self.steps_per_epoch = self.cfg.train_task.TrainTask.get('steps_per_epoch')
+        self.validation_steps = self.cfg.train_task.TrainTask.get('validation_steps')
+
         self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
 
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
@@ -171,7 +174,8 @@ class TrainTestTaskSupervised:
                           verbose=1,
                           validation_data=val_dataset,
                           callbacks=self.callbacks,
-                          # steps_per_epoch=1,
+                          # steps_per_epoch=self.steps_per_epoch,
+                          # validation_steps=self.validation_steps,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

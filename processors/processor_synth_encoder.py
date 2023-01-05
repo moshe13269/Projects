@@ -11,7 +11,7 @@ class Processor:
     std_mean_calc: dataset.StdMeanCalc
 
     def __init__(self, num_classes, std_mean_calc):
-        self.num_classes = 17 #np.array(num_classes)
+        self.num_classes = len(num_classes)
         self.std_mean_calc = std_mean_calc
         norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
         self.norm_vec_mean = norm_vec_mean
@@ -20,7 +20,7 @@ class Processor:
         #     self.list_of_sets = pickle.load(handle)
 
     def label2onehot(self, labels):
-        onehot_labels = np.zeros((16, 17))
+        onehot_labels = np.zeros((self.num_classes, 17))
         for i in range(labels.shape[0]):
             onehot_labels[i][int(labels[i])] = 1
         return onehot_labels

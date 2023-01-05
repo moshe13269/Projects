@@ -45,12 +45,27 @@ class Prototype(tf.keras.layers.Layer):
         list_unlabeled = []
 
         for sample in inputs_list:
+
+            arg_min_labeled_val = 1.5
+            arg_min_labeled_index = 0
+
+            arg_min_novelty_val = 1.5
+            arg_min_novelty_index = 0
+
+            arg_min_unlabeled_val = 1.5
+            arg_min_unlabeled_index = 0
+
             for i in range(len(self.labeled)):
                 cos_sim = tf.math.abs(self.cos_sim(self.labeled[i], sample))
                 if cos_sim >= self.threshold:
 
 
+    def calc_distance(self, sample, prototypes_list):
+        arg_min_val = 1.5
+        arg_min_index = 0
 
-
+        for i in range(len(prototypes_list)):
+            cos_sim = tf.math.abs(self.cos_sim(prototypes_list[i], sample))
+            if cos_sim >= self.threshold:
 
 

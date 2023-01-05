@@ -4,7 +4,9 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: /home/moshelaufer/PycharmProjects/datasets/tal_noise_1
+    path2load:
+      - /home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/
+#    /home/moshelaufer/PycharmProjects/datasets/tal_noise_1
     type_files: wav
     labels: True
     dataset_names: tal_noise_1
@@ -20,6 +22,10 @@ TrainTask:
     inputs:
       - 16384
       - 1
+
+    masking_transformer:
+      _target_: layers.masking_transformer.MaskingTransformer
+      percent2mask: 0.65
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -138,7 +144,7 @@ TrainTask:
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
-      num_layers: 4
+      num_layers: 8
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -148,7 +154,7 @@ TrainTask:
 
     transformer_decoder:
       _target_: layers.transformer_decoder.DecoderTransformer
-      num_layers: 4
+      num_layers: 8
       d_model: 512
       num_attention_heads: 12
       dff: 768
@@ -164,21 +170,21 @@ TrainTask:
       activation: softmax
       outputs_dimension_per_outputs:
         - 16
-        - 16
-        - 8
-        - 8
-        - 9
-        - 8
-        - 9
-        - 9
-        - 2
-        - 4
-        - 4
-        - 4
+        - 4 #16
+        - 9 #8
+        - 4 #8
+        - 17 #9
+        - 17 #8
+        - 4 #9
+        - 17 #9
         - 17
-        - 17
-        - 17
-        - 17
+  #      - 4
+  #      - 4
+  #      - 4
+  #      - 6 #17
+  #      - 6 #17
+  #      - 6 #17
+  #      - 6 #17
 
   loss:
 #    - _target_: losses.l2_regression.L2LossReg
@@ -206,24 +212,31 @@ TrainTask:
       verbose: 1
 
     -
-      _target_: callbacks.callbacks.LearnRateSchedulerTriStage
-      initial_lr: 0.0000001
-      peak: 0.000008
-      end: 0.00000001
-      steps2warp_up: 0.03
-      steps2hold: 0.67
-      decay: 0.3
-      train_steps_per_epoch: 563 #1250 #625
-      epochs: 60
+      _target_: tensorflow.keras.callbacks.LearningRateScheduler
+      schedule:
+        _target_: tensorflow.keras.optimizers.schedules.ExponentialDecay
+        initial_learning_rate: 5e-4
+        decay_steps: 30 #25
+        decay_rate: 2e-4
+#    -
+#      _target_: callbacks.callbacks.LearnRateSchedulerTriStage
+#      initial_lr: 0.0000001
+#      peak: 0.000008
+#      end: 0.00000001
+#      steps2warp_up: 0.03
+#      steps2hold: 0.67
+#      decay: 0.3
+#      train_steps_per_epoch: 563 #1250 #625
+#      epochs: 60
 
-    -
-      _target_: tensorflow.keras.callbacks.EarlyStopping
-      monitor: linear_classifier #params_predictor
-      min_delta: 0.001
-      patience: 15
-      mode: min
-      verbose: 1
-      restore_best_weights: True
+#    -
+#      _target_: tensorflow.keras.callbacks.EarlyStopping
+#      monitor: linear_classifier #params_predictor
+#      min_delta: 0.001
+#      patience: 15
+#      mode: min
+#      verbose: 1
+#      restore_best_weights: True
 #      start_from_epoch: 200
 
   optimizer:
@@ -239,21 +252,21 @@ TrainTask:
       path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
     num_classes:
       - 16
-      - 16
-      - 8
-      - 8
-      - 9
-      - 8
-      - 9
-      - 9
-      - 2
-      - 4
-      - 4
-      - 4
-      - 17
-      - 17
-      - 17
-      - 17
+      - 4 #16
+      - 9 #8
+      - 4 #8
+      - 17 #9
+      - 17 #8
+      - 4 #9
+      - 17 #9
+      - 17 #2
+      #      - 4
+      #      - 4
+      #      - 4
+      #      - 6 #17
+      #      - 6 #17
+      #      - 6 #17
+    #      - 6 #17
 
 #    path2sets: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_labels/list_of_set_labels.pkl
 
@@ -263,11 +276,14 @@ TrainTask:
     test: 1
     valid: 32
 
-  epochs: 60
+  epochs: 2000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_autoencoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder/
-  num_outputs: 19
+  num_outputs: 12
+
+  steps_per_epoch: 1000
+  validation_steps: 50
 
   results:
     _target_: results.results.Results

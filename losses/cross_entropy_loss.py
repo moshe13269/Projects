@@ -14,14 +14,15 @@ class CELoss(tf.keras.losses.Loss):
     def call(self, y_true, y_pred):
         y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
         # tf.print(tf.shape(y_true), tf.shape(y_true))
-        # y_pred = tf.nn.softmax(y_pred)
+        y_pred = tf.nn.softmax(y_pred)
         # return tf.reduce_mean(-tf.math.log(tf.reduce_sum(y_true * y_pred, axis=-1)))
-        return tf.reduce_mean(tf.reduce_sum(- tf.cast(y_true, dtype=tf.float32) * y_pred, axis=-1))
-        # return self.ce(y_true, y_pred)
+
+        # return tf.reduce_mean(tf.reduce_sum(- tf.cast(y_true, dtype=tf.float32) * y_pred, axis=-1))
+        return self.ce(y_true, y_pred)
 
     @tf.autograph.experimental.do_not_convert
     def convert_matrix2one_hot(self, y_true):
-        y_true = tf.split(y_true, num_or_size_splits=16, axis=1)[self.index_y_true]  # (b, 16, 17) -> (b, 1, 17)
+        y_true = tf.split(y_true, num_or_size_splits=9, axis=1)[self.index_y_true]  # (b, 16, 17) -> (b, 1, 17)
 
         y_true = tf.squeeze(y_true, axis=1)  # (b, 1, 17) -> (b, 17)
         y_true = tf.gather(y_true, indices=[self.indexes], axis=1)
