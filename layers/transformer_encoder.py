@@ -52,6 +52,23 @@ class FeedForward(tf.keras.layers.Layer):
         x = self.layer_norm(x)
         return x
 
+class MaskingTransformer(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 percent2mask=0.65):
+        super(MaskingTransformer, self).__init__()
+        self.percent2mask = percent2mask
+
+    @tf.function
+    def random_mask(self, inputs):
+        mask = 1. - tf.random.uniform((tf.shape(inputs)[0], tf.shape(inputs)[1], 1)) // self.percent2mask
+        return mask
+
+    def call(self, inputs, **kwargs):
+        mask = self.random_mask(inputs)
+
+        return mask
+
 
 class BaseAttention(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
@@ -59,6 +76,7 @@ class BaseAttention(tf.keras.layers.Layer):
         self.mha = tf.keras.layers.MultiHeadAttention(**kwargs)
         self.layernorm = tf.keras.layers.LayerNormalization()
         self.add = tf.keras.layers.Add()
+        self.masking = MaskingTransformer()
 
 
 class CrossAttention(BaseAttention):
@@ -78,15 +96,28 @@ class CrossAttention(BaseAttention):
         return x
 
 
+
+
+
 class GlobalSelfAttention(BaseAttention):
-    def call(self, x):
-        attn_output = self.mha(
-            query=x,
-            value=x,
-            key=x)
+    def call(self, x, masking=True):
+        if masking:
+            mask = self.masking(x)
+            attn_output = self.mha(
+                query=x,
+                value=x,
+                key=x,
+                attention_mask=mask)
+        else:
+            attn_output = self.mha(
+                query=x,
+                value=x,
+                key=x)
         x = self.add([x, attn_output])
         x = self.layernorm(x)
         return x
+
+
 
 
 class EncoderLayer(tf.keras.layers.Layer):
@@ -97,11 +128,11 @@ class EncoderLayer(tf.keras.layers.Layer):
             num_heads=num_heads,
             key_dim=d_model,
             dropout=dropout_rate)
-
+        self.masking = MaskingTransformer(percent2mask=0.65)
         self.ffn = FeedForward(d_model, dff)
 
-    def call(self, x):
-        x = self.self_attention(x)
+    def call(self, x, masking):
+        x = self.self_attention(x, masking=True)
         x = self.ffn(x)
         return x
 
@@ -152,7 +183,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
         self.add = tf.keras.layers.Add()
         self.subtract = tf.keras.layers.Subtract()
 
-    def call(self, x, top_k_transformer=None):
+    def call(self, x, masking=True, top_k_transformer=None):
         # `x` is token-IDs shape: (batch, seq_len)
         x = self.pos_embedding(x)  # Shape `(batch_size, seq_len, d_model)`.
 
@@ -161,7 +192,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
 
         if top_k_transformer is None:
             for encoder_layer in self.enc_layers:
-                x = encoder_layer(x)
+                x = encoder_layer(x, masking=masking)
 
             return x  # Shape `(batch_size, seq_len, d_model)`.
 
@@ -173,7 +204,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
 
             for encoder_layer in self.enc_layers:
 
-                x = self.layer_norm_teacher(encoder_layer(x))
+                x = self.layer_norm_teacher(encoder_layer(x, masking=masking))
 
                 counter += 1
 
@@ -188,8 +219,8 @@ if __name__ == '__main__':
                                  activation='gelu')
     # encoder = EncoderLayer(d_model=512, num_attention_heads=8, dff=4096, dropout_rate=0.1)
     # position = ConvPosEncoding(3, 512, 1, 1, 'gelu')
-    data = tf.random.normal((2, 200, 512))
+    data = tf.random.normal((2, 50, 512))
     # output1 = position(data, training=True)
-    output = encoder(data, top_k_transformer=None)
+    output = encoder(data, top_k_transformer=1)
     print(output.shape)
     print(tf.reduce_max(output))

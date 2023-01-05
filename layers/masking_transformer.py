@@ -16,4 +16,4 @@ class MaskingTransformer(tf.keras.layers.Layer):
     def call(self, inputs, **kwargs):
         mask = self.random_mask(inputs)
 
-        return mask * inputs
+        return mask

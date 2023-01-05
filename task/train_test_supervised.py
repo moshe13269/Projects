@@ -51,6 +51,19 @@ class TrainTestTaskSupervised:
         else:
             self.loss = self.loss_ce
 
+        def acc_metrics_instantiate(outputs_dimension_per_outputs):
+            metrics_list = []
+            for i in range(len(outputs_dimension_per_outputs)):
+                metrics = instantiate(cfg.train_task.TrainTask.metrics)
+                metrics.index_y_true = i
+                metrics.num_classes = outputs_dimension_per_outputs[i]
+                metrics.set_indexes()
+                metrics_list.append(metrics)
+            return metrics_list
+
+        self.metrics = \
+            acc_metrics_instantiate(list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+
         # [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
@@ -108,9 +121,9 @@ class TrainTestTaskSupervised:
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
-                         .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
+                         .cache()
                          )
 
         test_dataset = (self.test_dataset
@@ -119,9 +132,9 @@ class TrainTestTaskSupervised:
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
-                        .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
+                        .cache()
                         )
 
         val_dataset = (self.val_dataset
@@ -130,9 +143,9 @@ class TrainTestTaskSupervised:
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
-                       .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
+                       .cache()
                        )
 
         model = self.model.build()
@@ -157,7 +170,16 @@ class TrainTestTaskSupervised:
                             'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
                             'linear_classifier_15': 1.2}
 
-        model.compile(optimizer=self.optimizer, loss=list(self.loss))#, loss_weights=loss_weights)
+        metrics = {'linear_classifier': list(self.metrics)[0],
+                    'linear_classifier_1': list(self.metrics)[1],
+                    'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
+                    'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
+                    'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
+                    'linear_classifier_8': list(self.metrics)[8]}
+
+        model.compile(optimizer=self.optimizer,
+                      loss=list(self.loss),
+                      metrics=metrics)#, loss_weights=loss_weights)
 
         mlflow.keras.autolog()
 
@@ -174,8 +196,8 @@ class TrainTestTaskSupervised:
                           verbose=1,
                           validation_data=val_dataset,
                           callbacks=self.callbacks,
-                          # steps_per_epoch=self.steps_per_epoch,
-                          # validation_steps=self.validation_steps,
+                          steps_per_epoch=self.steps_per_epoch,
+                          validation_steps=self.validation_steps,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

@@ -39,7 +39,7 @@ class SynthEncoder:
         inputs = self.inputs
         outputs_conv_encoder = self.conv_encoder(inputs)
 
-        outputs_conv_encoder = self.masking_transformer(outputs_conv_encoder)
+        # outputs_conv_encoder = self.masking_transformer(outputs_conv_encoder)
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
