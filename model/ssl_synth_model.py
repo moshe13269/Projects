@@ -3,7 +3,7 @@ from typing import List, Tuple
 import layers
 
 
-class Data2VecModel:
+class SSLSynthModel:
     masking: bool
     masking_layer: layers.Masking
     len_latent_space: int

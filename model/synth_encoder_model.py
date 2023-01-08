@@ -13,13 +13,13 @@ class SynthEncoder:
     conv_decoder: layers.ConvDecoderModel
     params_predictor: layers.ParamsPredictor
     linear_classifier: layers.LinearClassifier
-    masking_transformer: layers.MaskingTransformer
+    # masking_transformer: layers.MaskingTransformer
 
     def __init__(self,
                  conv_encoder: layers.ConvFeatureExtractionModel,
                  transformer_encoder: layers.EncoderTransformer,
                  linear_classifier: layers.LinearClassifier,
-                 masking_transformer: layers.MaskingTransformer,
+                 # masking_transformer: layers.MaskingTransformer,
                  top_k_transformer: int,
                  inputs: Tuple[int, int, int],
 
@@ -31,7 +31,7 @@ class SynthEncoder:
 
         self.conv_encoder = conv_encoder
         self.transformer_encoder = transformer_encoder
-        self.masking_transformer = masking_transformer
+        # self.masking_transformer = masking_transformer
 
         self.linear_classifier = linear_classifier
 

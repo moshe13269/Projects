@@ -7,7 +7,7 @@ class SynthAutoEncoder:
     inputs: Tuple[int, int, int]
     top_k_transformer: int
 
-    masking_transformer: layers.MaskingTransformer
+    # masking_transformer: layers.MaskingTransformer
     conv_encoder: layers.ConvFeatureExtractionModel
     transformer_encoder: layers.EncoderTransformer
     transformer_decoder: layers.DecoderTransformer
@@ -16,7 +16,7 @@ class SynthAutoEncoder:
     linear_classifier: layers.LinearClassifier
 
     def __init__(self,
-                 masking_transformer: layers.MaskingTransformer,
+                 # masking_transformer: layers.MaskingTransformer,
                  conv_encoder: layers.ConvFeatureExtractionModel,
                  transformer_encoder: layers.EncoderTransformer,
                  transformer_decoder: layers.DecoderTransformer,
@@ -32,7 +32,7 @@ class SynthAutoEncoder:
         self.inputs = tf.keras.layers.Input(inputs)
         self.top_k_transformer = top_k_transformer
 
-        self.masking_transformer = masking_transformer
+        # self.masking_transformer = masking_transformer
 
         self.conv_encoder = conv_encoder
         self.transformer_encoder = transformer_encoder
@@ -48,7 +48,8 @@ class SynthAutoEncoder:
         inputs = self.inputs
         outputs_conv_encoder = self.conv_encoder(inputs)
 
-        outputs_conv_encoder = self.masking_transformer(outputs_conv_encoder)
+        # outputs_conv_encoder = self.masking_transformer(outputs_conv_encoder)
+        outputs_conv_encoder = tf.keras.layers.Dropout(0.35)(outputs_conv_encoder)
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
@@ -68,7 +69,7 @@ class SynthAutoEncoder:
 
         latent = tf.keras.layers.concatenate([outputs_conv_encoder, outputs_transformer_decoder], axis=0)
 
-        outputs = [wavs, wavs, latent] + outputs_params_list
+        outputs = [wavs, wavs, latent] + [outputs_params_list]
 
         return tf.keras.Model(inputs=[self.inputs], outputs=outputs)# [outputs_params, wavs, wavs, latent])
 

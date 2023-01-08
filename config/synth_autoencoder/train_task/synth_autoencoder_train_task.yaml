@@ -23,9 +23,9 @@ TrainTask:
       - 16384
       - 1
 
-    masking_transformer:
-      _target_: layers.masking_transformer.MaskingTransformer
-      percent2mask: 0.65
+#    masking_transformer:
+#      _target_: layers.masking_transformer.MaskingTransformer
+#      percent2mask: 0.65
 
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -139,10 +139,11 @@ TrainTask:
 
       dropout: 0.1
       conv_bias: True
+      is_group_norm: True
+      is_layer_norm: False
 
     top_k_transformer: 1
-    is_group_norm: True
-    is_layer_norm: False
+
 
     transformer_encoder:
       _target_: layers.transformer_encoder.EncoderTransformer
@@ -168,7 +169,7 @@ TrainTask:
       _target_: layers.params_predictor.ParamsPredictor
 
     linear_classifier:
-      _target_: layers.linear_classifier.LinearClassifier
+      _target_: layers.linear_classifier_2.LinearClassifier
       activation: softmax
       outputs_dimension_per_outputs:
         - 16
@@ -188,6 +189,8 @@ TrainTask:
   #      - 6 #17
   #      - 6 #17
 
+  metrics: False
+
   loss:
 #    - _target_: losses.l2_regression.L2LossReg
     - _target_: losses.SpectralConvergengeLoss.SpectralConvergengeLoss
@@ -198,9 +201,19 @@ TrainTask:
 #    - _target_: losses.l2_loss.L2Loss
 
   loss_ce:
-    _target_: losses.cross_entropy_loss.CELoss
+    _target_: losses.cross_entropy_loss_2.CELoss
     num_classes: 1
     index_y_true: 1
+    outputs_dimension_per_outputs:
+      - 16
+      - 4 #16
+      - 9 #8
+      - 4 #8
+      - 17 #9
+      - 17 #8
+      - 4 #9
+      - 17 #9
+      - 17
 
   callbacks:
     -
@@ -218,7 +231,7 @@ TrainTask:
       schedule:
         _target_: tensorflow.keras.optimizers.schedules.ExponentialDecay
         initial_learning_rate: 5e-4
-        decay_steps: 25
+        decay_steps: 50
         decay_rate: 2e-4
 #    -
 #      _target_: callbacks.callbacks.LearnRateSchedulerTriStage
@@ -248,10 +261,10 @@ TrainTask:
     beta_2: 0.99
 
   processor:
-    _target_: processors.processor_synth_encoder.Processor
+    _target_: processors.processor_synth_encoder_2.Processor
     std_mean_calc:
       _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
-      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/
     num_classes:
       - 16
       - 4 #16
@@ -262,13 +275,6 @@ TrainTask:
       - 4 #9
       - 17 #9
       - 17 #2
-      #      - 4
-      #      - 4
-      #      - 4
-      #      - 6 #17
-      #      - 6 #17
-      #      - 6 #17
-    #      - 6 #17
 
 #    path2sets: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_labels/list_of_set_labels.pkl
 
@@ -278,13 +284,13 @@ TrainTask:
     test: 1
     valid: 32
 
-  epochs: 2000
+  epochs: 2500
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_autoencoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder/
-  num_outputs: 12
+  num_outputs: 4
 
-  steps_per_epoch: 1000
+  steps_per_epoch: 500
   validation_steps: 50
 
   results:

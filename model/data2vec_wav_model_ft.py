@@ -2,7 +2,7 @@ import tensorflow as tf
 from typing import List, Tuple
 from layers.masking import Masking
 from layers.ffn import FFN
-from model.data2vec_wav_model import Data2VecModel
+from model.ssl_synth_model import Data2VecModel
 
 
 class Data2VecModelFT:

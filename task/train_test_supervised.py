@@ -47,7 +47,10 @@ class TrainTestTaskSupervised:
             # ce_loss_instantiate(list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
 
         if instantiate(cfg.train_task.TrainTask.loss)[0] is not None:
-            self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + self.loss_ce
+            if type(self.loss_ce) == list:
+                self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + self.loss_ce
+            else:
+                self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + [self.loss_ce]
         else:
             self.loss = self.loss_ce
 
@@ -61,8 +64,11 @@ class TrainTestTaskSupervised:
                 metrics_list.append(metrics)
             return metrics_list
 
-        self.metrics = \
-            acc_metrics_instantiate(list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+        self.metrics = self.cfg.train_task.TrainTask.get('metrics')
+        if self.metrics:
+            self.metrics = \
+                acc_metrics_instantiate(
+                    list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
 
         # [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
@@ -173,13 +179,13 @@ class TrainTestTaskSupervised:
                                 'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
                                 'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
                                 'linear_classifier_15': 1.2}
-
-            metrics = {'linear_classifier': list(self.metrics)[0],
-                        'linear_classifier_1': list(self.metrics)[1],
-                        'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
-                        'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
-                        'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
-                        'linear_classifier_8': list(self.metrics)[8]}
+            if self.metrics:
+                metrics = {'linear_classifier': list(self.metrics)[0],
+                            'linear_classifier_1': list(self.metrics)[1],
+                            'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
+                            'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
+                            'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
+                            'linear_classifier_8': list(self.metrics)[8]}
 
         if type(self.loss) == list:
             model.compile(optimizer=self.optimizer,

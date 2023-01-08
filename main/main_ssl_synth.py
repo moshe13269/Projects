@@ -7,7 +7,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 
 
-@hydra.main(config_path=os.path.join('../config', 'data2vec_wav'), config_name='config')
+@hydra.main(config_path=os.path.join('../config', 'ssl_synth_encoder'), config_name='config')
 def main(cfg: DictConfig) -> None:
     train_task = task.TrainTestTask(cfg)
     train_task.run()

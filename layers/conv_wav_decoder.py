@@ -10,6 +10,8 @@ class ConvDecoderModel(tf.keras.layers.Layer):
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
                  activation: str,
                  units: int,
+                 is_group_norm: str = True,
+                 is_layer_norm: str = False,
                  dropout: float = 0.0,
                  mode: str = "default",
                  conv_bias: bool = False):
