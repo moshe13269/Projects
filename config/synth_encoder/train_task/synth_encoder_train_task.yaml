@@ -38,8 +38,8 @@ TrainTask:
       conv_layers:
         -
           - 512
-          - 4 #10 #
-          - 2 #5 #
+          - 10 #
+          - 5 #
 
         -
           - 512
@@ -69,7 +69,7 @@ TrainTask:
         -
           - 512
           - 2
-          - 1
+          - 2
 
       num_duplicate_layer:
         - 1
@@ -99,7 +99,7 @@ TrainTask:
       activation: gelu
 
     linear_classifier:
-      _target_: layers.linear_classifier.LinearClassifier
+      _target_: layers.linear_classifier_2.LinearClassifier
       activation: softmax
       outputs_dimension_per_outputs:
       - 16
@@ -123,9 +123,19 @@ TrainTask:
     -
 
   loss_ce:
-    _target_: losses.cross_entropy_loss.CELoss
+    _target_: losses.cross_entropy_loss_2.CELoss
     num_classes: 1
     index_y_true: 1
+    outputs_dimension_per_outputs:
+      - 16
+      - 4 #16
+      - 9 #8
+      - 4 #8
+      - 17 #9
+      - 17 #8
+      - 4 #9
+      - 17 #9
+      - 17
 
   metrics:
     _target_: metrics.accuracy.CustomAccuracy
@@ -159,7 +169,7 @@ TrainTask:
       schedule:
         _target_: tensorflow.keras.optimizers.schedules.ExponentialDecay
         initial_learning_rate: 1e-4
-        decay_steps: 25
+        decay_steps: 600
         decay_rate: 2e-4
 #    -
 #      _target_: tensorflow.keras.callbacks.ReduceLROnPlateau
@@ -184,10 +194,11 @@ TrainTask:
     beta_2: 0.99
 
   processor:
-    _target_: processors.processor_synth_encoder.Processor
+    _target_: processors.processor_synth_encoder_2.Processor
     std_mean_calc:
       _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
-      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/
+#      /home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base/
     num_classes:
       - 16
       - 4 #16
@@ -207,17 +218,17 @@ TrainTask:
 #      - 6 #17
 
   batch_size:
-    train: 32
+    train: 128
     test: 1
-    valid: 32
+    valid: 128
 
   epochs: 5000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models
   model_name: synth_encoder
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_encoder/
-  num_outputs: 9 #16
+  num_outputs: 1 #9 #16
 
-  steps_per_epoch: 250
+  steps_per_epoch: 500
   validation_steps: 50
 
   results:

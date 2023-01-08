@@ -76,7 +76,7 @@ class BaseAttention(tf.keras.layers.Layer):
         self.mha = tf.keras.layers.MultiHeadAttention(**kwargs)
         self.layernorm = tf.keras.layers.LayerNormalization()
         self.add = tf.keras.layers.Add()
-        self.masking = MaskingTransformer()
+        # self.masking = MaskingTransformer()
 
 
 class CrossAttention(BaseAttention):
@@ -96,28 +96,23 @@ class CrossAttention(BaseAttention):
         return x
 
 
-
-
-
 class GlobalSelfAttention(BaseAttention):
     def call(self, x, masking=True):
-        if masking:
-            mask = self.masking(x)
-            attn_output = self.mha(
-                query=x,
-                value=x,
-                key=x,
-                attention_mask=mask)
-        else:
-            attn_output = self.mha(
-                query=x,
-                value=x,
-                key=x)
+        # if masking:
+        #     mask = self.masking(x)
+        #     attn_output = self.mha(
+        #         query=x,
+        #         value=x,
+        #         key=x,
+        #         attention_mask=mask)
+        # else:
+        attn_output = self.mha(
+            query=x,
+            value=x,
+            key=x)
         x = self.add([x, attn_output])
         x = self.layernorm(x)
         return x
-
-
 
 
 class EncoderLayer(tf.keras.layers.Layer):
@@ -128,7 +123,7 @@ class EncoderLayer(tf.keras.layers.Layer):
             num_heads=num_heads,
             key_dim=d_model,
             dropout=dropout_rate)
-        self.masking = MaskingTransformer(percent2mask=0.65)
+        # self.masking = MaskingTransformer(percent2mask=0.65)
         self.ffn = FeedForward(d_model, dff)
 
     def call(self, x, masking):

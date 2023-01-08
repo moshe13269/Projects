@@ -10,7 +10,7 @@ class MaskingTransformer(tf.keras.layers.Layer):
 
     @tf.function
     def random_mask(self, inputs):
-        mask = 1. - tf.random.uniform((tf.shape(inputs)[0], tf.shape(inputs)[1], 1)) // self.percent2mask
+        mask = 1. - tf.random.uniform((None, tf.shape(inputs)[1], 1)) // self.percent2mask
         return mask
 
     def call(self, inputs, **kwargs):

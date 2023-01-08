@@ -40,10 +40,11 @@ class SynthEncoder:
         outputs_conv_encoder = self.conv_encoder(inputs)
 
         # outputs_conv_encoder = self.masking_transformer(outputs_conv_encoder)
+        outputs_conv_encoder = tf.keras.layers.Dropout(0.35)(outputs_conv_encoder)
 
         outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
                                                                training=True,
-                                                               top_k_transformer=8)
+                                                               top_k_transformer=None)
 
         outputs = self.linear_classifier(outputs_transformer_encoder)
 
