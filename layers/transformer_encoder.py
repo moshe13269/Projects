@@ -21,7 +21,7 @@ class PositionalEmbedding(tf.keras.layers.Layer):
 
         super(PositionalEmbedding, self).__init__()
 
-        self.activation = tf.keras.layers.Activation(activation)
+        # self.activation = tf.keras.layers.Activation(activation)
         self.layer_norm = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.add = tf.keras.layers.Add()
 
@@ -33,7 +33,7 @@ class PositionalEmbedding(tf.keras.layers.Layer):
                                                activation=activation, padding='same')
 
     def call(self, inputs, **kwargs):
-        return self.layer_norm(self.add([self.conv(inputs), inputs]))
+        return self.layer_norm(self.conv(inputs) + inputs)
 
 
 class FeedForward(tf.keras.layers.Layer):
@@ -206,7 +206,7 @@ class EncoderTransformer(tf.keras.layers.Layer):
                 if counter >= index_k0:
                     top_k_layers.append(x)
 
-            return tf.divide(self.add(top_k_layers), top_k_transformer)
+            return tf.divide(self.add(top_k_layers), top_k_transformer), top_k_layers[-1]
 
 
 if __name__ == '__main__':

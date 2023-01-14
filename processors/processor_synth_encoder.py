@@ -14,6 +14,7 @@ class Processor:
         self.num_classes = len(num_classes)
         self.std_mean_calc = std_mean_calc
         norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
+        print(norm_vec_mean, norm_vec_std)
         self.norm_vec_mean = norm_vec_mean
         self.norm_vec_std = norm_vec_std
         # with open(path2sets, 'rb') as handle:
@@ -35,7 +36,7 @@ class Processor:
         label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
         # data = np.log(data + 10**-10)
-        # data = (data - self.norm_vec_mean) / self.norm_vec_std
+        data = (data - self.norm_vec_mean) / (self.norm_vec_std + 10**-20)
         data = data.reshape(data.shape[0], 1)
         data = np.ndarray.astype(data, np.float32)
         label = self.label2onehot(label)

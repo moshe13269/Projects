@@ -49,29 +49,30 @@ class SynthAutoEncoder:
         outputs_conv_encoder = self.conv_encoder(inputs)
 
         # outputs_conv_encoder = self.masking_transformer(outputs_conv_encoder)
-        outputs_conv_encoder = tf.keras.layers.Dropout(0.35)(outputs_conv_encoder)
+        outputs_conv_encoder_ = tf.keras.layers.Dropout(0.2)(outputs_conv_encoder)
 
-        outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder,
-                                                               training=True,
-                                                               top_k_transformer=4)
+        outputs_transformer_encoder_top_k, outputs_transformer_encoder = self.transformer_encoder(outputs_conv_encoder_,
+                                                                                                  training=True,
+                                                                                                  top_k_transformer=3)
 
         outputs_transformer_decoder = self.transformer_decoder(x=outputs_conv_encoder,
                                                                context=outputs_transformer_encoder,
                                                                training=True,
-                                                               top_k_transformer=4)
+                                                               top_k_transformer=None)
 
         outputs_wav = self.conv_decoder(outputs_transformer_decoder)
 
         # outputs_params = self.params_predictor(outputs_transformer_encoder)
-        outputs_params_list = self.linear_classifier(outputs_transformer_encoder)
+        outputs_params_list = self.linear_classifier(outputs_transformer_encoder_top_k)
 
-        wavs = tf.keras.layers.concatenate([inputs, outputs_wav], axis=0)
+        wavs = tf.keras.layers.concatenate([inputs, outputs_wav], axis=0, name='wavs')
 
-        latent = tf.keras.layers.concatenate([outputs_conv_encoder, outputs_transformer_decoder], axis=0)
+        latent = tf.keras.layers.concatenate([outputs_conv_encoder, outputs_transformer_decoder],
+                                             axis=0, name='latent')
 
-        outputs = [wavs, wavs, latent] + [outputs_params_list]
+        outputs = [wavs, latent] + [outputs_params_list]
 
-        return tf.keras.Model(inputs=[self.inputs], outputs=outputs)# [outputs_params, wavs, wavs, latent])
+        return tf.keras.Model(inputs=[self.inputs], outputs=outputs)  # [outputs_params, wavs, wavs, latent])
 
 
 if __name__ == '__main__':

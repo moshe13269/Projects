@@ -52,7 +52,7 @@ class LinearClassifier(tf.keras.layers.Layer):
         for layer in self.layers:
             output = layer(inputs)
             # output = tf.nn.softmax(output - tf.math.reduce_max(output, keepdims=True, axis=-1))
-            output = tf.math.log(tf.nn.softmax(output) + 10**-1)
+            # output = tf.math.log(tf.nn.softmax(output) + 10**-1)
             outputs.append(output)
 
         return outputs

@@ -18,7 +18,7 @@ class CustomAccuracy(tf.keras.metrics.Metric):
         self.acc = tf.keras.metrics.Accuracy()
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
+        # y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
         y_true = tf.argmax(y_true, axis=-1)
         y_pred = tf.argmax(y_pred, axis=-1)
         self.acc.update_state(y_true, y_pred)
@@ -40,7 +40,6 @@ class CustomAccuracy(tf.keras.metrics.Metric):
     @tf.autograph.experimental.do_not_convert
     def convert_matrix2one_hot(self, y_true):
         y_true = tf.split(y_true, num_or_size_splits=9, axis=1)[self.index_y_true]  # (b, 16, 17) -> (b, 1, 17)
-
         y_true = tf.squeeze(y_true, axis=1)  # (b, 1, 17) -> (b, 17)
         y_true = tf.gather(y_true, indices=[self.indexes], axis=1)
         return tf.cast(y_true, dtype=tf.int32)

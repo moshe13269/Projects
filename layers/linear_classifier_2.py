@@ -19,43 +19,22 @@ class LinearClassifier(tf.keras.layers.Layer):
     def __init__(self,
                  outputs_dimension_per_outputs,
                  # num_classes_per_param: List[int],
-                 activation: str = 'softmax',
+                 activation: str = 'relu',
                  dropout: float = 0.1,
                  **kwargs):
         super().__init__(**kwargs)
-
-        # self.num_classes_per_param = num_classes_per_param
-        # self.indexes = [sum(self.num_classes_per_param[:i])
-        #                 for i in range(len(self.num_classes_per_param)+1)]
-
-        def make_layers():
-            layers = []
-            for output_dim in self.outputs_dimension_per_outputs:
-                layers.append(
-                    tf.keras.Sequential([
-                        # ReLU(),
-                        # Dropout(rate=dropout),
-                        # tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1)),
-                        Flatten(),
-                        Dense(units=output_dim, activation='relu'),
-                        Dropout(rate=dropout),
-                        Dense(units=output_dim, activation='relu'),
-                        Dropout(rate=dropout),
-                        Dense(units=output_dim, activation=None),
-                    ])
-                )
-                # layers.append(Dense(units=output_dim, activation=self.activation))
-            return layers
 
         self.outputs_dimension_per_outputs = outputs_dimension_per_outputs
         self.activation = activation
         self.layers = tf.keras.Sequential([
             Flatten(),
-            Dense(units=512 * 50, activation='gelu'),
+            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation), #Dense(units=512 * 50, activation=self.activation),
             Dropout(rate=dropout),
-            Dense(units=sum(outputs_dimension_per_outputs), activation='gelu'),
+            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
             Dropout(rate=dropout),
-            Dense(units=sum(outputs_dimension_per_outputs), activation=None),
+            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
+            Dropout(rate=dropout),
+            Dense(units=sum(outputs_dimension_per_outputs), activation=None)
         ])
 
     def call(self, inputs, **kwargs):

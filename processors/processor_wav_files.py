@@ -42,11 +42,11 @@ class Processor:
         if self.load_label:
             # path2label = path2data
             # path2label = path2label.replace('data', 'labels')
-            label = np.load(path2data)
+            label = np.squeeze(np.load(path2data[1]))
         else:
             label = self.create_mask()
-
-        samplerate, data = wavfile.read(path2data)
+        samplerate, data = wavfile.read(path2data[0])
+        # samplerate, data = wavfile.read(path2data)
         data = (data - np.mean(data)) / np.std(data)  ##
         data = data.reshape(data.shape[0], 1)
 

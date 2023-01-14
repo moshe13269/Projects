@@ -20,6 +20,9 @@ class TrainTestTask:
         self.test_dataset = None
         self.val_dataset = None
 
+        self.steps_per_epoch = self.cfg.train_task.TrainTask.get('steps_per_epoch')
+        self.validation_steps = self.cfg.train_task.TrainTask.get('validation_steps')
+        
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
 
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
@@ -94,6 +97,7 @@ class TrainTestTask:
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
+                         .repeat()
                          )
 
         test_dataset = (self.test_dataset
@@ -103,6 +107,7 @@ class TrainTestTask:
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
+                        .repeat()
                         )
 
         val_dataset = (self.val_dataset
@@ -112,6 +117,7 @@ class TrainTestTask:
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
+                       .repeat()
                        )
 
         model = self.model.build()
@@ -151,7 +157,8 @@ class TrainTestTask:
                           verbose=1,
                           validation_data=val_dataset,
                           callbacks=self.callbacks,
-                          # steps_per_epoch=5,
+                          steps_per_epoch=self.steps_per_epoch,
+                          validation_steps=self.validation_steps,
                           initial_epoch=0,
                           use_multiprocessing=True)
 

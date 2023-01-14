@@ -188,6 +188,7 @@ class DecoderTransformer(tf.keras.layers.Layer):
         else:
 
             top_k_layers = []
+            outputs = 0.0
             index_k0 = len(self.dec_layers) - top_k_transformer
             counter = 0
 
@@ -198,8 +199,8 @@ class DecoderTransformer(tf.keras.layers.Layer):
                 counter += 1
 
                 if counter >= index_k0:
-                    top_k_layers.append(x)
+                    outputs += x #top_k_layers.append(x)
 
-            return tf.divide(self.add(top_k_layers), top_k_transformer)
+            return outputs / top_k_transformer #tf.divide(self.add(top_k_layers), top_k_transformer)
 
 

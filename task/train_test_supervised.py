@@ -43,8 +43,9 @@ class TrainTestTaskSupervised:
                 loss_list.append(loss)
             return loss_list
 
-        self.loss_ce = instantiate(cfg.train_task.TrainTask.loss_ce)
-            # ce_loss_instantiate(list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+        self.loss_ce = instantiate(cfg.train_task.TrainTask.loss_ce)#ce_loss_instantiate(
+            # list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+        #
 
         if instantiate(cfg.train_task.TrainTask.loss)[0] is not None:
             if type(self.loss_ce) == list:
@@ -64,8 +65,8 @@ class TrainTestTaskSupervised:
                 metrics_list.append(metrics)
             return metrics_list
 
-        self.metrics = self.cfg.train_task.TrainTask.get('metrics')
-        if self.metrics:
+        self.to_metrics = self.cfg.train_task.TrainTask.get('metrics')
+        if self.to_metrics:
             self.metrics = \
                 acc_metrics_instantiate(
                     list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
@@ -160,40 +161,51 @@ class TrainTestTaskSupervised:
         plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
                    show_layer_names=True)
 
-        if type(self.loss) == list:
+        if list(self.loss) == 19:
+            loss_weights = {'concatenate': 1., 'concatenate_1': 0.1,
+                            'concatenate_1_1': 1.,
+                            'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
+                            'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
+                            'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
+                            'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
+                            'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
+                            'linear_classifier_15': 1.2}
 
-            if list(self.loss) == 19:
-                loss_weights = {'concatenate': 1., 'concatenate_1': 0.1,
-                                'concatenate_1_1': 1.,
-                                'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
-                                'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
-                                'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
-                                'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
-                                'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
-                                'linear_classifier_15': 1.2}
+        elif list(self.loss) == 15:
+            loss_weights = {'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
+                            'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
+                            'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
+                            'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
+                            'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
+                            'linear_classifier_15': 1.2}
 
-            elif list(self.loss) == 15:
-                loss_weights = {'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
-                                'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
-                                'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
-                                'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
-                                'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
-                                'linear_classifier_15': 1.2}
-            if self.metrics:
-                metrics = {'linear_classifier': list(self.metrics)[0],
-                            'linear_classifier_1': list(self.metrics)[1],
-                            'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
-                            'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
-                            'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
-                            'linear_classifier_8': list(self.metrics)[8]}
+        elif list(self.loss) == 4:
+            loss_weights = {'linear_classifier': 1., 'concatenate': 0.1, 'concatenate_1': 0.1,
+                            'concatenate_1_1': 0.1}
+        elif list(self.loss) == 4:
+            loss_weights = {'linear_classifier': 1., 'wavs': 0.1, 'latent': 0.1}
+        else:
+            loss_weights = None
 
-        if type(self.loss) == list:
+        if self.to_metrics and type(self.loss_ce) == list and len(self.loss_ce)>3:
+            metrics = {'linear_classifier': list(self.metrics)[0],
+                        'linear_classifier_1': list(self.metrics)[1],
+                        'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
+                        'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
+                        'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
+                        'linear_classifier_8': list(self.metrics)[8]}
+        else:
+            metrics = {'linear_classifier': list(self.metrics)[0]}
+
+        if type(self.loss) == list and self.to_metrics and type(self.loss_ce) == list:
             model.compile(optimizer=self.optimizer,
-                          loss=list(self.loss))
-                      # metrics=metrics)#, loss_weights=loss_weights)
+                          loss=list(self.loss),
+                          metrics=metrics,
+                          loss_weights=loss_weights)
         else:
             model.compile(optimizer=self.optimizer,
-                          loss=self.loss)
+                          loss=self.loss,
+                          metrics=metrics)
 
         mlflow.keras.autolog()
 

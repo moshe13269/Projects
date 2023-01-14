@@ -80,30 +80,37 @@ class ConvDecoderModel(tf.keras.layers.Layer):
 
         self.avg_pool = AveragePooling1D()
 
-        self.fc = Dense(units=units, activation=None)
+        self.fc2 = Dense(units=units, activation=None)
+        self.fc1 = Dense(units=127, activation='gelu')
 
     def call(self, x, **kwargs):
         # BxT -> BxTxC
-
+        x = self.fc1(x)
         for conv in self.conv_layers:
             x = conv(x)
-
-        return self.fc(x)
+        return self.fc2(x)
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((4, 50, 512))
+    data = tf.random.normal((4, 127, 512))
     conv_layers: List[Tuple[int, int, int, int]] = [(512, 2, 2, 1),
                                                     (512, 2, 2, 1),
-                                                    (512, 3, 2, 1),
-                                                    (512, 3, 2, 1),
                                                     (512, 3, 2, 0),
                                                     (512, 3, 2, 0),
-                                                    (512, 10, 5, 4)]
+                                                    (512, 3, 2, 0),
+                                                    (512, 3, 2, 0),
+                                                    (512, 4, 2, 0)]
 
+    # [(512, 2, 2, 1),
+    #  (512, 2, 2, 1),
+    #  (512, 3, 2, 1),
+    #  (512, 3, 2, 1),
+    #  (512, 3, 2, 0),
+    #  (512, 3, 2, 0),
+    #  (512, 10, 5, 4)]
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
     conv = ConvDecoderModel(conv_layers=conv_layers, activation='gelu', units=1,
-                                      num_duplicate_layer=num_duplicate_layer)
+                            num_duplicate_layer=num_duplicate_layer)
     output = conv(data)
     print(output.shape)
     print(tf.reduce_mean(output), tf.reduce_min(output), tf.reduce_max(output))

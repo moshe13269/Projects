@@ -28,6 +28,13 @@ TrainTask:
     inputs2:
       - 50
 
+    len_latent_space: 50
+
+    masking: True
+    masking_layer:
+      _target_: layers.masking.Masking
+      num_channels: 512
+
     conv_encoder:
       _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
       activation: gelu
@@ -92,15 +99,17 @@ TrainTask:
       dim_conv: 1
       activation: gelu
 
-      transformer_encoder_t:
-        _target_: layers.transformer_encoder.EncoderTransformer
-        num_layers: 12
-        d_model: 512
-        num_attention_heads: 8
-        dff: 768
-        dropout_rate: 0.1
-        dim_conv: 1
-        activation: gelu
+    transformer_encoder_t:
+      _target_: layers.transformer_encoder.EncoderTransformer
+      num_layers: 12
+      d_model: 512
+      num_attention_heads: 8
+      dff: 768
+      dropout_rate: 0.1
+      dim_conv: 1
+      activation: gelu
+
+    top_k_transformer: 4
 
   loss:
     _target_: losses.l2_loss.L2Loss
@@ -138,9 +147,9 @@ TrainTask:
     load_label: False
 
   batch_size:
-    train: 128
+    train: 64
     test: 1
-    valid: 128
+    valid: 64
 
   epochs: 5000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models

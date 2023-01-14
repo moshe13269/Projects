@@ -24,12 +24,14 @@ class CELoss(tf.keras.losses.Loss):
         y_true = self.split(y_true)
         y_pred = self.split(y_pred)
 
-        y_pred = [tf.nn.softmax(output) for output in y_pred]
+        # y_pred = [tf.nn.softmax(output) for output in y_pred]
 
-        loss = [self.ce(y_true[i], y_pred[i]) for i in range(len(y_pred))]
+        loss = [tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
+                for i in range(len(y_pred))]
         return sum(loss)
 
-    @tf.function
+    # @tf.function
+    @tf.autograph.experimental.do_not_convert
     def split(self, inputs):
         return [inputs[:, self.index2split[i]: self.index2split[i + 1]] for i in range(len(self.index2split)-1)]
         # tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1))
