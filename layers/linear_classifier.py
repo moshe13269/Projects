@@ -28,12 +28,13 @@ class LinearClassifier(tf.keras.layers.Layer):
             for output_dim in self.outputs_dimension_per_outputs:
                 layers.append(
                     tf.keras.Sequential([
-                        ReLU(),
-                        Dropout(rate=dropout),
+                        # ReLU(),
+                        # Dropout(rate=dropout),
                         Flatten(),
                         Dense(units=output_dim, activation='relu'),
                         Dropout(rate=dropout),
                         # tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1)),
+                        Reshape((output_dim,)),
                         Dense(units=output_dim, activation='relu'),
                         Dense(units=output_dim, activation=None),
                     ])

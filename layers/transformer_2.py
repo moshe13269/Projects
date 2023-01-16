@@ -2,15 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Dropout, Conv1D, Dense, Layer
 
 
-# num_heads = 8
-# num_layers = 6
-# d_model = 512
-# d_ff = 2048
-# d_k = d_model // num_heads
-# drop_out_rate = 0.1
-# num_epochs = 10
-# beam_size = 8
-
 class EncoderLayer(Layer):
 
     def __init__(self, d_model, num_heads, d_ff, dropout, activation, **kwargs):
@@ -25,10 +16,11 @@ class EncoderLayer(Layer):
         self.ffn = FFN(d_model, d_ff, dropout, activation)
 
     def call(self, inputs, **kwargs):
-        x = self.ln1(inputs)
-        x = x + self.dropout1(self.mha(x))
+        x, e_mask = inputs
+        x = self.ln1(x)
+        x = x + self.dropout1(self.mha(query=x, value=x, key=x, attention_mask=e_mask))
         x = self.ln2(x)
-        x = x + self.dropout2(self.fc1(x))
+        x = x + self.dropout2(self.ffn(x))
         return x
 
 
@@ -48,30 +40,37 @@ class FFN(Layer):
 
 
 class DecoderLayer(Layer):
-    def __init__(self, dropout):
+    def __init__(self, d_model, d_ff, dropout, activation, num_heads):
         super().__init__()
-        self.ln1 = LayerNormalization()
-        self.masked_mha = MultiHeadAttention()
+        self.ln1 = LayerNormalization(epsilon=1e-6)
+        self.masked_mha = MultiHeadAttention(key_dim=d_model, num_heads=num_heads, dropout=dropout)
         self.dropout1 = Dropout(dropout)
 
-        self.ln2 = LayerNormalization()
-        self.mha = MultiHeadAttention()
+        self.ln2 = LayerNormalization(epsilon=1e-6)
+        self.mha = MultiHeadAttention(key_dim=d_model, num_heads=num_heads, dropout=dropout)
         self.dropout2 = Dropout(dropout)
 
-        self.ln3 = LayerNormalization()
-        self.feed_forward = FFN()
+        self.ln3 = LayerNormalization(epsilon=1e-6)
+        self.feed_forward = FFN(d_model, d_ff, dropout, activation)
         self.dropout3 = Dropout(dropout)
 
-    def forward(self, x, e_output, e_mask, d_mask):
+    def call(self, inputs, **kwargs):
+        x, e_output, e_mask, d_mask = inputs
+
         x_1 = self.ln1(x)  # (B, L, d_model)
+
         x = x + self.dropout1(
             self.masked_mha(x_1, x_1, x_1, attention_mask=d_mask)
         )  # (B, L, d_model)
+
         x_2 = self.ln2(x)  # (B, L, d_model)
+
         x = x + self.dropout2(
             self.mha(x_2, e_output, e_output, attention_mask=e_mask)
         )  # (B, L, d_model)
+
         x_3 = self.ln3(x)  # (B, L, d_model)
+
         x = x + self.dropout3(self.feed_forward(x_3))  # (B, L, d_model)
 
         return x  # (B, L, d_model)
@@ -85,8 +84,8 @@ class LearnablePositionalEncoder(Layer):
                            activation=activation, padding='same')
         self.ln = LayerNormalization(epsilon=1e-6)
 
-    def forward(self, x):
-        return self.layer_norm(self.conv(x) + x)
+    def call(self, inputs, **kwargs):
+        return self.ln(self.conv(inputs) + inputs)
 
 
 class PositionalEncoder(Layer):
@@ -108,8 +107,8 @@ class PositionalEncoder(Layer):
         pe_matrix = pe_matrix.unsqueeze(0)  # (1, L, d_model)
         self.positional_encoding = tf.stop_gradient(pe_matrix)  # .requires_grad_(False)
 
-    def forward(self, x):
-        x = x * tf.math.sqrt(self.d_model)  # (B, L, d_model)
+    def call(self, inputs, **kwargs):
+        x = inputs * tf.math.sqrt(self.d_model)  # (B, L, d_model)
         x = x + self.positional_encoding  # (B, L, d_model)
 
         return x
@@ -135,17 +134,47 @@ class TransformerEncoder(Layer):
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
-        x = self.pos_encodeing(inputs)
+        x, e_mask = inputs
+        x = self.pos_encodeing(x)
 
         x = self.dropout(x)
 
         for encoder in self.encoder_blocks:
-            x = encoder(x)
+            x = encoder([x, e_mask])
         return x
 
 
 class TransformerDecoder(Layer):
 
+    def __init__(self,
+                 num_transformer_decoder_blocks,
+                 d_model,
+                 num_heads,
+                 d_ff,
+                 dropout,
+                 activation,
+                 **kwargs):
+        super().__init__(**kwargs)
+
+        self.decoder_blocks = [DecoderLayer(d_model, d_ff, dropout, activation, num_heads) for
+                               _ in range(num_transformer_decoder_blocks)]
+
+        self.pos_encodeing = LearnablePositionalEncoder(d_model,
+                                                        activation='gelu')
+        self.dropout = Dropout(dropout)
+
+    def call(self, inputs, **kwargs):
+        x, e_output, e_mask, d_mask = inputs
+        x = self.pos_encodeing(x)
+
+        x = self.dropout(x)
+
+        for decoder in self.decoder_blocks:
+            x = decoder([x, e_output, e_mask, d_mask])
+        return x
+
+
+class Transformer(Layer):
     def __init__(self,
                  num_transformer_blocks,
                  d_model,
@@ -156,18 +185,49 @@ class TransformerDecoder(Layer):
                  **kwargs):
         super().__init__(**kwargs)
 
-        self.encoder_blocks = [EncoderLayer(d_model, num_heads, d_ff, dropout, activation) for
-                               _ in range(num_transformer_blocks)]
+        self.transformer_encoder = TransformerEncoder(num_transformer_blocks,
+                                                      d_model,
+                                                      num_heads,
+                                                      d_ff,
+                                                      dropout,
+                                                      activation)
 
-        self.pos_encodeing = LearnablePositionalEncoder(d_model,
-                                                        activation='gelu')
-        self.dropout = Dropout(dropout)
+        self.transformer_decoder = TransformerDecoder(
+            num_transformer_blocks,
+            d_model,
+            num_heads,
+            d_ff,
+            dropout,
+            activation)
+
+        self.fc = Dense(d_model, activation=activation)
 
     def call(self, inputs, **kwargs):
-        x = self.pos_encodeing(inputs)
+        x, e_mask, d_mask = inputs
 
-        x = self.dropout(x)
+        enc_outputs = self.transformer_encoder([x, e_mask])
 
-        for encoder in self.encoder_blocks:
-            x = encoder(x)
-        return x
+        x = self.transformer_decoder([x, enc_outputs, e_mask, d_mask])
+
+        x = self.fc(x)
+
+        return x, enc_outputs
+
+
+if __name__ == '__main__':
+    transformer = Transformer(
+        num_transformer_blocks=2,
+        d_model=512,
+        num_heads=12,
+        d_ff=4096,
+        dropout=0.1,
+        activation='relu'
+    )
+
+    data = tf.random.normal((2, 50, 512))
+    mask_e = tf.where(tf.random.uniform((2, 50, 1)) >= 0.7, 1., 0.)
+    mask_d = tf.where(tf.random.uniform((2, 50, 1)) >= 0.7, 1., 0.)
+    outputs = transformer([data, mask_e, mask_d])
+    print(tf.reduce_mean(outputs[0]), tf.reduce_mean(outputs[1]))
+    a = 0
+

@@ -18,7 +18,7 @@ class CustomAccuracy(tf.keras.metrics.Metric):
         self.acc = tf.keras.metrics.Accuracy()
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        # y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
+        y_true = tf.squeeze(self.convert_matrix2one_hot(y_true), axis=1)
         y_true = tf.argmax(y_true, axis=-1)
         y_pred = tf.argmax(y_pred, axis=-1)
         self.acc.update_state(y_true, y_pred)

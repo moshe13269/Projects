@@ -2,12 +2,13 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 from scipy.io import wavfile
+from scipy import signal
 
 
 class StdMeanCalc:
     path2dataset: str
 
-    def __init__(self, path2dataset):
+    def __init__(self, path2dataset, stft=False):
         self.path2dataset = path2dataset
         self.list_of_dataset_files = [join(path2dataset, f) for f in listdir(path2dataset)
                                       if isfile(join(path2dataset, f))
@@ -15,12 +16,21 @@ class StdMeanCalc:
         self.std = None
         self.mean = None
         self.dataset = []
+        self.stft = stft
 
     def load_dataset(self):
-        for file in self.list_of_dataset_files:
-            _, data = wavfile.read(file)
-            self.dataset.append(data)
-        self.dataset = np.asarray(self.dataset) #np.log(np.asarray(self.dataset) + 10**-10)
+        if not self.stft:
+            for file in self.list_of_dataset_files:
+                _, data = wavfile.read(file)
+                self.dataset.append(data)
+        else:
+            for file in self.list_of_dataset_files:
+                samplerate, data = wavfile.read(file)
+                f, t, Zxx = signal.stft(data, samplerate, nperseg=256, nfft=512)
+                data = np.abs(Zxx)
+                self.dataset.append(data)
+
+        self.dataset = np.asarray(self.dataset)
         self.std = self.dataset.std()
         self.mean = self.dataset.mean()
 

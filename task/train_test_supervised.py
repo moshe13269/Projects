@@ -43,9 +43,9 @@ class TrainTestTaskSupervised:
                 loss_list.append(loss)
             return loss_list
 
-        self.loss_ce = instantiate(cfg.train_task.TrainTask.loss_ce)#ce_loss_instantiate(
+        self.loss_ce = instantiate(cfg.train_task.TrainTask.loss_ce)#ce_loss_instantiate( #
             # list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
-        #
+
 
         if instantiate(cfg.train_task.TrainTask.loss)[0] is not None:
             if type(self.loss_ce) == list:
@@ -127,19 +127,31 @@ class TrainTestTaskSupervised:
                          .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE) #.map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (self.processor.mask(x), tuple([y for i in range(self.num_outputs)])))
                          .cache()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
                          .repeat()
                          )
+        # train_dataset = (self.train_dataset
+        #                  .shuffle(self.train_dataset.cardinality().numpy(), reshuffle_each_iteration=True)
+        #                  .map(
+        #     lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
+        #                                                     [tf.float32, tf.float32])
+        #     , num_parallel_calls=tf.data.AUTOTUNE).map(
+        #     lambda x, y: (tf.numpy_function(self.processor.mask,[x],[tf.float32, tf.float32,tf.float32]), tuple([y for i in range(self.num_outputs)])))
+        #                  .cache()
+        #                  .batch(self.batch_size['train'])
+        #                  .prefetch(tf.data.AUTOTUNE)
+        #                  .repeat()
+        #                  )
 
         test_dataset = (self.test_dataset
                         .shuffle(1024)
                         .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE) #.map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (self.processor.mask(x), tuple([y for i in range(self.num_outputs)])))
                         .cache()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
@@ -150,7 +162,7 @@ class TrainTestTaskSupervised:
                        .map(
             lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE) #.map(lambda x, y: (x, tuple([y for i in range(self.num_outputs)])))
+            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (self.processor.mask(x), tuple([y for i in range(self.num_outputs)])))
                        .cache()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
@@ -199,13 +211,11 @@ class TrainTestTaskSupervised:
 
         if type(self.loss) == list and self.to_metrics and type(self.loss_ce) == list:
             model.compile(optimizer=self.optimizer,
-                          loss=list(self.loss),
-                          metrics=metrics,
-                          loss_weights=loss_weights)
+                          loss=list(self.loss), metrics=metrics, loss_weights=loss_weights)
         else:
             model.compile(optimizer=self.optimizer,
                           loss=self.loss,
-                          metrics=metrics)
+                          metrics=None)
 
         mlflow.keras.autolog()
 

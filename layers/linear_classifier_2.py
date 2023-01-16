@@ -14,13 +14,13 @@ class LinearClassifier(tf.keras.layers.Layer):
 
     outputs_dimension_per_outputs: List[int]
     activation: str = 'softmax'
-    dropout: float = 0.1
+    dropout: float = 0.2
 
     def __init__(self,
                  outputs_dimension_per_outputs,
                  # num_classes_per_param: List[int],
                  activation: str = 'relu',
-                 dropout: float = 0.1,
+                 dropout: float = 0.2,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -29,6 +29,8 @@ class LinearClassifier(tf.keras.layers.Layer):
         self.layers = tf.keras.Sequential([
             Flatten(),
             Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation), #Dense(units=512 * 50, activation=self.activation),
+            Dropout(rate=dropout),
+            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
             Dropout(rate=dropout),
             Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
             Dropout(rate=dropout),
