@@ -1,14 +1,13 @@
 import os
+import losses
+import metrics
+import dataset
 import mlflow
 import mlflow.tensorflow
-import numpy as np
-import pandas as pd
-from copy import copy
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from keras.utils.vis_utils import plot_model
-from sklearn.model_selection import train_test_split
 
 
 class TrainTestTaskSupervised:
@@ -25,207 +24,75 @@ class TrainTestTaskSupervised:
         self.steps_per_epoch = self.cfg.train_task.TrainTask.get('steps_per_epoch')
         self.validation_steps = self.cfg.train_task.TrainTask.get('validation_steps')
 
-        self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
-
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
         self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         self.model = instantiate(cfg.train_task.TrainTask.model)
-
-        def ce_loss_instantiate(outputs_dimension_per_outputs):
-            loss_list = []
-            for i in range(len(outputs_dimension_per_outputs)):
-                loss = instantiate(cfg.train_task.TrainTask.loss_ce)
-                loss.index_y_true = i
-                loss.num_classes = outputs_dimension_per_outputs[i]
-                loss.set_indexes()
-                loss_list.append(loss)
-            return loss_list
-
-        self.loss_ce = instantiate(cfg.train_task.TrainTask.loss_ce)#ce_loss_instantiate( #
-            # list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
-
-
-        if instantiate(cfg.train_task.TrainTask.loss)[0] is not None:
-            if type(self.loss_ce) == list:
-                self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + self.loss_ce
-            else:
-                self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + [self.loss_ce]
-        else:
-            self.loss = self.loss_ce
-
-        def acc_metrics_instantiate(outputs_dimension_per_outputs):
-            metrics_list = []
-            for i in range(len(outputs_dimension_per_outputs)):
-                metrics = instantiate(cfg.train_task.TrainTask.metrics)
-                metrics.index_y_true = i
-                metrics.num_classes = outputs_dimension_per_outputs[i]
-                metrics.set_indexes()
-                metrics_list.append(metrics)
-            return metrics_list
+        self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
 
         self.to_metrics = self.cfg.train_task.TrainTask.get('metrics')
-        if self.to_metrics:
-            self.metrics = \
-                acc_metrics_instantiate(
-                    list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+        self.num_ce_loss = self.cfg.train_task.TrainTask.get('num_ce_loss')
+        self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
+        self.outputs_dimension_per_outputs = \
+            cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
 
-        # [copy(loss) for i in range(self.cfg.train_task.TrainTask.get('num_outputs'))]
+        self.loss = losses.losses_instantiate(self.num_ce_loss,
+                                              cfg.train_task.TrainTask.loss_ce,
+                                              list(self.outputs_dimension_per_outputs),
+                                              cfg.train_task.TrainTask.loss)
+
+        self.metrics = metrics.acc_metrics_instantiate(
+            self.to_metrics,
+            list(self.outputs_dimension_per_outputs),
+            cfg.train_task.TrainTask.metrics)
+        self.loss_weights = None
+
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
         self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
 
         self.processor = instantiate(cfg.train_task.TrainTask.processor)
-
         self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
 
         self.results = instantiate(cfg.train_task.TrainTask.results)
 
-    def evaluate_model(self, model, test_set):
-
-        num_sample = int(test_set.__len__().numpy())
-        test_set = test_set.as_numpy_iterator()
-
-        results = np.zeros((num_sample * 2, 16))
-
-        for sample in range(num_sample):
-            x, y = test_set.next()
-            y_ = model.predict_on_batch(x)[0]  # model.predict(x)
-            results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
-            results[2 * sample + 1: 2 * sample + 2, :] = y[0].squeeze()
-
-        pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
-
     def run(self):
+        self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
 
-        dataset_had_split = len(self.dataset_class.dataset_names_train) > 0 and \
-                            len(self.dataset_class.dataset_names_test) > 0
+        train_dataset = dataset.data_loader(self.train_dataset,
+                                            self.processor.load_data,
+                                            self.processor.mask,
+                                            self.num_outputs,
+                                            self.batch_size['train'])
 
-        if dataset_had_split:
-            X_train = self.dataset_class.dataset_names_train
-            y_train = self.dataset_class.labels_names_train
-            X_test = self.dataset_class.dataset_names_test
-            y_test = self.dataset_class.labels_names_test
-        else:
-            X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names,
-                                                                self.dataset_class.labels_names,
-                                                                test_size=0.2,
-                                                                random_state=1)
+        test_dataset = dataset.data_loader(self.test_dataset,
+                                           self.processor.load_data,
+                                           self.processor.mask,
+                                           self.num_outputs,
+                                           self.batch_size['test'])
 
-        X_train, X_val, y_train, y_val = train_test_split(X_train,
-                                                          y_train,
-                                                          test_size=0.1,
-                                                          random_state=1)
-
-        self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-        self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))
-        self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
-
-        train_dataset = (self.train_dataset
-                         .shuffle(self.train_dataset.cardinality().numpy(), reshuffle_each_iteration=True)
-                         .map(
-            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
-                                                            [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (self.processor.mask(x), tuple([y for i in range(self.num_outputs)])))
-                         .cache()
-                         .batch(self.batch_size['train'])
-                         .prefetch(tf.data.AUTOTUNE)
-                         .repeat()
-                         )
-        # train_dataset = (self.train_dataset
-        #                  .shuffle(self.train_dataset.cardinality().numpy(), reshuffle_each_iteration=True)
-        #                  .map(
-        #     lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
-        #                                                     [tf.float32, tf.float32])
-        #     , num_parallel_calls=tf.data.AUTOTUNE).map(
-        #     lambda x, y: (tf.numpy_function(self.processor.mask,[x],[tf.float32, tf.float32,tf.float32]), tuple([y for i in range(self.num_outputs)])))
-        #                  .cache()
-        #                  .batch(self.batch_size['train'])
-        #                  .prefetch(tf.data.AUTOTUNE)
-        #                  .repeat()
-        #                  )
-
-        test_dataset = (self.test_dataset
-                        .shuffle(1024)
-                        .map(
-            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
-                                                            [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (self.processor.mask(x), tuple([y for i in range(self.num_outputs)])))
-                        .cache()
-                        .batch(self.batch_size['test'])
-                        .prefetch(tf.data.AUTOTUNE)
-                        )
-
-        val_dataset = (self.val_dataset
-                       .shuffle(self.val_dataset.cardinality().numpy(), reshuffle_each_iteration=True)
-                       .map(
-            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
-                                                            [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: (self.processor.mask(x), tuple([y for i in range(self.num_outputs)])))
-                       .cache()
-                       .batch(self.batch_size['valid'])
-                       .prefetch(tf.data.AUTOTUNE)
-                       .repeat()
-                       )
+        val_dataset = dataset.data_loader(self.val_dataset,
+                                          self.processor.load_data,
+                                          self.processor.mask,
+                                          self.num_outputs,
+                                          self.batch_size['valid'])
 
         model = self.model.build()
-        plot_model(model, to_file='/home/moshelaufer/PycharmProjects/results/plot/model_plot.png', show_shapes=True,
+        plot_model(model,
+                   to_file=self.path2save_plot_model,
+                   show_shapes=True,
                    show_layer_names=True)
 
-        if list(self.loss) == 19:
-            loss_weights = {'concatenate': 1., 'concatenate_1': 0.1,
-                            'concatenate_1_1': 1.,
-                            'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
-                            'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
-                            'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
-                            'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
-                            'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
-                            'linear_classifier_15': 1.2}
-
-        elif list(self.loss) == 15:
-            loss_weights = {'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
-                            'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
-                            'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
-                            'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
-                            'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
-                            'linear_classifier_15': 1.2}
-
-        elif list(self.loss) == 4:
-            loss_weights = {'linear_classifier': 1., 'concatenate': 0.1, 'concatenate_1': 0.1,
-                            'concatenate_1_1': 0.1}
-        elif list(self.loss) == 4:
-            loss_weights = {'linear_classifier': 1., 'wavs': 0.1, 'latent': 0.1}
-        else:
-            loss_weights = None
-
-        if self.to_metrics and type(self.loss_ce) == list and len(self.loss_ce)>3:
-            metrics = {'linear_classifier': list(self.metrics)[0],
-                        'linear_classifier_1': list(self.metrics)[1],
-                        'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
-                        'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
-                        'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
-                        'linear_classifier_8': list(self.metrics)[8]}
-        else:
-            metrics = {'linear_classifier': list(self.metrics)[0]}
-
-        if type(self.loss) == list and self.to_metrics and type(self.loss_ce) == list:
-            model.compile(optimizer=self.optimizer,
-                          loss=list(self.loss), metrics=metrics, loss_weights=loss_weights)
-        else:
-            model.compile(optimizer=self.optimizer,
-                          loss=self.loss,
-                          metrics=None)
+        model.compile(optimizer=self.optimizer,
+                      loss=self.loss,
+                      metrics=self.metrics,
+                      loss_weights=self.loss_weights)
 
         mlflow.keras.autolog()
 
         with tf.device('/GPU:3'):
             with mlflow.start_run():
-                # mlflow.keras.log_model(model, "models")
-                # mlflow.log_param("epochs", self.epochs)
-                # mlflow.log_param("loss_function", self.loss)
-                # mlflow.log_param("epochs", self.epochs)
-                # mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
 
                 model.fit(x=train_dataset,
                           epochs=self.epochs,
@@ -237,11 +104,75 @@ class TrainTestTaskSupervised:
                           initial_epoch=0,
                           use_multiprocessing=True)
 
-                # mlflow.keras.log_model(model, "file:///home/moshelaufer/PycharmProjects/mlflow/")
-
-                # self.evaluate_model(model, test_dataset)
-
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
-                tf.keras.models.save_model(model=model, filepath=os.path.join(self.path2save_model, folder_name +
-                                                                              'model_ft'))
+                tf.keras.models.save_model(model=model,
+                                           filepath=os.path.join(self.path2save_model, folder_name + 'model_ft'))
+
+            self.results.csv_predicted(model, test_dataset)
+
+
+# mlflow.keras.log_model(model, "file:///home/moshelaufer/PycharmProjects/mlflow/")
+# mlflow.keras.log_model(model, "models")
+# mlflow.log_param("epochs", self.epochs)
+# mlflow.log_param("loss_function", self.loss)
+# mlflow.log_param("epochs", self.epochs)
+# mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
+
+# if list(self.loss) == 19:
+#            loss_weights = {'concatenate': 1., 'concatenate_1': 0.1,
+#                            'concatenate_1_1': 1.,
+#                            'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
+#                            'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
+#                            'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
+#                            'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
+#                            'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
+#                            'linear_classifier_15': 1.2}
+#
+#        elif list(self.loss) == 15:
+#            loss_weights = {'linear_classifier': 0.37, 'linear_classifier_1': 0.37, 'linear_classifier_2': 0.48,
+#                            'linear_classifier_3': 0.48, 'linear_classifier_4': 0.58, 'linear_classifier_5': 0.48,
+#                            'linear_classifier_6': 0.45, 'linear_classifier_7': 0.45, 'linear_classifier_8': 1.78,
+#                            'linear_classifier_9': 0.72, 'linear_classifier_10': 0.72, 'linear_classifier_11': 2.08,
+#                            'linear_classifier_12': 0.36, 'linear_classifier_13': 1.2, 'linear_classifier_14': 0.36,
+#                            'linear_classifier_15': 1.2}
+#
+#        elif list(self.loss) == 4:
+#            loss_weights = {'linear_classifier': 1., 'concatenate': 0.1, 'concatenate_1': 0.1,
+#                            'concatenate_1_1': 0.1}
+#        elif list(self.loss) == 4:
+#            loss_weights = {'linear_classifier': 1., 'wavs': 0.1, 'latent': 0.1}
+#        else:
+#            loss_weights = None
+#
+#        if self.to_metrics and type(self.loss_ce) == list and len(self.loss_ce) > 3:
+#            metrics = {'linear_classifier': list(self.metrics)[0],
+#                       'linear_classifier_1': list(self.metrics)[1],
+#                       'linear_classifier_2': list(self.metrics)[2], 'linear_classifier_3': list(self.metrics)[3],
+#                       'linear_classifier_4': list(self.metrics)[4], 'linear_classifier_5': list(self.metrics)[5],
+#                       'linear_classifier_6': list(self.metrics)[6], 'linear_classifier_7': list(self.metrics)[7],
+#                       'linear_classifier_8': list(self.metrics)[8]}
+#        else:
+#            metrics = {'linear_classifier': list(self.metrics)[0]}
+
+
+# def ce_loss_instantiate(outputs_dimension_per_outputs):
+#     loss_list = []
+#     for i in range(len(outputs_dimension_per_outputs)):
+#         loss = instantiate(cfg.train_task.TrainTask.loss_ce)
+#         loss.index_y_true = i
+#         loss.num_classes = outputs_dimension_per_outputs[i]
+#         loss.set_indexes()
+#         loss_list.append(loss)
+#     return loss_list
+#
+# self.loss_ce = instantiate(cfg.train_task.TrainTask.loss_ce)  # ce_loss_instantiate( #
+# # list(cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs))
+#
+# if instantiate(cfg.train_task.TrainTask.loss)[0] is not None:
+#     if type(self.loss_ce) == list:
+#         self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + self.loss_ce
+#     else:
+#         self.loss = list(instantiate(cfg.train_task.TrainTask.loss)) + [self.loss_ce]
+# else:
+#     self.loss = self.loss_ce

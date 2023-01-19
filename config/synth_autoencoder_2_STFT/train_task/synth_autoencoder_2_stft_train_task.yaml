@@ -138,6 +138,7 @@ TrainTask:
   model_name: synth_autoencoder_2_stft
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft/
   num_outputs: 2 #10 #1
+  path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot.png
 
   steps_per_epoch: 1000
   validation_steps: 400

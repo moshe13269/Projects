@@ -1,4 +1,7 @@
 
+import os
+import numpy as np
+import pandas as pd
 import plotly.figure_factory as ff
 from sklearn.metrics import confusion_matrix
 
@@ -12,6 +15,20 @@ class Results:
                  num_class: int):
         self.path2save_results = path2save_results
         self.num_class = num_class
+
+    def csv_predicted(self, model, test_set):
+        num_sample = int(test_set.__len__().numpy())
+        test_set = test_set.as_numpy_iterator()
+
+        results = np.zeros((num_sample * 2, 16))
+
+        for sample in range(num_sample):
+            x, y = test_set.next()
+            y_ = model.predict_on_batch(x)[0]  # model.predict(x)
+            results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
+            results[2 * sample + 1: 2 * sample + 2, :] = y[0].squeeze()
+
+        pd.DataFrame(results).to_csv(os.path.join(self.path2save_results, 'csv_results.csv'))
 
     def plot_ROC_OvR(self):
         pass

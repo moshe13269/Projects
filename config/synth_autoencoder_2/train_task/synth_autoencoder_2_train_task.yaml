@@ -5,7 +5,7 @@ TrainTask:
   dataset_class:
     _target_: dataset.dataset.Dataset
     path2load:
-      - /home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/
+      - /home/moshelaufer/PycharmProjects/datasets/tal_noise_archive/tal_noise_shlomi/
     type_files: wav
     labels: True
     dataset_names: tal_noise_1
@@ -227,7 +227,7 @@ TrainTask:
     _target_: processors.processor_synth_encoder_mask_2.Processor #processors.processor_synth_encoder.Processor #
     std_mean_calc:
       _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
-      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/train/data/
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise_archive/tal_noise_shlomi/train/data/
     mask:
       - 50
       - 1
@@ -252,6 +252,7 @@ TrainTask:
   model_name: synth_autoencoder_2
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder/
   num_outputs: 2 #10 #1
+  path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot.png
 
   steps_per_epoch: 1000
   validation_steps: 400
