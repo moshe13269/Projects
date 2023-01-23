@@ -31,7 +31,7 @@ class TrainTestTaskSupervised:
         self.model = instantiate(cfg.train_task.TrainTask.model)
         self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
 
-        self.to_metrics = self.cfg.train_task.TrainTask.get('metrics')
+        self.to_metrics = self.cfg.train_task.TrainTask.get('to_metrics')
         self.num_ce_loss = self.cfg.train_task.TrainTask.get('num_ce_loss')
         self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
         self.outputs_dimension_per_outputs = \
@@ -85,7 +85,7 @@ class TrainTestTaskSupervised:
                    show_layer_names=True)
 
         model.compile(optimizer=self.optimizer,
-                      loss=self.loss,
+                      loss=list(self.loss),
                       metrics=self.metrics,
                       loss_weights=self.loss_weights)
 

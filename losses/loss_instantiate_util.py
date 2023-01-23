@@ -1,4 +1,5 @@
 from hydra.utils import instantiate
+from omegaconf import DictConfig, OmegaConf
 
 
 def ce_loss_instantiate(outputs_dimension_per_outputs, loss_ce):
@@ -14,11 +15,17 @@ def ce_loss_instantiate(outputs_dimension_per_outputs, loss_ce):
 
 def losses_instantiate(num_ce_loss, loss_ce, outputs_dimension_per_outputs, loss=None):
     if num_ce_loss == 1:
-        loss_ce = instantiate(loss_ce)
+        loss_ce = [instantiate(loss_ce)]
     else:
         loss_ce = ce_loss_instantiate(list(outputs_dimension_per_outputs))
 
+    # if len(loss_ce) == 1:
+    #     loss_ce = [loss_ce]
+
     if loss is not None:
-        audio_loss = list(instantiate(loss))
-        return audio_loss + list(loss_ce)
+        # num_losses = len(loss)
+        audio_loss = instantiate(loss)
+        # if num_losses == 1:
+        #     audio_loss = [audio_loss]
+        return audio_loss + loss_ce
     return list(loss_ce)

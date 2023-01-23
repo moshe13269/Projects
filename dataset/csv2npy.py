@@ -33,9 +33,20 @@ class LabelsConverter:
             pickle.dump(lst_set, handle)
 
 
+def convert_str2float(data_frame):
+    for col in data_frame.columns:
+        labels = list(set(data_frame[col]))
+        if type(labels[0]) == str:
+            for i in range(data_frame.shape[0]):
+                data_frame[col][i] = labels.index(data_frame[col][i])
+    return data_frame
+
+
 def choose_params_from_csv(path2csv):
     chosen_column = []
     data = pd.read_csv(path2csv)
+
+    data = convert_str2float(data)
     columns_names = list(data.columns)
 
     for column in columns_names[1:]:
@@ -59,13 +70,14 @@ def paras_labels(path2csv, path2save):
 
     for i in range(len(files_names)):
         label = filtered_data_frame[i, ]
+        label = np.ndarray.astype(label, np.float32)
         np.save(arr=label, file=os.path.join(path2save, str(files_names[i])))
     np.save(arr=np.asarray(labelsconverter.num_classes_refernce), file=os.path.join(path2save, 'reference'))
     print('Labels files had been created')
 
 
-# path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base_tester/full_parameters.csv"
-path2csv = "/home/shlomis/PycharmProjects/Tal/full_parameters_osc_lfo_am.csv"
-# path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_25000_base_tester_labels/"
-path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi_labels/"
+# path2csv = "/home/shlomis/PycharmProjects/TiFGAN/data/Data_custom_synth.csv"
+# path2save = '/home/moshelaufer/PycharmProjects/datasets/noy_synth/labels/'
+path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/full_parameters.csv"
+path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/labels/"
 paras_labels(path2csv, path2save)

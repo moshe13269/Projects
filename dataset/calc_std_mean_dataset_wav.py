@@ -31,8 +31,8 @@ class StdMeanCalc:
                 self.dataset.append(data)
 
         self.dataset = np.asarray(self.dataset)
-        self.std = self.dataset.std()
-        self.mean = self.dataset.mean()
+        # self.std = self.dataset.std()
+        # self.mean = self.dataset.mean()
 
         np.save(arr=self.std, file=join(self.path2dataset, 'std'))
         np.save(arr=self.mean, file=join(self.path2dataset, 'mean'))

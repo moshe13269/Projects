@@ -6,6 +6,7 @@ from typing import List, Tuple
 import tensorflow as tf
 from scipy.io import wavfile
 from scipy import signal
+import librosa
 
 
 class Processor:
@@ -17,9 +18,9 @@ class Processor:
                  mask: Tuple[int, int, int]):
         self.num_classes = num_classes
         self.std_mean_calc = std_mean_calc
-        norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
-        self.norm_vec_mean = norm_vec_mean
-        self.norm_vec_std = norm_vec_std
+        # norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
+        # self.norm_vec_mean = norm_vec_mean
+        # self.norm_vec_std = norm_vec_std
         self.num_classes_per_outputs = np.asarray(
             [sum(num_classes[:i])
              for i in range(len(num_classes))]
@@ -34,19 +35,20 @@ class Processor:
 
     @tf.function
     def mask(self, x):
-        mask_e = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.3, 1., 0.)
-        mask_d = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.3, 1., 0.)
+        mask_e = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.5, 1., 0.)
+        mask_d = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.5, 1., 0.)
         return x, mask_e, mask_d
 
     def load_data(self, path2data):
         label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
-        f, t, Zxx = signal.stft(data, samplerate, nperseg=256, nfft=512)
-        data = np.abs(Zxx)
-        data = (data - self.norm_vec_mean) / (self.norm_vec_std + 10 ** -20)
+        # f, t, Zxx = signal.stft(data, samplerate, nperseg=256, nfft=1023)
+        # data = (data - self.norm_vec_mean) / (self.norm_vec_std + 10 ** -20)
 
-        data = np.expand_dims(data, axis=-1)
-        data = np.ndarray.astype(data, np.float32)
+        # data = np.expand_dims(Zxx, axis=-1)
+        # Zxx = np.transpose(np.abs(Zxx)) + 10**-20
+        mfccs = librosa.feature.mfcc(y=data, sr=16384, n_mfcc=40) #40,33
+        data = np.ndarray.astype( np.transpose(mfccs), np.float32)
 
         label = self.label2onehot(label)
         label = np.ndarray.astype(label, np.float32)

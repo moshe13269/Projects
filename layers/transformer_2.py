@@ -1,5 +1,6 @@
 import tensorflow as tf
-from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Dropout, Conv1D, Dense, Layer
+from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Dropout, \
+    Conv1D, Dense, Layer, Conv2D, InputLayer
 
 
 class EncoderLayer(Layer):
@@ -77,7 +78,7 @@ class DecoderLayer(Layer):
 
 
 class LearnablePositionalEncoder(Layer):
-    def __init__(self, d_model, activation='relu', kernel_size=3, stride=1):
+    def __init__(self, d_model, activation='relu', input_shape=None, kernel_size=3, stride=1):
         super().__init__()
         self.d_model = d_model
         self.conv = Conv1D(filters=d_model, kernel_size=kernel_size, strides=stride,
@@ -85,7 +86,8 @@ class LearnablePositionalEncoder(Layer):
         self.ln = LayerNormalization(epsilon=1e-6)
 
     def call(self, inputs, **kwargs):
-        return self.ln(self.conv(inputs) + inputs)
+        outputs = self.conv(inputs)
+        return self.ln(outputs + inputs)
 
 
 class PositionalEncoder(Layer):
@@ -123,6 +125,7 @@ class TransformerEncoder(Layer):
                  d_ff,
                  dropout,
                  activation,
+                 input_shape,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -130,7 +133,8 @@ class TransformerEncoder(Layer):
                                _ in range(num_transformer_blocks)]
 
         self.pos_encodeing = LearnablePositionalEncoder(d_model,
-                                                        activation='gelu')
+                                                        activation='gelu',
+                                                        input_shape=input_shape)
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
@@ -153,6 +157,7 @@ class TransformerDecoder(Layer):
                  d_ff,
                  dropout,
                  activation,
+                 input_shape,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -160,7 +165,8 @@ class TransformerDecoder(Layer):
                                _ in range(num_transformer_decoder_blocks)]
 
         self.pos_encodeing = LearnablePositionalEncoder(d_model,
-                                                        activation='gelu')
+                                                        activation='gelu',
+                                                        input_shape=input_shape)
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
@@ -182,6 +188,8 @@ class Transformer(Layer):
                  d_ff,
                  dropout,
                  activation,
+                 input_shape_encoder,
+                 input_shape_decoder,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -190,7 +198,8 @@ class Transformer(Layer):
                                                       num_heads,
                                                       d_ff,
                                                       dropout,
-                                                      activation)
+                                                      activation,
+                                                      input_shape_encoder)
 
         self.transformer_decoder = TransformerDecoder(
             num_transformer_blocks,
@@ -198,7 +207,8 @@ class Transformer(Layer):
             num_heads,
             d_ff,
             dropout,
-            activation)
+            activation,
+            input_shape_decoder)
 
         self.fc = Dense(d_model, activation=activation)
 
@@ -230,4 +240,3 @@ if __name__ == '__main__':
     outputs = transformer([data, mask_e, mask_d])
     print(tf.reduce_mean(outputs[0]), tf.reduce_mean(outputs[1]))
     a = 0
-

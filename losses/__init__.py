@@ -4,4 +4,4 @@ from losses.l2_regression import L2LossReg
 from losses.cross_entropy_loss import CELoss
 from losses.cross_entropy_loss_2 import CELoss
 from losses.spectral_magnitude_losses import Spectral_LogSTFTMagnitude_Loss
-from loss_instantiate_util import losses_instantiate
+from losses.loss_instantiate_util import losses_instantiate

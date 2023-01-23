@@ -1,5 +1,38 @@
 import tensorflow as tf
 
+
+class WarmLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+
+    def __init__(self,
+                 initial_learning_rate,
+                 warmup_steps,
+                 hold_step,
+                 decay_step,
+                 max_learn_rate,
+                 min_learn_rate
+                 ):
+        super(WarmLRSchedule).__init__()
+        self.initial_learning_rate = initial_learning_rate
+        self.warmup_steps = warmup_steps
+        self.hold_step = hold_step
+        self.decay_step = decay_step
+        self.max_learn_rate = max_learn_rate
+        self.min_learn_rate = min_learn_rate
+
+    def __call__(self, step):
+        if step <= self.warmup_steps:
+            lr = self.initial_learning_rate + \
+                step * ((self.max_learn_rate - self.initial_learning_rate) / self.warmup_steps)
+            # tf.keras.backend.set_value(self.model.optimizer.lr, lr)
+            return lr
+        elif step <= (self.hold_step + self.warmup_steps):
+            # tf.keras.backend.set_value(self.model.optimizer.lr, self.max_learn_rate)
+            return self.max_learn_rate
+        num_step = self.hold_step + self.warmup_steps - step
+        lr = self.max_learn_rate - num_step * ((self.max_learn_rate - self.min_learn_rate) / self.decay_step)
+        # tf.keras.backend.set_value(self.model.optimizer.lr, max(self.min_learn_rate, lr))
+        return max(self.min_learn_rate, lr)
+
 """
 τ linearly increases from τ₀ to a target value τₑ 
 for the first τₙ updates and then stays constant 
@@ -38,7 +71,7 @@ class EMACallback(tf.keras.callbacks.Callback):
         teacher_weight = self.model.layers[6].get_weights()
         student_weight = self.model.layers[5].get_weights()
         for i in range(len(teacher_weight)):
-            teacher_weight[i] = teacher_weight[i] * self.tau + student_weight[i] * (1.-self.tau)
+            teacher_weight[i] = teacher_weight[i] * self.tau + student_weight[i] * (1. - self.tau)
 
         self.model.layers[6].set_weights(teacher_weight)
         self.model.layers[6].pos_embedding.set_weights(self.model.layers[5].pos_embedding.get_weights())
@@ -107,7 +140,6 @@ class LearnRateSchedulerTriStage(tf.keras.callbacks.Callback):
 
         # keys = list(logs.keys())
         # # print("...Training: start of batch {}; got log keys: {}".format(batch, keys))
-
 
 # class LearnRateSchedulerTriStage(tf.keras.callbacks.Callback):
 #     initial_lr: float
