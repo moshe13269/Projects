@@ -11,16 +11,26 @@ import librosa
 
 class Processor:
     std_mean_calc: dataset.StdMeanCalc
-
+    """
+    TalNoise:
+    Mean: 0.026406644
+    Std: 0.20221268
+    
+    Noy:
+    Mean: 0.013329904 
+    Std: 0.041720923
+    """
     def __init__(self,
+                 norm_mean,
+                 norm_std,
                  num_classes,
                  std_mean_calc,
                  mask: Tuple[int, int, int]):
         self.num_classes = num_classes
         self.std_mean_calc = std_mean_calc
         # norm_vec_mean, norm_vec_std = self.std_mean_calc.load_dataset()
-        # self.norm_vec_mean = norm_vec_mean
-        # self.norm_vec_std = norm_vec_std
+        self.norm_mean = norm_mean
+        self.norm_std = norm_std
         self.num_classes_per_outputs = np.asarray(
             [sum(num_classes[:i])
              for i in range(len(num_classes))]
@@ -35,20 +45,21 @@ class Processor:
 
     @tf.function
     def mask(self, x):
-        mask_e = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.5, 1., 0.)
-        mask_d = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.5, 1., 0.)
+        mask_e = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.45, 1., 0.)
+        mask_d = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.45, 1., 0.)
         return x, mask_e, mask_d
 
     def load_data(self, path2data):
         label = np.squeeze(np.load(path2data[1]))
         samplerate, data = wavfile.read(path2data[0])
-        # f, t, Zxx = signal.stft(data, samplerate, nperseg=256, nfft=1023)
-        # data = (data - self.norm_vec_mean) / (self.norm_vec_std + 10 ** -20)
+        f, t, Zxx = signal.stft(data, samplerate, nperseg=253, nfft=256) #nperseg=256)
+        data = (np.abs(Zxx) - self.norm_mean) / self.norm_std
+        data = np.transpose(data)
 
         # data = np.expand_dims(Zxx, axis=-1)
-        # Zxx = np.transpose(np.abs(Zxx)) + 10**-20
-        mfccs = librosa.feature.mfcc(y=data, sr=16384, n_mfcc=40) #40,33
-        data = np.ndarray.astype( np.transpose(mfccs), np.float32)
+        # Zxx = np.transpose(np.abs(Zxx))
+        # data = librosa.feature.mfcc(y=data, sr=16384, n_mfcc=40) #40,33
+        data = np.ndarray.astype(data, np.float32)
 
         label = self.label2onehot(label)
         label = np.ndarray.astype(label, np.float32)

@@ -78,7 +78,7 @@ class DecoderLayer(Layer):
 
 
 class LearnablePositionalEncoder(Layer):
-    def __init__(self, d_model, activation='relu', input_shape=None, kernel_size=3, stride=1):
+    def __init__(self, d_model, activation='relu', kernel_size=3, stride=1):
         super().__init__()
         self.d_model = d_model
         self.conv = Conv1D(filters=d_model, kernel_size=kernel_size, strides=stride,
@@ -125,7 +125,6 @@ class TransformerEncoder(Layer):
                  d_ff,
                  dropout,
                  activation,
-                 input_shape,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -133,8 +132,7 @@ class TransformerEncoder(Layer):
                                _ in range(num_transformer_blocks)]
 
         self.pos_encodeing = LearnablePositionalEncoder(d_model,
-                                                        activation='gelu',
-                                                        input_shape=input_shape)
+                                                        activation='gelu')
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
@@ -157,7 +155,6 @@ class TransformerDecoder(Layer):
                  d_ff,
                  dropout,
                  activation,
-                 input_shape,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -165,8 +162,7 @@ class TransformerDecoder(Layer):
                                _ in range(num_transformer_decoder_blocks)]
 
         self.pos_encodeing = LearnablePositionalEncoder(d_model,
-                                                        activation='gelu',
-                                                        input_shape=input_shape)
+                                                        activation='gelu')
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
@@ -188,8 +184,6 @@ class Transformer(Layer):
                  d_ff,
                  dropout,
                  activation,
-                 input_shape_encoder,
-                 input_shape_decoder,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -198,8 +192,7 @@ class Transformer(Layer):
                                                       num_heads,
                                                       d_ff,
                                                       dropout,
-                                                      activation,
-                                                      input_shape_encoder)
+                                                      activation)
 
         self.transformer_decoder = TransformerDecoder(
             num_transformer_blocks,
@@ -207,8 +200,7 @@ class Transformer(Layer):
             num_heads,
             d_ff,
             dropout,
-            activation,
-            input_shape_decoder)
+            activation)
 
         self.fc = Dense(d_model, activation=activation)
 

@@ -7,7 +7,7 @@ from tensorflow.python.keras.layers import Conv1DTranspose, Dropout, Dense, Aver
 class ConvDecoderModel(tf.keras.layers.Layer):
     def __init__(self,
                  conv_layers: List[Tuple[int, int, int]],
-                 num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
+                 num_duplicate_layer: Tuple[int, int, int, int],
                  activation: str,
                  units: int,
                  is_group_norm: str = True,
@@ -25,14 +25,15 @@ class ConvDecoderModel(tf.keras.layers.Layer):
                   is_group_norm=True,
                   conv_bias=False):
 
-            (dim, kernel, stride, output_padding) = layers_param
+            (dim, kernel, stride) = layers_param #(dim, kernel, stride, output_padding) = layers_param
 
             def make_conv():
                 conv = Conv1DTranspose(filters=dim,
                                        kernel_size=kernel,
                                        strides=stride,
                                        use_bias=conv_bias,
-                                       output_padding=output_padding,  # padding='same', #
+                                       # output_padding=output_padding,  # padding='same', #
+                                       padding='same',
                                        kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
                 return conv
 
@@ -80,26 +81,24 @@ class ConvDecoderModel(tf.keras.layers.Layer):
 
         self.avg_pool = AveragePooling1D()
 
-        self.fc2 = Dense(units=units, activation=None)
-        self.fc1 = Dense(units=127, activation='gelu')
+        self.fc = Dense(units=units, activation=None)
 
     def call(self, x, **kwargs):
         # BxT -> BxTxC
-        x = self.fc1(x)
         for conv in self.conv_layers:
             x = conv(x)
-        return self.fc2(x)
+        return self.fc(x)
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((4, 127, 512))
-    conv_layers: List[Tuple[int, int, int, int]] = [(512, 2, 2, 1),
-                                                    (512, 2, 2, 1),
-                                                    (512, 3, 2, 0),
-                                                    (512, 3, 2, 0),
-                                                    (512, 3, 2, 0),
-                                                    (512, 3, 2, 0),
-                                                    (512, 4, 2, 0)]
+    data = tf.random.normal((2, 65, 512))
+    # conv_layers: List[Tuple[int, int, int, int]] = [(512, 2, 2, 1),
+    #                                                 (512, 2, 2, 1),
+    #                                                 (512, 3, 2, 0),
+    #                                                 (512, 3, 2, 0),
+    #                                                 (512, 3, 2, 0),
+    #                                                 (512, 3, 2, 0),
+    #                                                 (512, 4, 2, 0)]
 
     # [(512, 2, 2, 1),
     #  (512, 2, 2, 1),
@@ -108,8 +107,13 @@ if __name__ == '__main__':
     #  (512, 3, 2, 0),
     #  (512, 3, 2, 0),
     #  (512, 10, 5, 4)]
-    num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
-    conv = ConvDecoderModel(conv_layers=conv_layers, activation='gelu', units=1,
+    # num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
+    conv_layers: List[Tuple[int, int, int]] = [(512, 2, 1),
+                                                    (512, 3, 1),
+                                                    (512, 3, 1),
+                                                    (512, 4, 2)]
+    num_duplicate_layer: Tuple[int, int, int, int] = (1, 1, 1, 1)
+    conv = ConvDecoderModel(conv_layers=conv_layers, activation='gelu', units=129,
                             num_duplicate_layer=num_duplicate_layer)
     output = conv(data)
     print(output.shape)

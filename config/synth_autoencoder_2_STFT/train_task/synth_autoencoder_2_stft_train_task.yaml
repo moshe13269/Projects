@@ -14,38 +14,102 @@ TrainTask:
     _target_: model.synth_autoencoder_model_2_stft.SynthAutoEncoder
 
     inputs1:
-      - 33 #129
-      - 40 #512
+      - 130 #33
+      - 129 #40
 
     inputs2:
-      - 33 #129
+      - 65 #33
       - 1
 
     inputs3:
-      - 33 #129
+      - 65 #33
       - 1
+
+    conv_encoder:
+      _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
+      activation: gelu
+      units: 512
+      conv_layers:
+        -
+          - 512
+          - 4
+          - 2
+
+        -
+          - 512
+          - 3
+          - 1
+
+        -
+          - 512
+          - 3
+          - 1
+
+        -
+          - 512
+          - 2
+          - 1
+
+      num_duplicate_layer:
+        - 1
+        - 1
+        - 1
+        - 1
+
+      dropout: 0.1
+      conv_bias: True
+      is_group_norm: True
+      is_layer_norm: False
+
+    conv_decoder:
+      _target_: layers.conv_wav_decoder.ConvDecoderModel
+      activation: gelu
+      units: 129
+      conv_layers:
+        -
+          - 512
+          - 2
+          - 1
+
+        -
+          - 512
+          - 3
+          - 1
+
+        -
+          - 512
+          - 3
+          - 1
+
+        -
+          - 512
+          - 4
+          - 2
+
+      num_duplicate_layer:
+        - 1
+        - 1
+        - 1
+        - 1
+
+      dropout: 0.1
+      conv_bias: True
+      is_group_norm: True
+      is_layer_norm: False
 
     transformer:
       _target_: layers.transformer_2.Transformer
-      num_transformer_blocks: 6
+      num_transformer_blocks: 12
       d_model: 512
-      num_heads: 24
-      d_ff: 4096
-      dropout: 0.15
+      num_heads: 12
+      d_ff: 3072
+      dropout: 0.1
       activation: gelu
-      input_shape_encoder:
-        - 257
-        - 129
-        - 1
-      input_shape_decoder:
-        - 257
-        - 129
-        - 1
 
     linear_classifier:
       _target_: layers.linear_classifier_2.LinearClassifier
       activation: relu
-      dropout: 0.25
+      dropout: 0.2
       outputs_dimension_per_outputs:
         - 16
         - 16
@@ -117,7 +181,7 @@ TrainTask:
         _target_: callbacks.WarmLRSchedule
         initial_learning_rate: 1e-6
         warmup_steps: 25
-        hold_step: 250
+        hold_step: 5
         decay_step: 2500
         max_learn_rate: 3e-5
         min_learn_rate: 1e-7
@@ -136,12 +200,14 @@ TrainTask:
 
   processor:
     _target_: processors.processor_synth_encoder_mask_2_stft.Processor #processors.processor_synth_encoder.Processor #
+    norm_mean: 0.026406644
+    norm_std: 0.20221268
     std_mean_calc:
       _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
       path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
       stft: True
     mask:
-      - 33 #129
+      - 65 #33
       - 1
     num_classes:
       - 16
@@ -162,9 +228,9 @@ TrainTask:
       - 17
 
   batch_size:
-    train: 128
+    train: 32
     test: 1
-    valid: 128
+    valid: 32
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/

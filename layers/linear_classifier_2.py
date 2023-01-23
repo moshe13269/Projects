@@ -27,11 +27,11 @@ class LinearClassifier(tf.keras.layers.Layer):
         self.outputs_dimension_per_outputs = outputs_dimension_per_outputs
         self.activation = activation
         self.layers = tf.keras.Sequential([
-            Flatten(),
+            tf.keras.layers.GlobalAveragePooling1D(), #Flatten(),
             Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation), #Dense(units=512 * 50, activation=self.activation),
             Dropout(rate=dropout),
-            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
-            Dropout(rate=dropout),
+            # Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
+            # Dropout(rate=dropout),
             Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
             Dropout(rate=dropout),
             Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),

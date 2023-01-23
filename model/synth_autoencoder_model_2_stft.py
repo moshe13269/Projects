@@ -7,12 +7,13 @@ class SynthAutoEncoder:
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
     inputs3: Tuple[int, int, int]
-    top_k_transformer: int
 
     transformer: layers.Transformer
     linear_classifier: layers.LinearClassifier
 
     def __init__(self,
+                 conv_encoder: layers.ConvFeatureExtractionModel,
+                 conv_decoder: layers.ConvDecoderModel,
 
                  transformer: layers.Transformer,
 
@@ -20,43 +21,37 @@ class SynthAutoEncoder:
                  inputs1: Tuple[int, int, int],
                  inputs2: Tuple[int, int, int],
                  inputs3: Tuple[int, int, int],
-                 # inputs4: Tuple[int, int, int],
                  ):
         super().__init__()
 
         self.inputs1 = tf.keras.layers.Input(inputs1)
         self.inputs2 = tf.keras.layers.Input(inputs2)
         self.inputs3 = tf.keras.layers.Input(inputs3)
-        # self.inputs4 = tf.keras.layers.Input(inputs4)
 
         self.transformer = transformer
 
         self.linear_classifier = linear_classifier
 
-        self.fc = tf.keras.layers.Dense(40, activation=None)
+        self.conv_encoder = conv_encoder
+        self.conv_decoder = conv_decoder
 
     def build(self):
         inputs1 = self.inputs1
         inputs2 = self.inputs2
         inputs3 = self.inputs3
 
-        outputs = tf.keras.layers.Conv1D(filters=512,
-                                         kernel_size=3,
-                                         strides=1,
-                                         padding='same',
-                                         kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))(
-            inputs1)
+        outputs = self.conv_encoder(inputs1)
 
         decoder_outputs, encoder_outputs = self.transformer([outputs, inputs2, inputs3])
 
         outputs_params_list = self.linear_classifier(encoder_outputs)
 
-        outputs_wav = self.fc(decoder_outputs)
+        stft_outputs = self.conv_decoder(decoder_outputs)
 
-        wavs = tf.keras.layers.concatenate([self.inputs1, outputs_wav], axis=0, name='wavs')
+        stft = tf.keras.layers.concatenate([self.inputs1, stft_outputs], axis=0, name='wavs')
 
         return tf.keras.Model(inputs=[inputs1, inputs2, inputs3],
-                              outputs=[wavs, outputs_params_list])
+                              outputs=[stft, outputs_params_list])
 
 
 if __name__ == '__main__':
