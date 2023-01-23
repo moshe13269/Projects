@@ -26,9 +26,14 @@ class CELoss(tf.keras.losses.Loss):
 
         # y_pred = [tf.nn.softmax(output) for output in y_pred]
 
-        loss = [tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
-                for i in range(len(y_pred))]
-        return sum(loss)
+        # loss = [tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
+        #         for i in range(len(y_pred))]
+        loss = 0.0
+        for i in range(len(y_pred)):
+            loss += self.ce(y_true[i], tf.nn.softmax(y_pred[i]))
+            # loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
+        loss = loss / len(y_pred)
+        return loss
 
     # @tf.function
     @tf.autograph.experimental.do_not_convert
