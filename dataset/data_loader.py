@@ -24,6 +24,27 @@ def data_loader(dataset_list,
     return dataset
 
 
+def data_loader_inference(dataset_list,
+                          processor_function1,
+                          processor_function2,
+                          num_outputs,
+                          batch_size):
+    dataset = (
+        dataset_list
+        .map(
+            lambda path2data, path2label: tf.numpy_function(processor_function1, [(path2data, path2label)],
+                                                            [tf.float32, tf.float32])
+            , num_parallel_calls=tf.data.AUTOTUNE).map(
+            lambda x, y: (processor_function2(x), tuple([y for i in range(num_outputs)])))
+        .cache()
+        .batch(batch_size)
+        .prefetch(tf.data.AUTOTUNE)
+        # .repeat()
+    )
+
+    return dataset
+
+
 def split_dataset(dataset_class):
     dataset_had_split = len(dataset_class.dataset_names_train) > 0 and \
                         len(dataset_class.dataset_names_test) > 0

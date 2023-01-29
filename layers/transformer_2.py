@@ -19,7 +19,7 @@ class EncoderLayer(Layer):
     def call(self, inputs, **kwargs):
         x, e_mask = inputs
         x = self.ln1(x)
-        x = x + self.dropout1(self.mha(query=x, value=x, key=x, attention_mask=e_mask))
+        x = x + self.dropout1(self.mha(query=x, value=x, key=x)) #, attention_mask=e_mask))
         x = self.ln2(x)
         x = x + self.dropout2(self.ffn(x))
         return x
@@ -61,13 +61,13 @@ class DecoderLayer(Layer):
         x_1 = self.ln1(x)  # (B, L, d_model)
 
         x = x + self.dropout1(
-            self.masked_mha(x_1, x_1, x_1, attention_mask=d_mask)
+            self.masked_mha(x_1, x_1, x_1, attention_mask=d_mask) # use_causal_mask=True) #
         )  # (B, L, d_model)
 
         x_2 = self.ln2(x)  # (B, L, d_model)
 
         x = x + self.dropout2(
-            self.mha(x_2, e_output, e_output, attention_mask=e_mask)
+            self.mha(x_2, e_output, e_output, attention_mask=None) #e_mask)
         )  # (B, L, d_model)
 
         x_3 = self.ln3(x)  # (B, L, d_model)
@@ -221,7 +221,7 @@ if __name__ == '__main__':
         num_transformer_blocks=2,
         d_model=512,
         num_heads=12,
-        d_ff=4096,
+        d_ff=3072,
         dropout=0.1,
         activation='relu'
     )

@@ -45,8 +45,26 @@ class Processor:
 
     @tf.function
     def mask(self, x):
-        mask_e = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.45, 1., 0.)
-        mask_d = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.45, 1., 0.)
+        # mask_e = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.45, 1., 0.)
+        # mask_d = tf.where(tf.random.uniform(tuple(self.mask_shape)) >= 0.45, 1., 0.)
+
+        # tf.concat([tf.zeros((mask, mask)),
+        #                    tf.ones((mask, (self.d_model // self.heads) - mask))
+        #                    ],
+        #                   axis=1)
+        mask_e = np.zeros((65, 65)) #np.concatenate([np.zeros((65, 65)), np.ones((65, 63))])
+        mask_d = np.ones((65, 65))
+        for i in range(65):
+            for j in range(65):
+                if j > i:
+                    mask_d[i][j] = 0
+
+        return x, mask_e, mask_d
+
+    @tf.function
+    def mask_inference(self, x):
+        mask_e = tf.ones(tuple(self.mask_shape))
+        mask_d = tf.ones(tuple(self.mask_shape))
         return x, mask_e, mask_d
 
     def load_data(self, path2data):

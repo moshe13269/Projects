@@ -1,4 +1,5 @@
 import os
+import dataset
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -15,12 +16,14 @@ class Inference:
 
         self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
 
-        self.test_dataset = None
+        self.outputs_dimension_per_outputs = cfg.train_task.TrainTask.outputs_dimension_per_outputs
+        self.index2split = [sum(self.outputs_dimension_per_outputs[:i])
+                            for i in range(len(self.outputs_dimension_per_outputs) + 1)]
 
         self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
-        self.model_name = self.cfg.train_task.TrainTask.get('model_name')
-        self.model = instantiate(cfg.train_task.TrainTask.model)
+        self.path2load_model = self.cfg.train_task.TrainTask.get('path2load_model')
+        self.model = tf.keras.models.load_model(self.path2load_model, compile=False)
 
         self.processor = instantiate(cfg.train_task.TrainTask.processor)
 
@@ -28,57 +31,75 @@ class Inference:
 
         self.results = instantiate(cfg.train_task.TrainTask.results)
 
-    @staticmethod
-    def convert_outputs_model_2_parmas(outputs):
-        params_list = []
-        for param in outputs:
-            param = param.squeeze()
-            param = tf.nn.softmax(param)
-            params_list.append(tf.argmax(param).numpy())
-        return np.asarray(params_list)
+        self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
 
-    def evaluate_model(self, model, test_set):
+        train_dataset = dataset.data_loader_inference(self.train_dataset,
+                                                      self.processor.load_data,
+                                                      self.processor.mask_inference,
+                                                      1,
+                                                      1)
 
-        num_sample = int(test_set.__len__().numpy())
-        test_set = test_set.as_numpy_iterator()
+        test_dataset = dataset.data_loader_inference(self.test_dataset,
+                                                     self.processor.load_data,
+                                                     self.processor.mask_inference,
+                                                     1,
+                                                     1)
 
-        results = np.zeros((num_sample * 2, 16))
+        val_dataset = dataset.data_loader_inference(self.val_dataset,
+                                                    self.processor.load_data,
+                                                    self.processor.mask_inference,
+                                                    1,
+                                                    1)
+
+        self.dataset_ = {'train': train_dataset, 'test': test_dataset, 'val': val_dataset}
+
+        self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
+
+    def evaluate_model(self, dataset_, dim_vector_output, name):
+
+        num_sample = int(dataset_.__len__().numpy())
+        dataset_iter = dataset_.as_numpy_iterator()
+
+        results = np.zeros((num_sample * 2, dim_vector_output))
+        accuracy = np.zeros(dim_vector_output)
 
         for sample in range(num_sample):
-            x, y = test_set.next()
-            y_ = model.predict_on_batch(x)  # model.predict(x)
-            y_ = Inference.convert_outputs_model_2_parmas(y_)
-            results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
-            results[2 * sample + 1: 2 * sample + 2, :] = y[0].squeeze()
+            x, y = dataset_iter.next()
+            y_ = self.model.predict(x)
+            y_true, y_pred = self.convert_outputs2classes(y_true=y, y_pred=y_)
 
-        pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
+            results[2 * sample: 2 * sample + 1, :] = y_true
+            results[2 * sample + 1: 2 * sample + 2, :] = y_pred
+
+            for j in range(y_true.shape[0]):
+                if y_true[j] == y_pred[j]:
+                    accuracy[j] += 1
+
+            if sample == 1000:
+                break;
+
+        pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, name + 'csv_results.csv'))
+
+        accuracy = accuracy / 1000.
+        print(accuracy)
+        print(accuracy.mean())
+        np.save(arr=accuracy, file=self.path2save_csv + 'accuracy')
+
+    def split(self, inputs):
+        return [inputs[:, self.index2split[i]: self.index2split[i + 1]] for i in range(len(self.index2split) - 1)]
+
+    def convert_outputs2classes(self, y_true, y_pred):
+        y_true = self.split(y_true[0])
+        y_pred = self.split(y_pred[1])
+
+        y_true_list = []
+        y_pred_list = []
+        for i in range(len(y_pred)):
+            y_true_list.append(tf.argmax(y_true[i][0]).numpy())
+            y_pred_list.append(tf.argmax(tf.nn.softmax(y_pred[i])[0]).numpy())
+        return np.asarray(y_true_list), np.asarray(y_pred_list)
 
     def run(self):
-
-        dataset_had_split = len(self.dataset_class.dataset_names_train) > 0 and \
-                            len(self.dataset_class.dataset_names_test) > 0
-
-        if dataset_had_split:
-            X_test = self.dataset_class.dataset_names_test
-            y_test = self.dataset_class.labels_names_test
-        else:
-            X_train, X_test, y_train, y_test = train_test_split(self.dataset_class.dataset_names,
-                                                                self.dataset_class.labels_names,
-                                                                test_size=0.2,
-                                                                random_state=1)
-
-        self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))
-
-        test_dataset = (self.test_dataset
-                        .shuffle(1024)
-                        .map(
-            lambda path2data, path2label: tf.numpy_function(self.processor.load_data, [(path2data, path2label)],
-                                                            [tf.float32, tf.float32])
-            , num_parallel_calls=tf.data.AUTOTUNE)
-                        .cache()
-                        .batch(self.batch_size['test'])
-                        .prefetch(tf.data.AUTOTUNE)
-                        )
-
         with tf.device('/GPU:3'):
-            self.evaluate_model(self.model, test_dataset)
+            for dataset_name in self.dataset_.keys():
+                self.evaluate_model(self.dataset_[dataset_name], self.num_outputs, dataset_name)

@@ -27,10 +27,6 @@ class TrainTestTaskSupervised:
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
         self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
-        self.model_name = self.cfg.train_task.TrainTask.get('model_name')
-        self.model = instantiate(cfg.train_task.TrainTask.model)
-        self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
-
         self.to_metrics = self.cfg.train_task.TrainTask.get('to_metrics')
         self.num_ce_loss = self.cfg.train_task.TrainTask.get('num_ce_loss')
         self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
@@ -47,10 +43,36 @@ class TrainTestTaskSupervised:
             list(self.outputs_dimension_per_outputs),
             cfg.train_task.TrainTask.metrics)
         self.loss_weights = None
-
+        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
-        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
+
+        self.model_name = self.cfg.train_task.TrainTask.get('model_name')
+        path2saved_model = self.cfg.train_task.TrainTask.get('saved_model')
+        if path2saved_model is not None:
+            self.model = tf.keras.models.load_model(path2saved_model, compile=False)
+            opt = tf.keras.optimizers.Adam()
+            m = self.model
+            self.model.compile(optimizer='adam',
+                               loss=list(self.loss),
+                               metrics=self.metrics,
+                               loss_weights=self.loss_weights)
+            self.model.compile(optimizer=self.model.optimizer.set_weights(m.optimizer))
+            # self.model.optimizer.lr = 1.1e-6
+        else:
+            model = instantiate(cfg.train_task.TrainTask.model)
+            self.model = model.build()
+            self.model.compile(optimizer=self.optimizer,
+                               loss=list(self.loss),
+                               metrics=self.metrics,
+                               loss_weights=self.loss_weights)
+
+        self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
+
+
+
+
+        # self.optimizer = optimizer.crate_optimizers_list(model=self.model)
 
         self.processor = instantiate(cfg.train_task.TrainTask.processor)
         self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
@@ -78,39 +100,44 @@ class TrainTestTaskSupervised:
                                           self.num_outputs,
                                           self.batch_size['valid'])
 
-        model = self.model.build()
-        plot_model(model,
+        plot_model(self.model,
                    to_file=self.path2save_plot_model,
                    show_shapes=True,
                    show_layer_names=True)
 
-        model.compile(optimizer=self.optimizer,
-                      loss=list(self.loss),
-                      metrics=self.metrics,
-                      loss_weights=self.loss_weights)
+        # model = load_model(f"model.h5")
+        # old_weights = model.optimzier.get_weights()
+        # new_opitmizer = horovod.DistributedOptimizer(...)
+        # model.compile(optimizer=new_opitmizer)
+        #
+        # # use fake gradient to let optimizer init the wieghts.
+        # grad_vars = model.trainable_weights
+        # zero_grads = [tf.zeros_like(w) for w in grad_vars]
+        # model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+        #
+        # # This will work because the new optimizer is initialized.
+        # model.optimzier.set_weights(old_weights)
 
         mlflow.keras.autolog()
 
         with tf.device('/GPU:3'):
             with mlflow.start_run():
-
-                model.fit(x=train_dataset,
-                          epochs=self.epochs,
-                          verbose=1,
-                          validation_data=val_dataset,
-                          callbacks=self.callbacks,
-                          steps_per_epoch=self.steps_per_epoch,
-                          validation_steps=self.validation_steps,
-                          initial_epoch=0,
-                          use_multiprocessing=True)
+                self.model.fit(x=train_dataset,
+                               epochs=self.epochs,
+                               verbose=1,
+                               validation_data=val_dataset,
+                               callbacks=self.callbacks,
+                               steps_per_epoch=self.steps_per_epoch,
+                               validation_steps=self.validation_steps,
+                               initial_epoch=0,
+                               use_multiprocessing=True)
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
-                mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
-                tf.keras.models.save_model(model=model,
+                mlflow.keras.save_model(self.model, os.path.join(self.path2save_model, folder_name))
+                tf.keras.models.save_model(model=self.model,
                                            filepath=os.path.join(self.path2save_model, folder_name + 'model_ft'))
 
-            self.results.csv_predicted(model, test_dataset)
-
+            self.results.csv_predicted(self.model, test_dataset)
 
 # mlflow.keras.log_model(model, "file:///home/moshelaufer/PycharmProjects/mlflow/")
 # mlflow.keras.log_model(model, "models")

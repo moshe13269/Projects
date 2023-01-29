@@ -5,7 +5,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 
 
-@hydra.main(config_path=os.path.join('../config', 'inference_synth'), config_name='config')
+@hydra.main(config_path=os.path.join('../config', 'inference_synth_noy'), config_name='config')
 def main(cfg: DictConfig) -> None:
     inference = task.Inference(cfg)
     inference.run()

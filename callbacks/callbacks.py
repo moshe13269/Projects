@@ -1,37 +1,60 @@
 import tensorflow as tf
 
+#
+# class CustomCallback(tf.keras.callbacks.Callback):
+#
+#     def on_epoch_begin(self, epoch, logs=None):
 
-class WarmLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
-    def __init__(self,
-                 initial_learning_rate,
-                 warmup_steps,
-                 hold_step,
-                 decay_step,
-                 max_learn_rate,
-                 min_learn_rate
-                 ):
-        super(WarmLRSchedule).__init__()
-        self.initial_learning_rate = initial_learning_rate
-        self.warmup_steps = warmup_steps
-        self.hold_step = hold_step
-        self.decay_step = decay_step
-        self.max_learn_rate = max_learn_rate
-        self.min_learn_rate = min_learn_rate
 
-    def __call__(self, step):
-        if step <= self.warmup_steps:
-            lr = self.initial_learning_rate + \
-                step * ((self.max_learn_rate - self.initial_learning_rate) / self.warmup_steps)
-            # tf.keras.backend.set_value(self.model.optimizer.lr, lr)
-            return lr
-        elif step <= (self.hold_step + self.warmup_steps):
-            # tf.keras.backend.set_value(self.model.optimizer.lr, self.max_learn_rate)
-            return self.max_learn_rate
-        num_step = self.hold_step + self.warmup_steps - step
-        lr = self.max_learn_rate - num_step * ((self.max_learn_rate - self.min_learn_rate) / self.decay_step)
-        # tf.keras.backend.set_value(self.model.optimizer.lr, max(self.min_learn_rate, lr))
-        return max(self.min_learn_rate, lr)
+
+def scheduler(epoch=0, lr=0.1):
+    warmup_steps = 15
+    hold_step = 0
+    decay_step = 500
+    min_lr = 3e-8
+    max_lr = 2e-6
+    initial_lr = 1e-7
+
+    if epoch < warmup_steps:
+        return lr + (max_lr - initial_lr) / warmup_steps
+    if warmup_steps <= epoch < (warmup_steps + hold_step):
+        return lr
+    if epoch >= (warmup_steps + hold_step):
+        return max(min_lr, (max_lr - min_lr) / decay_step)
+
+
+# class WarmLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+#
+#     def __init__(self,
+#                  initial_learning_rate,
+#                  warmup_steps,
+#                  hold_step,
+#                  decay_step,
+#                  max_learn_rate,
+#                  min_learn_rate
+#                  ):
+#         super(WarmLRSchedule).__init__()
+#         self.initial_learning_rate = initial_learning_rate
+#         self.warmup_steps = warmup_steps
+#         self.hold_step = hold_step
+#         self.decay_step = decay_step
+#         self.max_learn_rate = max_learn_rate
+#         self.min_learn_rate = min_learn_rate
+#
+#     def __call__(self, step):
+#         if step <= self.warmup_steps:
+#             lr = self.initial_learning_rate + \
+#                 step * ((self.max_learn_rate - self.initial_learning_rate) / self.warmup_steps)
+#             # tf.keras.backend.set_value(self.model.optimizer.lr, lr)
+#             return lr
+#         elif step <= (self.hold_step + self.warmup_steps):
+#             # tf.keras.backend.set_value(self.model.optimizer.lr, self.max_learn_rate)
+#             return self.max_learn_rate
+#         num_step = self.hold_step + self.warmup_steps - step
+#         lr = self.max_learn_rate - num_step * ((self.max_learn_rate - self.min_learn_rate) / self.decay_step)
+#         # tf.keras.backend.set_value(self.model.optimizer.lr, max(self.min_learn_rate, lr))
+#         return max(self.min_learn_rate, lr)
 
 """
 τ linearly increases from τ₀ to a target value τₑ 
@@ -84,59 +107,59 @@ class EMACallback(tf.keras.callbacks.Callback):
         #                            self.model.layers[5].pos_embedding.get_weights())
 
 
-class LearnRateSchedulerTriStage(tf.keras.callbacks.Callback):
-    initial_lr: float
-    peak: float
-    end: float
-    steps2warp_up: float
-    steps2hold: float
-    decay: float
-    train_steps_per_epoch: int
-    epochs: int
-
-    def __init__(self,
-                 initial_lr: float,
-                 peak: float,
-                 end: float,
-                 steps2warp_up: float,  # precent
-                 steps2hold: float,  # precent
-                 decay: float,  # precent
-                 train_steps_per_epoch: int,
-                 epochs: int,
-                 ):
-        super(LearnRateSchedulerTriStage, self).__init__()
-        assert steps2warp_up + steps2hold + decay == 1., "steps2warp_up + steps2hold + decay = %f" % \
-                                                         (steps2warp_up + steps2hold + decay)
-        self.initial_lr = initial_lr
-        self.peak = peak
-        self.num_steps2warp_up = int(steps2warp_up * (epochs * train_steps_per_epoch))
-        self.num_steps2hold = int(steps2hold * (epochs * train_steps_per_epoch))
-        self.num_decay = int(decay * (epochs * train_steps_per_epoch))
-        self.steps_counter = 0
-        self.stage = 0
-        self.end = end
-
-    def on_train_batch_begin(self, batch, logs=None):
-        self.steps_counter += 1
-
-        if self.steps_counter < self.num_steps2warp_up:
-            self.stage = 0
-            # tf.print('stage: %d' % self.stage)
-        elif self.steps_counter >= self.num_steps2warp_up and self.steps_counter <= self.num_decay + self.num_steps2warp_up:
-            self.stage = 1
-            # tf.print('stage: %d' % self.stage)
-        else:
-            self.stage = 2
-            # tf.print('stage: %d' % self.stage)
-
-        lr = float(tf.keras.backend.get_value(self.model.optimizer.learning_rate))
-
-        if self.stage == 0:
-            lr += (self.peak - self.initial_lr) / self.num_steps2warp_up
-        elif self.stage == 2:
-            lr -= (self.peak - self.initial_lr) / self.num_decay
-
-        tf.keras.backend.set_value(self.model.optimizer.lr, lr)
+# class LearnRateSchedulerTriStage(tf.keras.callbacks.Callback):
+#     initial_lr: float
+#     peak: float
+#     end: float
+#     steps2warp_up: float
+#     steps2hold: float
+#     decay: float
+#     train_steps_per_epoch: int
+#     epochs: int
+#
+#     def __init__(self,
+#                  initial_lr: float,
+#                  peak: float,
+#                  end: float,
+#                  steps2warp_up: float,  # precent
+#                  steps2hold: float,  # precent
+#                  decay: float,  # precent
+#                  train_steps_per_epoch: int,
+#                  epochs: int,
+#                  ):
+#         super(LearnRateSchedulerTriStage, self).__init__()
+#         assert steps2warp_up + steps2hold + decay == 1., "steps2warp_up + steps2hold + decay = %f" % \
+#                                                          (steps2warp_up + steps2hold + decay)
+#         self.initial_lr = initial_lr
+#         self.peak = peak
+#         self.num_steps2warp_up = int(steps2warp_up * (epochs * train_steps_per_epoch))
+#         self.num_steps2hold = int(steps2hold * (epochs * train_steps_per_epoch))
+#         self.num_decay = int(decay * (epochs * train_steps_per_epoch))
+#         self.steps_counter = 0
+#         self.stage = 0
+#         self.end = end
+#
+#     def on_train_batch_begin(self, batch, logs=None):
+#         self.steps_counter += 1
+#
+#         if self.steps_counter < self.num_steps2warp_up:
+#             self.stage = 0
+#             # tf.print('stage: %d' % self.stage)
+#         elif self.steps_counter >= self.num_steps2warp_up and self.steps_counter <= self.num_decay + self.num_steps2warp_up:
+#             self.stage = 1
+#             # tf.print('stage: %d' % self.stage)
+#         else:
+#             self.stage = 2
+#             # tf.print('stage: %d' % self.stage)
+#
+#         lr = float(tf.keras.backend.get_value(self.model.optimizer.learning_rate))
+#
+#         if self.stage == 0:
+#             lr += (self.peak - self.initial_lr) / self.num_steps2warp_up
+#         elif self.stage == 2:
+#             lr -= (self.peak - self.initial_lr) / self.num_decay
+#
+#         tf.keras.backend.set_value(self.model.optimizer.lr, lr)
 
         # keys = list(logs.keys())
         # # print("...Training: start of batch {}; got log keys: {}".format(batch, keys))
