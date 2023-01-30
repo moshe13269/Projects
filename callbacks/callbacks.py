@@ -1,60 +1,40 @@
 import tensorflow as tf
 
-#
-# class CustomCallback(tf.keras.callbacks.Callback):
-#
-#     def on_epoch_begin(self, epoch, logs=None):
 
+class WarmLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule): #tf.keras.optimizers.schedules.LearningRateSchedule):
 
+    def __init__(self,
+                 initial_learning_rate,
+                 warmup_steps,
+                 hold_step,
+                 decay_step,
+                 max_learn_rate,
+                 min_learn_rate
+                 ):
+        super(WarmLRSchedule).__init__()
+        self.initial_learning_rate = initial_learning_rate
+        self.warmup_steps = warmup_steps
+        self.hold_step = hold_step
+        self.decay_step = decay_step
+        self.max_learn_rate = max_learn_rate
+        self.min_learn_rate = min_learn_rate
 
+    def __call__(self, step):
 
-def scheduler(epoch=0, lr=0.1):
-    warmup_steps = 15
-    hold_step = 0
-    decay_step = 500
-    min_lr = 3e-8
-    max_lr = 2e-6
-    initial_lr = 1e-7
+        step = tf.cast(step, dtype=tf.float32)
 
-    if epoch < warmup_steps:
-        return lr + (max_lr - initial_lr) / warmup_steps
-    if warmup_steps <= epoch < (warmup_steps + hold_step):
-        return lr
-    if epoch >= (warmup_steps + hold_step):
-        return max(min_lr, (max_lr - min_lr) / decay_step)
-
-
-# class WarmLRSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
-#
-#     def __init__(self,
-#                  initial_learning_rate,
-#                  warmup_steps,
-#                  hold_step,
-#                  decay_step,
-#                  max_learn_rate,
-#                  min_learn_rate
-#                  ):
-#         super(WarmLRSchedule).__init__()
-#         self.initial_learning_rate = initial_learning_rate
-#         self.warmup_steps = warmup_steps
-#         self.hold_step = hold_step
-#         self.decay_step = decay_step
-#         self.max_learn_rate = max_learn_rate
-#         self.min_learn_rate = min_learn_rate
-#
-#     def __call__(self, step):
-#         if step <= self.warmup_steps:
-#             lr = self.initial_learning_rate + \
-#                 step * ((self.max_learn_rate - self.initial_learning_rate) / self.warmup_steps)
-#             # tf.keras.backend.set_value(self.model.optimizer.lr, lr)
-#             return lr
-#         elif step <= (self.hold_step + self.warmup_steps):
-#             # tf.keras.backend.set_value(self.model.optimizer.lr, self.max_learn_rate)
-#             return self.max_learn_rate
-#         num_step = self.hold_step + self.warmup_steps - step
-#         lr = self.max_learn_rate - num_step * ((self.max_learn_rate - self.min_learn_rate) / self.decay_step)
-#         # tf.keras.backend.set_value(self.model.optimizer.lr, max(self.min_learn_rate, lr))
-#         return max(self.min_learn_rate, lr)
+        if self.warmup_steps-step >= 0.:
+            lr = self.initial_learning_rate + \
+                step * ((self.max_learn_rate - self.initial_learning_rate) / self.warmup_steps)
+            # tf.keras.backend.set_value(self.model.optimizer.lr, lr)
+            return lr
+        elif (self.hold_step + self.warmup_steps) - step >= 0.:
+            # tf.keras.backend.set_value(self.model.optimizer.lr, self.max_learn_rate)
+            return self.max_learn_rate
+        num_step = self.hold_step + self.warmup_steps - step
+        lr = self.max_learn_rate - num_step * ((self.min_learn_rate - self.max_learn_rate) / self.decay_step)
+        # tf.keras.backend.set_value(self.model.optimizer.lr, max(self.min_learn_rate, lr))
+        return max(self.min_learn_rate, lr)
 
 """
 τ linearly increases from τ₀ to a target value τₑ 

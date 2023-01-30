@@ -69,15 +69,17 @@ class TrainTestTaskSupervised:
 
         self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
 
-
-
-
         # self.optimizer = optimizer.crate_optimizers_list(model=self.model)
 
         self.processor = instantiate(cfg.train_task.TrainTask.processor)
         self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
 
         self.results = instantiate(cfg.train_task.TrainTask.results)
+
+        if self.cfg.train_task.TrainTask.get('to_schedule'):
+            self.schedule = instantiate(cfg.train_task.TrainTask.schedule)
+            self.callbacks = list(self.callbacks) + \
+                             [tf.keras.callbacks.LearningRateScheduler(self.schedule.__call__)]
 
     def run(self):
         self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)

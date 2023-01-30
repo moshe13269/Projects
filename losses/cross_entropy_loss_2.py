@@ -35,7 +35,6 @@ class CELoss(tf.keras.losses.Loss):
         loss = loss / len(y_pred)
         return loss
 
-    # @tf.function
     @tf.autograph.experimental.do_not_convert
     def split(self, inputs):
         return [inputs[:, self.index2split[i]: self.index2split[i + 1]] for i in range(len(self.index2split)-1)]
