@@ -124,12 +124,22 @@ TrainTask:
         - 5
         - 16
 
-  to_metrics: False #True #
+  to_metrics: False #
 
   metrics:
-    _target_: metrics.accuracy.CustomAccuracy
-    num_classes: 1
-    index_y_true: 1
+    _target_: metrics.accuracy_2.CustomAccuracy2
+    outputs_dimension_per_outputs:
+      - 3
+      - 12
+      - 20
+      - 31
+      - 4
+      - 5
+      - 8
+      - 5
+      - 16
+#    num_classes: 1
+#    index_y_true: 1
 
   loss:
 #    - _target_: losses.spectral_magnitude_losses.Spectral_LogSTFTMagnitude_Loss
@@ -154,7 +164,7 @@ TrainTask:
   callbacks:
     -
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
-      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/6/
+      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/7/
       save_best_only: True
       save_freq: 7500 #'epoch'
       initial_value_threshold: 5
@@ -184,11 +194,11 @@ TrainTask:
   schedule:
     _target_: callbacks.WarmLRSchedule
     initial_learning_rate: 0.5e-7
-    warmup_steps: 20
-    hold_step: 1000 #1
+    warmup_steps: 8
+    hold_step: 500 #1
     decay_step: 1000
-    max_learn_rate: 8e-6 #1.5e-6
-    min_learn_rate: 5e-8
+    max_learn_rate: 7.5e-5 #2.5e-5 #8e-6 #1.5e-6
+    min_learn_rate: 5e-7
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
@@ -226,9 +236,9 @@ TrainTask:
       - 16
 
   batch_size:
-    train: 32
+    train: 58 #48
     test: 1
-    valid: 32
+    valid: 58 #48
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/

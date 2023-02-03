@@ -31,6 +31,7 @@ def data_loader_inference(dataset_list,
                           batch_size):
     dataset = (
         dataset_list
+        .shuffle(dataset_list.cardinality().numpy(), reshuffle_each_iteration=True)
         .map(
             lambda path2data, path2label: tf.numpy_function(processor_function1, [(path2data, path2label)],
                                                             [tf.float32, tf.float32])

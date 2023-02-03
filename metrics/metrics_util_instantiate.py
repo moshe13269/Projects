@@ -1,4 +1,5 @@
 from hydra.utils import instantiate
+from omegaconf import DictConfig, OmegaConf
 
 
 def acc_metrics_instantiate(to_metrics, outputs_dimension_per_outputs, metrics=None):
@@ -11,4 +12,12 @@ def acc_metrics_instantiate(to_metrics, outputs_dimension_per_outputs, metrics=N
             metrics.set_indexes()
             metrics_list.append(metrics)
         return metrics_list
+    return None
+
+
+def acc_metrics_instantiate2(to_metrics, outputs_dimension_per_outputs, metrics=None):
+    if to_metrics:
+        metrics = instantiate(metrics)
+        metrics.set_acc_classes(outputs_dimension_per_outputs)
+        return metrics
     return None

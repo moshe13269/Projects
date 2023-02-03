@@ -75,12 +75,12 @@ class Inference:
                 if y_true[j] == y_pred[j]:
                     accuracy[j] += 1
 
-            if sample == 1000:
+            if sample == 800:
                 break;
 
         pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, name + 'csv_results.csv'))
 
-        accuracy = accuracy / 1000.
+        accuracy = accuracy / 800.
         print(accuracy)
         print(accuracy.mean())
         np.save(arr=accuracy, file=self.path2save_csv + 'accuracy')

@@ -10,7 +10,7 @@ TrainTask:
     labels: True
     dataset_names: tal_noise_1
 
-  path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_tal/5/
+  path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_tal/7/
 
   outputs_dimension_per_outputs:
       - 16
