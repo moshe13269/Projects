@@ -17,7 +17,7 @@ class EncoderLayer(Layer):
         self.ffn = FFN(d_model, d_ff, dropout, activation)
 
     def call(self, inputs, **kwargs):
-        x, e_mask = inputs
+        x = inputs #, e_mask = inputs
         x = self.ln1(x)
         x = x + self.dropout1(self.mha(query=x, value=x, key=x)) #, attention_mask=e_mask))
         x = self.ln2(x)
@@ -56,7 +56,7 @@ class DecoderLayer(Layer):
         self.dropout3 = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
-        x, e_output, e_mask, d_mask = inputs
+        x, e_output, d_mask = inputs #x, e_output, e_mask, d_mask = inputs
 
         x_1 = self.ln1(x)  # (B, L, d_model)
 
@@ -136,13 +136,13 @@ class TransformerEncoder(Layer):
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
-        x, e_mask = inputs
+        x = inputs #x, e_mask = inputs
         x = self.pos_encodeing(x)
 
         x = self.dropout(x)
 
         for encoder in self.encoder_blocks:
-            x = encoder([x, e_mask])
+            x = encoder(x) #x = encoder([x, e_mask])
         return x
 
 
@@ -166,13 +166,13 @@ class TransformerDecoder(Layer):
         self.dropout = Dropout(dropout)
 
     def call(self, inputs, **kwargs):
-        x, e_output, e_mask, d_mask = inputs
+        x, e_output, d_mask = inputs #x, e_output, e_mask, d_mask = inputs
         x = self.pos_encodeing(x)
 
         x = self.dropout(x)
 
         for decoder in self.decoder_blocks:
-            x = decoder([x, e_output, e_mask, d_mask])
+            x = decoder([x, e_output, d_mask])
         return x
 
 
@@ -205,11 +205,11 @@ class Transformer(Layer):
         self.fc = Dense(d_model, activation=activation)
 
     def call(self, inputs, **kwargs):
-        x, e_mask, d_mask = inputs
+        x, d_mask = inputs
 
-        enc_outputs = self.transformer_encoder([x, e_mask])
+        enc_outputs = self.transformer_encoder(x)
 
-        x = self.transformer_decoder([x, enc_outputs, e_mask, d_mask])
+        x = self.transformer_decoder([x, enc_outputs, d_mask])
 
         x = self.fc(x)
 

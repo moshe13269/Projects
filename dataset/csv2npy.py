@@ -78,6 +78,8 @@ def paras_labels(path2csv, path2save):
 
 # path2csv = "/home/shlomis/PycharmProjects/TiFGAN/data/Data_custom_synth.csv"
 # path2save = '/home/moshelaufer/PycharmProjects/datasets/noy_synth/labels/'
-path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/full_parameters.csv"
-path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/labels/"
+# path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/full_parameters.csv"
+# path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/labels/"
+path2csv = "/home/shlomis/PycharmProjects/Tal/full_parameters_osc_lfo_am.csv"
+path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/labels/"
 paras_labels(path2csv, path2save)

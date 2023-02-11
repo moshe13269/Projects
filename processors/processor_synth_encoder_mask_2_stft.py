@@ -59,13 +59,13 @@ class Processor:
                 if j > i:
                     mask_d[i][j] = 0
 
-        return x, mask_e, mask_d
+        return x, mask_d #x, mask_e, mask_d
 
     @tf.function
     def mask_inference(self, x):
-        mask_e = tf.ones(tuple(self.mask_shape))
+        # mask_e = tf.ones(tuple(self.mask_shape))
         mask_d = tf.ones(tuple(self.mask_shape))
-        return x, mask_e, mask_d
+        return x, mask_d #mask_e,
 
     def load_data(self, path2data):
         label = np.squeeze(np.load(path2data[1]))

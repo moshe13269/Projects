@@ -6,7 +6,7 @@ import layers
 class SynthAutoEncoder:
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
-    inputs3: Tuple[int, int, int]
+    # inputs3: Tuple[int, int, int]
 
     transformer: layers.Transformer
     linear_classifier: layers.LinearClassifier
@@ -20,13 +20,13 @@ class SynthAutoEncoder:
                  linear_classifier: layers.LinearClassifier,
                  inputs1: Tuple[int, int, int],
                  inputs2: Tuple[int, int, int],
-                 inputs3: Tuple[int, int, int],
+                 # inputs3: Tuple[int, int, int],
                  ):
         super().__init__()
 
         self.inputs1 = tf.keras.layers.Input(inputs1)
         self.inputs2 = tf.keras.layers.Input(inputs2)
-        self.inputs3 = tf.keras.layers.Input(inputs3)
+        # self.inputs3 = tf.keras.layers.Input(inputs3)
 
         self.transformer = transformer
 
@@ -38,11 +38,11 @@ class SynthAutoEncoder:
     def build(self):
         inputs1 = self.inputs1
         inputs2 = self.inputs2
-        inputs3 = self.inputs3
+        # inputs3 = self.inputs3
 
         outputs = self.conv_encoder(inputs1)
 
-        decoder_outputs, encoder_outputs = self.transformer([outputs, inputs2, inputs3])
+        decoder_outputs, encoder_outputs = self.transformer([outputs, inputs2])
 
         outputs_params_list = self.linear_classifier(encoder_outputs)
 
@@ -50,7 +50,7 @@ class SynthAutoEncoder:
 
         stft = tf.keras.layers.concatenate([self.inputs1, stft_outputs], axis=0, name='wavs')
 
-        return tf.keras.Model(inputs=[inputs1, inputs2, inputs3],
+        return tf.keras.Model(inputs=[inputs1, inputs2],
                               outputs=[stft, outputs_params_list])
 
 

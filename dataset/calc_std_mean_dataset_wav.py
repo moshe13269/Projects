@@ -26,7 +26,7 @@ class StdMeanCalc:
         else:
             for file in self.list_of_dataset_files:
                 samplerate, data = wavfile.read(file)
-                f, t, Zxx = signal.stft(data, samplerate, nperseg=256, nfft=512)
+                f, t, Zxx = signal.stft(data, samplerate, nperseg=253, nfft=256)
                 data = np.abs(Zxx)
                 self.dataset.append(data)
 
@@ -44,7 +44,8 @@ class StdMeanCalc:
 
 
 if __name__ == '__main__':
-    calc = StdMeanCalc('/home/moshelaufer/PycharmProjects/datasets/noy_synth/data/')
+    # calc = StdMeanCalc('/home/moshelaufer/PycharmProjects/datasets/noy_synth/data/')
+    calc = StdMeanCalc("/home/moshelaufer/PycharmProjects/datasets/tal_noise_2/data/")
     m, s = calc.load_dataset()
     print(m, s)
 
