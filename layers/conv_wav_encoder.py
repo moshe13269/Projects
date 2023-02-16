@@ -10,6 +10,8 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                  num_duplicate_layer: Tuple[int, int, int, int, int, int, int],
                  activation: str,
                  units: int,
+                 is_group_norm: str = True,
+                 is_layer_norm: str = False,
                  dropout: float = 0.0,
                  mode: str = "default",
                  conv_bias: bool = False):
@@ -17,13 +19,11 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         self.conv_layers = None
         self.activation = tf.keras.layers.Activation(activation)
 
-        # self.reshape = Reshape((16, 512,))
-
         def block(layers_param,
                   activation,
-                  is_layer_norm=False,
-                  is_group_norm=False,
-                  conv_bias=False):
+                  is_layer_norm,
+                  is_group_norm,
+                  conv_bias=True):
 
             (dim, kernel, stride) = layers_param
 
@@ -32,7 +32,7 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
                               kernel_size=kernel,
                               strides=stride,
                               use_bias=conv_bias,
-                              # padding='same',
+                              padding='same',
                               kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
                 return conv
 
@@ -64,49 +64,49 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
         layers = []
 
         for i, layers_param in enumerate(conv_layers):
-            # assert len(layers_param) == 2 and len(layers_param[0]) == len(layers_param[1]) == 3, \
-            #     "invalid conv definition: " + str(layers_param)
-            # (dim, kernel, stride) = cl
+
             for j in range(num_duplicate_layer[i]):
                 layers.append(
                     block(
                         layers_param,
                         activation,
                         is_layer_norm=mode == "layer_norm",
-                        is_group_norm=mode == "default" ,#and i == 0,
+                        is_group_norm=mode == "default",
                         conv_bias=conv_bias,
                     )
                 )
 
         self.conv_layers = layers
 
-        self.avg_pool = AveragePooling1D()
+        # self.avg_pool = AveragePooling1D()
 
         self.fc = Dense(units=units, activation=activation)
 
-    def call(self, x, **kwargs):  # call(self, x):  #
+    def call(self, x, **kwargs):
         # BxT -> BxTxC
 
         for conv in self.conv_layers:
-            inputs = x
-            x = conv(inputs)
-            x = self.activation(x)
-
-        # x = self.avg_pool(x)
-        # x = self.reshape(x)
-        return self.fc(x)
+            x = conv(x)
+            # print(x.shape)
+        return self.activation(self.fc(x))
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((4, 16384, 1))
-    conv_layers: List[Tuple[int, int, int]] = [(64, 3, 1), (128, 3, 1),
-                                               (128, 3, 1),
-                                               (256, 3, 1),
-                                               (256, 3, 1),
-                                               (512, 3, 1),
-                                               (512, 3, 1)]
+    # data = tf.random.normal((4, 16384, 1))
+    data = tf.random.normal((1, 130, 129))
+    # conv_layers: List[Tuple[int, int, int]] = [(512, 6, 2),
+    #                                            (512, 3, 2),
+    #                                            (512, 3, 2),
+    #                                            (512, 3, 2),
+    #                                            (512, 3, 2),
+    #                                            (512, 2, 2),
+    #                                            (512, 2, 2)]
 
-    num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
+    conv_layers: List[Tuple[int, int, int]] = [(512, 4, 2),
+                                               (512, 3, 1),
+                                               (512, 3, 1),
+                                               (512, 2, 1)]
+    num_duplicate_layer: Tuple[int, int, int, int] = (1, 1, 1, 1)
     conv = ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
                                       num_duplicate_layer=num_duplicate_layer)
     output = conv(data)

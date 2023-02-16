@@ -2,7 +2,7 @@
 import os
 import utils
 import mlflow
-import mlflow.tensorflow
+import mlflow.keras
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
@@ -14,32 +14,35 @@ class TrainTestTask:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
 
-        self.dataset_class = instantiate(cfg.data2vec_train_task.TrainTask.dataset_class)
+        self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
 
         self.train_dataset = None
         self.test_dataset = None
         self.val_dataset = None
 
-        self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
+        self.steps_per_epoch = self.cfg.train_task.TrainTask.get('steps_per_epoch')
+        self.validation_steps = self.cfg.train_task.TrainTask.get('validation_steps')
+        
+        self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
 
-        self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
-        self.model = instantiate(cfg.data2vec_train_task.TrainTask.model)
-        self.loss = instantiate(cfg.data2vec_train_task.TrainTask.loss)
-        self.epochs = self.cfg.data2vec_train_task.TrainTask.get('epochs')
-        self.callbacks = instantiate(cfg.data2vec_train_task.TrainTask.callbacks)
-        self.optimizer = instantiate(cfg.data2vec_train_task.TrainTask.optimizer)
-        self.train_steps_per_epoch = self.cfg.data2vec_train_task.TrainTask.get('train_steps_per_epoch')
-        self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
+        self.model_name = self.cfg.train_task.TrainTask.get('model_name')
+        self.model = instantiate(cfg.train_task.TrainTask.model)
+        self.loss = instantiate(cfg.train_task.TrainTask.loss)
+        self.epochs = self.cfg.train_task.TrainTask.get('epochs')
+        self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
+        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
+        self.train_steps_per_epoch = self.cfg.train_task.TrainTask.get('train_steps_per_epoch')
+        self.input_shape = [tuple(lst) for lst in self.cfg.train_task.TrainTask.get('input_shape')]
 
-        self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
-        self.processor.t_axis = utils.outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
-                                                  cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
+        self.processor = instantiate(cfg.train_task.TrainTask.processor)
+        self.processor.t_axis = utils.outputs_conv_size(cfg.train_task.TrainTask.model.conv_encoder.conv_layers,
+                                                  cfg.train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
                                                   # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
                                                   self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
 
-        self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
+        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
 
-        self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
+        self.results = instantiate(cfg.train_task.TrainTask.results)
 
     def run(self):
 
@@ -60,7 +63,7 @@ class TrainTestTask:
 
             X_train, X_val, y_train, y_val = train_test_split(X_train,
                                                               y_train,
-                                                              test_size=0.05,
+                                                              test_size=0.1,
                                                               random_state=1)
 
             self.train_dataset = tf.data.Dataset.from_tensor_slices(list(zip(X_train, y_train)))
@@ -79,7 +82,7 @@ class TrainTestTask:
 
             X_test, X_val, y_test, y_val = train_test_split(X_test,
                                                             X_test,
-                                                            test_size=0.05,
+                                                            test_size=0.1,
                                                             random_state=1)
 
             self.train_dataset = tf.data.Dataset.from_tensor_slices(X_train)
@@ -92,9 +95,9 @@ class TrainTestTask:
                               , num_parallel_calls=tf.data.AUTOTUNE).map(
             lambda x, y: ((x, y), y))  # map(tf.autograph.experimental.do_not_convert(lambda x, y: ((x, y), y)))
                          .cache()
-                         # .repeat()
                          .batch(self.batch_size['train'])
                          .prefetch(tf.data.AUTOTUNE)
+                         .repeat()
                          )
 
         test_dataset = (self.test_dataset
@@ -102,9 +105,9 @@ class TrainTestTask:
                         .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
                              , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
                         .cache()
-                        # .repeat()
                         .batch(self.batch_size['test'])
                         .prefetch(tf.data.AUTOTUNE)
+                        .repeat()
                         )
 
         val_dataset = (self.val_dataset
@@ -112,26 +115,27 @@ class TrainTestTask:
                        .map(lambda item: tf.numpy_function(self.processor.load_data, [item], [tf.float32, tf.float32])
                             , num_parallel_calls=tf.data.AUTOTUNE).map(lambda x, y: ((x, y), y))
                        .cache()
-                       # .repeat()
                        .batch(self.batch_size['valid'])
                        .prefetch(tf.data.AUTOTUNE)
+                       .repeat()
                        )
 
         model = self.model.build()
 
         model.compile(optimizer=self.optimizer, loss=self.loss)
 
-        mlflow.tensorflow.autolog() #mlflow.keras.autolog()
+        mlflow.keras.autolog()
 
-        # mlflow.keras.log_model(registered_model_name=self.model_name + str(datetime.datetime.now()),
-        #                        log_models=True,
-        #                        artifact_path='file:///C:/Users/moshe/PycharmProjects/mlflow',
-        #                        keras_model=model)
-        with tf.device('/device:GPU:0'):
+        with tf.device('/gpu:0'):
             with mlflow.start_run():
                 # log parameters
+                # mlflow.log_param("hidden_layers", args.hidden_layers)
+                # mlflow.log_param("output", args.output)
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
+                # mlflow.log_param('learn_rate', model.cal)
+                # tf.keras.backend.get_value(self.model.optimizer.learning_rate)
+                mlflow.log_param("learn_rate", tf.keras.backend.get_value(model.optimizer.learning_rate))
                 # log metrics
                 # mlflow.log_metric("binary_loss", ktrain_cls.get_binary_loss(history))
                 # mlflow.log_metric("binary_acc", ktrain_cls.get_binary_acc(history))
@@ -145,16 +149,18 @@ class TrainTestTask:
                 # log model
                 # mlflow.keras.log_model(model, r'C:\Users\moshe\PycharmProjects\mlflow')
 
+
+
+            # with mlflow.start_run():
                 model.fit(x=train_dataset,
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
-                          # callbacks=self.callbacks,
-                          steps_per_epoch=5,
+                          callbacks=self.callbacks,
+                          steps_per_epoch=self.steps_per_epoch,
+                          validation_steps=self.validation_steps,
                           initial_epoch=0,
                           use_multiprocessing=True)
-
-                model_info = mlflow.tensorflow.log_model(model=model, artifact_path=r"C:\Users\moshe\PycharmProjects\mlflow")
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 tf.keras.models.save_model(model=model, filepath=os.path.join(self.path2save_model, folder_name))
@@ -173,7 +179,7 @@ class TrainTestTask:
             # mlflow.log_image() # image:ndarray
 
             # with mlflow.start_run() as run:
-            #     mlflow.keras.log_model(self.data2vec_train_task, "models")
+            #     mlflow.keras.log_model(self.train_task, "models")
             #     mlflow.log_param("num_trees", n_estimators)
             #     mlflow.log_param("maxdepth", max_depth)
             #     mlflow.log_param("max_feat", max_features)

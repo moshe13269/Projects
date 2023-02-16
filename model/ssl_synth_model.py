@@ -3,14 +3,12 @@ from typing import List, Tuple
 import layers
 
 
-class Data2VecModel:
+class SSLSynthModel:
     masking: bool
     masking_layer: layers.Masking
     len_latent_space: int
     conv_encoder: layers.ConvFeatureExtractionModel
-    transformer_encoder: layers.TransformerEncoder
-    ffn: layers.FFN
-    tau: float
+    transformer_encoder: layers.EncoderTransformer
     top_k_transformer: int
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
@@ -20,14 +18,12 @@ class Data2VecModel:
                  masking_layer: layers.Masking,
                  len_latent_space: int,
                  conv_encoder: layers.ConvFeatureExtractionModel,
-                 transformer_encoder: layers.TransformerEncoder,
-                 ffn: layers.FFN,
-                 tau: float,
+                 transformer_encoder_s: layers.EncoderTransformer,
+                 transformer_encoder_t: layers.EncoderTransformer,
                  top_k_transformer: int,
                  inputs1: Tuple[int, int, int],
                  inputs2: Tuple[int, int, int],
                  ):
-
         super().__init__()
 
         self.masking = masking  # bool
@@ -35,36 +31,36 @@ class Data2VecModel:
 
         self.len_latent_space = len_latent_space
         self.conv_encoder = conv_encoder
-        self.transformer_encoder = transformer_encoder
-        self.ffn = ffn
-        self.tau = tau
+        self.transformer_encoder_s = transformer_encoder_s
+        self.transformer_encoder_s._name = 'transformer_encoder_s'
+        self.transformer_encoder_t = transformer_encoder_t
+        self.transformer_encoder_t._name = 'transformer_encoder_t'
         self.top_k_transformer = top_k_transformer
+        self.add = tf.keras.layers.Add()
+        self.subtract = tf.keras.layers.Subtract()
+        self.mul = tf.keras.layers.Multiply()
 
-        self.inputs1 = tf.keras.layers.Input(inputs1) #(shape=(32, 32, 3,))
-        self.inputs2 = tf.keras.layers.Input(inputs2) #(shape=(16,))
+        self.inputs1 = tf.keras.layers.Input(inputs1)
+        self.inputs2 = tf.keras.layers.Input(inputs2)
 
     def build(self):
-        latent_image = self.conv_encoder(self.inputs1)
+        # self.transformer_encoder_s._name = 'transformer_encoder_s'
+        # self.transformer_encoder_t._name = 'transformer_encoder_t'
 
-        teacher_inputs = tf.stop_gradient(tf.identity(latent_image))
+        latent_student = self.conv_encoder(self.inputs1)
 
-        masked_latent_space = self.masking_layer([latent_image, self.inputs2])
+        masked_latent_space = self.masking_layer([latent_student, self.inputs2])
 
-        student_encoding = self.transformer_encoder(masked_latent_space,
-                                                    training=True,
-                                                    top_k_transformer=1)
+        student_outputs = self.transformer_encoder_s(masked_latent_space,
+                                                     training=True,
+                                                     top_k_transformer=None)
 
-        teacher_encoding = self.transformer_encoder(teacher_inputs, training=False,
-                                                    top_k_transformer=self.top_k_transformer)
+        latent_teacher = tf.stop_gradient(self.conv_encoder(self.inputs1))
 
-        # teacher_encoding = self.ffn(teacher_encoding)
-        # teacher_encoding = tf.reduce_mean(self.ffn(teacher_encoding), axis=1)
+        teacher_outputs = tf.stop_gradient(self.transformer_encoder_t(latent_teacher, training=False,
+                                                                      top_k_transformer=self.top_k_transformer))
 
-        teacher_encoding = teacher_encoding * self.tau + (1 - self.tau) * student_encoding
-
-        teacher_encoding = tf.stop_gradient(teacher_encoding)
-
-        outputs = tf.concat([student_encoding, teacher_encoding], axis=0)
+        outputs = tf.concat([student_outputs, teacher_outputs], axis=0)
 
         return tf.keras.Model(inputs=[self.inputs1, self.inputs2], outputs=outputs)
 
@@ -81,7 +77,7 @@ if __name__ == '__main__':
 
     num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (2, 1, 1, 1, 3, 1, 2)
     conv = layers.ConvFeatureExtractionModel(conv_layers=conv_layers, activation='gelu', units=512,
-                                      num_duplicate_layer=num_duplicate_layer)
+                                             num_duplicate_layer=num_duplicate_layer)
 
     mask_ = tf.where(tf.random.uniform(shape=(100, 16), maxval=1) > 0.9, 1., 0.)
     inputs = [tf.Variable(tf.random.normal((100, 32, 32, 3))), tf.Variable(mask_)]

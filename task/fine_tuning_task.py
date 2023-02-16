@@ -1,6 +1,6 @@
 import os
 import mlflow
-import mlflow.keras
+import mlflow.tensorflow
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -14,50 +14,46 @@ class FineTuningTask:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
 
-        self.dataset_class = instantiate(cfg.data2vec_train_task.TrainTask.dataset_class)
+        self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
 
         self.train_dataset = None
         self.test_dataset = None
         self.val_dataset = None
 
-        self.path2save_model = self.cfg.data2vec_train_task.TrainTask.get('path2save_model')
-        self.path2save_csv = self.cfg.data2vec_train_task.TrainTask.get('path2save_csv')
+        self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
+        self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
-        self.model_name = self.cfg.data2vec_train_task.TrainTask.get('model_name')
-        self.model = instantiate(cfg.data2vec_train_task.TrainTask.model)
-        self.loss = instantiate(cfg.data2vec_train_task.TrainTask.loss)
-        self.epochs = self.cfg.data2vec_train_task.TrainTask.get('epochs')
-        self.callbacks = instantiate(cfg.data2vec_train_task.TrainTask.callbacks)
-        self.optimizer = instantiate(cfg.data2vec_train_task.TrainTask.optimizer)
-        self.train_steps_per_epoch = self.cfg.data2vec_train_task.TrainTask.get('train_steps_per_epoch')
-        self.input_shape = [tuple(lst) for lst in self.cfg.data2vec_train_task.TrainTask.get('input_shape')]
+        self.model_name = self.cfg.train_task.TrainTask.get('model_name')
+        self.model = instantiate(cfg.train_task.TrainTask.model)
+        self.loss = instantiate(cfg.train_task.TrainTask.loss)
+        self.epochs = self.cfg.train_task.TrainTask.get('epochs')
+        self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
+        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
+        self.train_steps_per_epoch = self.cfg.train_task.TrainTask.get('train_steps_per_epoch')
+        self.input_shape = [tuple(lst) for lst in self.cfg.train_task.TrainTask.get('input_shape')]
 
-        self.processor = instantiate(cfg.data2vec_train_task.TrainTask.processor)
-        # self.processor.t_axis = outputs_conv_size(cfg.data2vec_train_task.TrainTask.model.conv_encoder.conv_layers,
-        #                                           cfg.data2vec_train_task.TrainTask.model.conv_encoder.num_duplicate_layer,
-        #                                           # self.dataset_class.dataset_names_train[0], p=None, avg_pooling=True) #image
-        #                                           self.dataset_class.dataset_names_train[0], p=0, avg_pooling=False) #wav
+        self.processor = instantiate(cfg.train_task.TrainTask.processor)
 
-        self.batch_size = self.cfg.data2vec_train_task.TrainTask.get('batch_size')
+        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
 
-        self.results = instantiate(cfg.data2vec_train_task.TrainTask.results)
+        self.results = instantiate(cfg.train_task.TrainTask.results)
 
-    def test_model(self, model, test_dataset):
+    def evaluate_model(self, model, test_set):
 
-        with tf.device('/device:GPU:0'):
-            len_dataset = int(test_dataset.__len__().numpy())
-            results = np.zeros((len_dataset * 2, 16))
+        num_sample = int(test_set.__len__().numpy())
+        test_set = test_set.as_numpy_iterator()
 
-            test_dataset = test_dataset.as_numpy_iterator()
+        results = np.zeros((num_sample * 2, 16))
 
-            for step in range(len_dataset):
-                x, y = test_dataset.next()
-                prediction = model.predict(x)
-                results[step * 2] = prediction
-                results[step * 2 + 1] = y
-            pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'predicted_param.csv'))
+        for sample in range(num_sample):
+            x, y = test_set.next()
+            y_ = model.predict(x)
+            results[2 * sample: 2 * sample + 1, :] = y_.squeeze()
+            results[2 * sample + 1: 2 * sample + 2, :] = y.squeeze()
+            # a = model.layers[2](model.layers[1](model.layers[0](x)))
+            # a1 = tf.reduce_max(model.layers[2](model.layers[1](model.layers[0](x))), axis=-1)
 
-        print("Model prediction had been saved")
+        pd.DataFrame(results).to_csv(os.path.join(self.path2save_csv, 'csv_results.csv'))
 
     def run(self):
 
@@ -78,12 +74,12 @@ class FineTuningTask:
 
             X_train, X_val, y_train, y_val = train_test_split(X_train,
                                                               y_train,
-                                                              test_size=0.05,
+                                                              test_size=0.1,
                                                               random_state=1)
 
-            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))  # (list(zip(X_train, y_train)))
-            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))  # (list(zip(X_test, y_test)))
-            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))  # (list(zip(X_val, y_val)))
+            self.train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+            self.test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))
+            self.val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
 
         else:
             if dataset_had_split:
@@ -141,9 +137,10 @@ class FineTuningTask:
 
         model.compile(optimizer=self.optimizer, loss=self.loss)
 
+
         mlflow.keras.autolog()
 
-        with tf.device('/device:GPU:0'):
+        with tf.device('/GPU:0'):
             with mlflow.start_run():
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
@@ -152,12 +149,17 @@ class FineTuningTask:
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
+                          # steps_per_epoch=100,
                           # callbacks=self.callbacks,
-                          steps_per_epoch=5,
+                          # self.train_steps_per_epoch,
                           initial_epoch=0,
                           use_multiprocessing=True)
 
-                self.test_model(model, val_dataset)
+                # mlflow.keras.log_model(model, "file:///home/moshelaufer/PycharmProjects/mlflow/")
+
+                self.evaluate_model(model, test_dataset)
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(model, os.path.join(self.path2save_model, folder_name))
+                tf.keras.models.save_model(model=model, filepath=os.path.join(self.path2save_model, folder_name +
+                                                                              'model_ft'))

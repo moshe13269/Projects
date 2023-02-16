@@ -1,2 +1,2 @@
 
-from model.data2vec_wav_model import Data2VecModel
+from model.ssl_synth_model import SSLSynthModel

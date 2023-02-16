@@ -15,7 +15,10 @@ class Layer(tf.keras.layers.Layer):
         self.tau = tau
 
     def build(self, input_shape):
-        self.code_book = self.add_weight("code_book", shape=[self.G, self.V, self.word_depth], trainable=True)
+        self.code_book = self.add_weight("code_book",
+                                         shape=[self.G, self.V, self.word_depth],
+                                         trainable=True,
+                                         initializer=tf.keras.initializers.Orthogonal)
 
     def call(self, data, **kwargs):
         logits = tf.transpose(tf.reshape(self.fc1(data), (data.shape[0], data.shape[1], self.V, self.G)), perm=[0,1,3,2])

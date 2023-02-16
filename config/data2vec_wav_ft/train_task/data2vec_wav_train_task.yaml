@@ -4,7 +4,7 @@ TrainTask:
 
   dataset_class:
     _target_: dataset.dataset.Dataset
-    path2load: C:\Users\moshe\PycharmProjects\datasets\tal_noise
+    path2load: /home/moshelaufer/PycharmProjects/datasets/tal_noise_1
     type_files: wav
     labels: True
     dataset_names: dx_wav
@@ -25,26 +25,28 @@ TrainTask:
       - 1
 
     top_k_transformer: 1
+    model_trainable: False
 
-    path2load_model: C:\Users\moshe\PycharmProjects\save_models\models\26
+    path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/data2vec_wav_1/ #/home/moshelaufer/PycharmProjects/results/models/69/
 
   loss:
     _target_: losses.l2_regression.L2LossReg #tf.keras.losses.MeanSquaredError
 
   callbacks:
-#    -
-#      _target_: callbacks.callbacks.EMACallback
-#      t_n: 30000
-#      t_0: 0.999
-#      t_e: 0.9999
+    -
+      _target_: callbacks.callbacks.EMACallback
+      t_n: 30000
+      t_0: 0.999
+      t_e: 0.9999
     -
       _target_: callbacks.callbacks.LearnRateSchedulerTriStage
       initial_lr: 0.0001
       peak: 0.00005
+      end: 0.00005
       steps2warp_up: 0.03
       steps2hold: 0.67
       decay: 0.3
-      train_steps_per_epoch: 10
+      train_steps_per_epoch: 1500
       epochs: 15
 
   optimizer:
@@ -59,17 +61,17 @@ TrainTask:
     _target_: processors.processor_wav_files_ft.Processor
 
   batch_size:
-    train: 16
+    train: 128
     test: 1
-    valid: 16
+    valid: 128
 
-  epochs: 3
-  path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
-  path2save_csv: C:\Users\moshe\PycharmProjects\save_models\results
-  model_name: data2vec
+  epochs: 40
+  path2save_model: /home/moshelaufer/PycharmProjects/results/models/
+  model_name: data2vec_wav_ft
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv
 
   results:
     _target_: results.results.Results
-    path2save_results: C:\Users\moshe\PycharmProjects\save_models\results
+    path2save_results: /home/moshelaufer/PycharmProjects/results/results/
     num_class: 100
 

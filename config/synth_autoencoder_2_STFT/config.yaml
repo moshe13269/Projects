@@ -1,0 +1,5 @@
+
+defaults:
+  - train_task: synth_autoencoder_2_stft_train_task
+#  - optimizer: multi_optimizers
+  - _self_

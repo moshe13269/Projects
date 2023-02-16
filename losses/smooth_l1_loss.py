@@ -12,9 +12,10 @@ class SmoothL1Loss(tf.keras.losses.Loss, ABC):
         self.tile_params = tf.constant(tile_params)
         self.flatten = tf.keras.layers.Flatten()
         self.huber_loss = tf.keras.losses.Huber(delta=self.beta)
+        # self.name = 'SmoothL1Loss'
 
     def call(self, y_true, y_pred):
-        teacher_encoding, student_encoding = tf.split(y_pred, num_or_size_splits=2, axis=0)
+        student_encoding, teacher_encoding = tf.split(y_pred, num_or_size_splits=2, axis=0)
 
         # teacher_encoding = self.flatten(teacher_encoding)
         # student_encoding = self.flatten(student_encoding)
