@@ -1,11 +1,11 @@
 
 import os
-import task
+from Projects_torch import task
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 
-@hydra.main(config_path=os.path.join('../config', 'data2vec_wav_ft'), config_name='config')
+@hydra.main(config_path=os.path.join('../config_tensorflow', 'data2vec_wav_ft'), config_name='config_tensorflow')
 def main(cfg: DictConfig) -> None:
     train_task = task.FineTuningTask(cfg)
     train_task.run()
