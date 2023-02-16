@@ -272,9 +272,9 @@ if __name__ == '__main__':
         activation='relu'
     )
 
-    data = tf.random.normal((2, 50, 512))
-    mask_e = tf.where(tf.random.uniform((2, 50, 1)) >= 0.7, 1., 0.)
-    mask_d = tf.where(tf.random.uniform((2, 50, 1)) >= 0.7, 1., 0.)
+    data = torch.normal(mean=0., std=1., size=(2, 50, 512))
+    mask_e = torch.where(torch.rand((2, 50, 1)) >= 0.7, 1., 0.)
+    mask_d = torch.where(torch.rand((2, 50, 1)) >= 0.7, 1., 0.)
     outputs = transformer([data, mask_e, mask_d])
-    print(tf.reduce_mean(outputs[0]), tf.reduce_mean(outputs[1]))
+    print(torch.mean(outputs[0]), torch.mean(outputs[1]))
     a = 0

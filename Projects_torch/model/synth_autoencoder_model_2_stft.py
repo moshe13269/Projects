@@ -1,32 +1,26 @@
-import tensorflow as tf
+
+import torch
+import Projects_torch.layers
 from typing import List, Tuple
-from Projects_tensorflow import layers
 
 
-class SynthAutoEncoder:
+class SynthAutoEncoder(torch.nn.Module):
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
-    # inputs3: Tuple[int, int, int]
 
-    transformer: layers.Transformer
-    linear_classifier: layers.LinearClassifier
+    transformer: Projects_torch.layers.Transformer
+    linear_classifier: Projects_torch.layers.LinearClassifier
 
     def __init__(self,
-                 conv_encoder: layers.ConvFeatureExtractionModel,
-                 conv_decoder: layers.ConvDecoderModel,
+                 conv_encoder: Projects_torch.layers.ConvFeatureExtractionModel,
+                 conv_decoder: Projects_torch.layers.ConvDecoderModel,
 
-                 transformer: layers.Transformer,
+                 transformer: Projects_torch.layers.Transformer,
 
-                 linear_classifier: layers.LinearClassifier,
-                 inputs1: Tuple[int, int, int],
-                 inputs2: Tuple[int, int, int],
-                 # inputs3: Tuple[int, int, int],
+                 linear_classifier: Projects_torch.layers.LinearClassifier,
                  ):
-        super().__init__()
 
-        self.inputs1 = tf.keras.layers.Input(inputs1)
-        self.inputs2 = tf.keras.layers.Input(inputs2)
-        # self.inputs3 = tf.keras.layers.Input(inputs3)
+        super(SynthAutoEncoder, self).__init__()
 
         self.transformer = transformer
 
@@ -35,10 +29,7 @@ class SynthAutoEncoder:
         self.conv_encoder = conv_encoder
         self.conv_decoder = conv_decoder
 
-    def build(self):
-        inputs1 = self.inputs1
-        inputs2 = self.inputs2
-        # inputs3 = self.inputs3
+    def forward(self, inputs1, inputs2):
 
         outputs = self.conv_encoder(inputs1)
 
@@ -48,14 +39,13 @@ class SynthAutoEncoder:
 
         stft_outputs = self.conv_decoder(decoder_outputs)
 
-        stft = tf.keras.layers.concatenate([self.inputs1, stft_outputs], axis=0, name='wavs')
+        stft = torch.cat([inputs1, stft_outputs], dim=0)
 
-        return tf.keras.Model(inputs=[inputs1, inputs2],
-                              outputs=[stft, outputs_params_list])
+        return outputs_params_list, inputs1, stft
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((2, 32, 32))
+    data = torch.random(size=(2, 32, 32))
     conv_layers: List[Tuple[int, int, int]] = [(512, 10, 5),
                                                (512, 3, 2),
                                                (512, 3, 2),
