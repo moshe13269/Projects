@@ -1,0 +1,50 @@
+
+import tensorflow as tf
+from typing import List, Tuple
+
+class MyModel:
+
+    inputs: Tuple[int, int, int]
+
+    def __init__(self, inputs: Tuple[int, int, int]
+                 ):
+
+        super().__init__()
+
+        self.masking = masking  # bool
+        self.masking_layer = masking_layer
+
+        self.len_latent_space = len_latent_space
+        self.conv_encoder = conv_encoder
+        self.transformer_encoder = transformer_encoder
+        self.ffn = ffn
+        self.tau = tau
+        self.top_k_transformer = top_k_transformer
+
+        self.inputs1 = tf.keras.layers.Input(inputs1) #(shape=(32, 32, 3,))
+        self.inputs2 = tf.keras.layers.Input(inputs2) #(shape=(16,))
+
+    def build(self):
+        latent_image = self.conv_encoder(self.inputs1)
+
+        teacher_inputs = tf.stop_gradient(tf.identity(latent_image))
+
+        masked_latent_space = self.masking_layer([latent_image, self.inputs2])
+
+        student_encoding = self.transformer_encoder(masked_latent_space,
+                                                    training=True,
+                                                    top_k_transformer=1)
+
+        teacher_encoding = self.transformer_encoder(teacher_inputs, training=False,
+                                                    top_k_transformer=self.top_k_transformer)
+
+        # teacher_encoding = self.ffn(teacher_encoding)
+        # teacher_encoding = tf.reduce_mean(self.ffn(teacher_encoding), axis=1)
+
+        teacher_encoding = teacher_encoding * self.tau + (1 - self.tau) * student_encoding
+
+        teacher_encoding = tf.stop_gradient(teacher_encoding)
+
+        outputs = tf.concat([student_encoding, teacher_encoding], axis=0)
+
+        return tf.keras.Model(inputs=[self.inputs1, self.inputs2], outputs=outputs)

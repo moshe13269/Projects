@@ -138,11 +138,11 @@ TrainTask:
     load_label: False
 
   batch_size:
-    train: 32 #4 #8
+    train: 16 #4 #8
     test: 16
-    valid: 32 #4 #8
+    valid: 16 #4 #8
 
-  epochs: 15
+  epochs: 5
   path2save_model: C:\Users\moshe\PycharmProjects\save_models\models
   model_name: data2vec
 

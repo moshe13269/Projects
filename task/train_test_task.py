@@ -2,7 +2,7 @@
 import os
 import utils
 import mlflow
-import mlflow.keras
+import mlflow.tensorflow
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
@@ -121,7 +121,7 @@ class TrainTestTask:
 
         model.compile(optimizer=self.optimizer, loss=self.loss)
 
-        mlflow.keras.autolog()
+        mlflow.tensorflow.autolog() #mlflow.keras.autolog()
 
         # mlflow.keras.log_model(registered_model_name=self.model_name + str(datetime.datetime.now()),
         #                        log_models=True,
@@ -130,8 +130,6 @@ class TrainTestTask:
         with tf.device('/device:GPU:0'):
             with mlflow.start_run():
                 # log parameters
-                # mlflow.log_param("hidden_layers", args.hidden_layers)
-                # mlflow.log_param("output", args.output)
                 mlflow.log_param("epochs", self.epochs)
                 mlflow.log_param("loss_function", self.loss)
                 # log metrics
@@ -147,17 +145,16 @@ class TrainTestTask:
                 # log model
                 # mlflow.keras.log_model(model, r'C:\Users\moshe\PycharmProjects\mlflow')
 
-
-
-            # with mlflow.start_run():
                 model.fit(x=train_dataset,
                           epochs=self.epochs,
                           verbose=1,
                           validation_data=val_dataset,
                           # callbacks=self.callbacks,
-                          # steps_per_epoch=self.train_steps_per_epoch,
+                          steps_per_epoch=5,
                           initial_epoch=0,
                           use_multiprocessing=True)
+
+                model_info = mlflow.tensorflow.log_model(model=model, artifact_path=r"C:\Users\moshe\PycharmProjects\mlflow")
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 tf.keras.models.save_model(model=model, filepath=os.path.join(self.path2save_model, folder_name))
