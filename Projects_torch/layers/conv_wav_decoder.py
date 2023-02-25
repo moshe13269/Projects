@@ -1,10 +1,8 @@
-import tensorflow as tf
+from torch import nn
 from typing import List, Tuple
-import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv1DTranspose, Dropout, Dense, AveragePooling1D, Reshape
 
 
-class ConvDecoderModel(tf.keras.layers.Layer):
+class ConvDecoderModel(nn.Module):
     def __init__(self,
                  conv_layers: List[Tuple[int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int],
@@ -17,7 +15,6 @@ class ConvDecoderModel(tf.keras.layers.Layer):
                  conv_bias: bool = False):
         super(ConvDecoderModel, self).__init__()
         self.conv_layers = None
-        self.activation = tf.keras.layers.Activation(activation)
 
         def block(layers_param,
                   activation,
@@ -25,42 +22,42 @@ class ConvDecoderModel(tf.keras.layers.Layer):
                   is_group_norm=True,
                   conv_bias=False):
 
-            (dim, kernel, stride) = layers_param #(dim, kernel, stride, output_padding) = layers_param
+            (in_channels, dim, kernel, stride) = layers_param  # (dim, kernel, stride, output_padding) = layers_param
 
             def make_conv():
-                conv = Conv1DTranspose(filters=dim,
-                                       kernel_size=kernel,
-                                       strides=stride,
-                                       use_bias=conv_bias,
-                                       # output_padding=output_padding,  # padding='same', #
-                                       padding='same',
-                                       kernel_initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.))
+                conv = nn.ConvTranspose1d(in_channels=in_channels,
+                                          out_channels=dim,
+                                          kernel_size=kernel,
+                                          stride=stride,
+                                          bias=conv_bias,
+                                          padding=1,
+                                          )
                 return conv
 
             assert (is_layer_norm and is_group_norm) == False, "layer norm and group norm are exclusive"
 
             if is_layer_norm and activation is not None:
-                return tf.keras.Sequential([
+                return nn.Sequential(
                     make_conv(),
-                    Dropout(rate=dropout),
-                    tf.keras.layers.LayerNormalization(),
-                    tf.keras.layers.Activation(activation),
-                ])
+                    nn.Dropout(p=dropout),
+                    nn.LayerNorm([512], elementwise_affine=True, eps=1e-6),
+                    nn.GELU(),
+                )
 
             elif is_group_norm and activation is not None:
-                return tf.keras.Sequential([
+                return nn.Sequential(
                     make_conv(),
-                    Dropout(rate=dropout),
-                    tfa.layers.GroupNormalization(),
-                    tf.keras.layers.Activation(activation),
-                ])
+                    nn.Dropout(p=dropout),
+                    nn.GroupNorm(num_groups=32, num_channels=512, eps=1e-6),
+                    nn.GELU(),
+                )
 
             else:
-                return tf.keras.Sequential([
+                return nn.Sequential(
                     make_conv(),
-                    Dropout(rate=dropout),
-                    tf.keras.layers.Activation(activation),
-                ])
+                    nn.Dropout(p=dropout),
+                    nn.GELU(),
+                )
 
         layers = []
 
@@ -79,19 +76,20 @@ class ConvDecoderModel(tf.keras.layers.Layer):
 
         self.conv_layers = layers
 
-        self.avg_pool = AveragePooling1D()
+        self.avg_pool = nn.AvgPool1d()
 
-        self.fc = Dense(units=units, activation=None)
+        self.fc = nn.Linear(in_features=units, out_features=1)
 
-    def call(self, x, **kwargs):
+        self.activation = nn.GELU()
+
+    def forward(self, x, **kwargs):
         # BxT -> BxTxC
         for conv in self.conv_layers:
             x = conv(x)
-        return self.fc(x)
+        return self.activation(self.fc(x))
 
 
 if __name__ == '__main__':
-    data = tf.random.normal((2, 65, 512))
     # conv_layers: List[Tuple[int, int, int, int]] = [(512, 2, 2, 1),
     #                                                 (512, 2, 2, 1),
     #                                                 (512, 3, 2, 0),
@@ -109,12 +107,12 @@ if __name__ == '__main__':
     #  (512, 10, 5, 4)]
     # num_duplicate_layer: Tuple[int, int, int, int, int, int, int] = (1, 1, 1, 1, 1, 1, 1)
     conv_layers: List[Tuple[int, int, int]] = [(512, 2, 1),
-                                                    (512, 3, 1),
-                                                    (512, 3, 1),
-                                                    (512, 4, 2)]
+                                               (512, 3, 1),
+                                               (512, 3, 1),
+                                               (512, 4, 2)]
     num_duplicate_layer: Tuple[int, int, int, int] = (1, 1, 1, 1)
     conv = ConvDecoderModel(conv_layers=conv_layers, activation='gelu', units=129,
                             num_duplicate_layer=num_duplicate_layer)
-    output = conv(data)
-    print(output.shape)
-    print(tf.reduce_mean(output), tf.reduce_min(output), tf.reduce_max(output))
+    # output = conv(data)
+    # print(output.shape)
+    # print(tf.reduce_mean(output), tf.reduce_min(output), tf.reduce_max(output))
