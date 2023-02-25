@@ -1,0 +1,4 @@
+
+defaults:
+  - train_task: ssl_synth_encoder_train_task
+  - _self_
