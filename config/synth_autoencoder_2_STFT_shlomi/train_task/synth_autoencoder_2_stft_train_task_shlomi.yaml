@@ -10,7 +10,7 @@ TrainTask:
     labels: True
     dataset_names: tal_noise_1
 
-  saved_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_tal/
+  saved_model:  #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_shlomi/1/
 
   model:
     _target_: model.synth_autoencoder_model_2_stft.SynthAutoEncoder
@@ -164,9 +164,9 @@ TrainTask:
   callbacks:
     -
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
-      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_shlomi/1/
+      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_shlomi/2/
       save_best_only: True
-      save_freq: 4000 #'epoch'
+      save_freq: 2000 #'epoch'
       initial_value_threshold: 5
       monitor: 'linear_classifier_loss'
       verbose: 1
@@ -233,9 +233,9 @@ TrainTask:
       - 17
 
   batch_size:
-    train: 58 #48
+    train: 42 #57 #48
     test: 1
-    valid: 58 #48
+    valid: 42 #57 #48
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/

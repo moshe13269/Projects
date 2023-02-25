@@ -54,15 +54,22 @@ class TrainTestTaskSupervised:
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         path2saved_model = self.cfg.train_task.TrainTask.get('saved_model')
         if path2saved_model is not None:
-            self.model = tf.keras.models.load_model(path2saved_model, compile=False)
-            opt = tf.keras.optimizers.Adam()
-            m = self.model
-            self.model.compile(optimizer='adam',
+            loaded_model = tf.keras.models.load_model(path2saved_model, compile=False)
+
+            model = instantiate(cfg.train_task.TrainTask.model)
+            self.model = model.build()
+            self.model.set_weights(loaded_model.get_weights())
+            opt_ = loaded_model.optimizer #tf.keras.optimizers.Adam()
+            adam = tf.keras.optimizers.Adam()
+            adam.set_weights(opt_.get_weights())
+
+            self.model.compile(optimizer=adam, #'adam',
                                loss=list(self.loss),
-                               metrics=self.metrics_,
+                               metrics=None, #self.metrics_,
                                loss_weights=self.loss_weights)
-            self.model.compile(optimizer=self.model.optimizer.set_weights(m.optimizer))
+            # self.model.compile(optimizer=self.model.optimizer.set_weights(m.optimizer))
             # self.model.optimizer.lr = 1.1e-6
+            a=0
         else:
             model = instantiate(cfg.train_task.TrainTask.model)
             self.model = model.build()
@@ -113,7 +120,7 @@ class TrainTestTaskSupervised:
 
         mlflow.keras.autolog()
 
-        with tf.device('/GPU:3'):
+        with tf.device('/GPU:2'):
             with mlflow.start_run():
                 self.model.fit(x=train_dataset,
                                epochs=self.epochs,
