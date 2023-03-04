@@ -1,12 +1,13 @@
 import os
-from Projects_tensorflow import losses
+from Projects_torch import torch_utils
+from Projects_torch import losses
+import torch
 import dataset
 import mlflow
-import mlflow.tensorflow
-import tensorflow as tf
-from hydra.utils import instantiate
+import mlflow.pytorch
+from mlflow import MlflowClient
 from omegaconf import DictConfig
-from keras.utils.vis_utils import plot_model
+from hydra.utils import instantiate
 
 
 class TrainTestTaskSupervised:
@@ -32,47 +33,24 @@ class TrainTestTaskSupervised:
         self.outputs_dimension_per_outputs = \
             cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
 
-        self.loss = losses.losses_instantiate(self.num_ce_loss,
-                                              cfg.train_task.TrainTask.loss_ce,
-                                              list(self.outputs_dimension_per_outputs),
-                                              cfg.train_task.TrainTask.loss)
-
-        # self.metrics = metrics.acc_metrics_instantiate2(
-        #     self.to_metrics,
-        #     list(self.outputs_dimension_per_outputs),
-        #     cfg.train_task.TrainTask.metrics)
-
         self.metrics_ = instantiate(cfg.train_task.TrainTask.metrics)
         self.metrics_outputs_dimension_per_outputs = cfg.train_task.TrainTask.metrics.outputs_dimension_per_outputs
 
         self.loss_weights = None
-        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
+
+        self.epoch = 0
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
 
+        self.devices = self.cfg.train_task.TrainTask.get('devices')
+        self.loss = None
+        self.model = None
+        self.optimizer = None
+        self.instantiate_model(cfg=cfg, path2load_model=None)
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
-        path2saved_model = self.cfg.train_task.TrainTask.get('saved_model')
-        if path2saved_model is not None:
-            self.model = tf.keras.models.load_model(path2saved_model, compile=False)
-            opt = tf.keras.optimizers.Adam()
-            m = self.model
-            self.model.compile(optimizer='adam',
-                               loss=list(self.loss),
-                               metrics=self.metrics_,
-                               loss_weights=self.loss_weights)
-            self.model.compile(optimizer=self.model.optimizer.set_weights(m.optimizer))
-            # self.model.optimizer.lr = 1.1e-6
-        else:
-            model = instantiate(cfg.train_task.TrainTask.model)
-            self.model = model.build()
-            self.model.compile(optimizer=self.optimizer,
-                               loss=list(self.loss),
-                               metrics=None, #self.metrics_,
-                               loss_weights=self.loss_weights)
-
         self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
-
-        # self.optimizer = optimizer.crate_optimizers_list(model=self.model)
+        self.running_loss = {'loss_param': [], 'loss_stft': []}
+        self.data_loader = None
 
         self.processor = instantiate(cfg.train_task.TrainTask.processor)
         self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
@@ -84,49 +62,113 @@ class TrainTestTaskSupervised:
             self.callbacks = list(self.callbacks) + \
                              [tf.keras.callbacks.LearningRateScheduler(self.schedule.__call__)]
 
+    def instantiate_model(self, cfg, path2load_model):
+
+        self.model = instantiate(cfg.train_task.TrainTask.model)
+        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
+
+        if path2load_model is not None:
+            checkpoint = torch.load(path2load_model)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            self.epoch = checkpoint['epoch']
+            self.loss = checkpoint['loss']
+            #
+            # model.eval()
+            # # - or -
+        else:
+            self.loss = losses.losses_instantiate(self.num_ce_loss,
+                                                  cfg.train_task.TrainTask.loss_ce,
+                                                  list(self.outputs_dimension_per_outputs),
+                                                  cfg.train_task.TrainTask.loss)
+        self.model.train()  # model.train(mode=False)
+
+    def save_model(self):
+        torch.save({
+            'epoch': self.epoch,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': self.loss
+        }, self.path2save_model)
+
+    def set_on_gpus(self, dataset2gpu=False):
+        self.model.to(self.devices)
+        if dataset2gpu:
+            self.test_dataset.to(self.devices)
+            self.train_dataset.to(self.devices)
+            self.val_dataset.to(self.devices)
+
+    def train_model(self):
+
+        for epoch in range(self.epochs):
+
+            running_loss_parmas_counter = 0.0
+            running_loss_stft_counter = 0.0
+
+            num_steps = 0
+
+            for i, data in enumerate(self.data_loader['train']):
+                inputs, labels = data
+                inputs, labels = inputs.to(self.devices), labels.to(self.devices)
+                self.optimizer.zero_grad()
+
+                pred_param, stft_rec = self.model(inputs)
+                loss_param = self.loss[0](pred_param, labels)
+                loss_stft = self.loss[1](stft_rec, inputs[0])
+
+                loss_param.backward()
+                loss_stft.backward()
+                self.optimizer.step()
+
+                running_loss_parmas_counter += loss_param.item()
+                running_loss_stft_counter += loss_stft.item()
+
+                num_steps = i
+
+            running_loss_parmas_counter = running_loss_parmas_counter / num_steps
+            running_loss_stft_counter = running_loss_stft_counter / num_steps
+            self.running_loss['loss_param'].append(running_loss_parmas_counter)
+            self.running_loss['loss_stft'].append(running_loss_stft_counter)
+
+            self.custom_checkpoints()
+            self.epoch += 1
+
+        self.save_model()
+
+    def custom_checkpoints(self):
+        if len(self.running_loss['loss_param']) >= 2:
+            if self.running_loss['loss_param'][-1] < self.running_loss['loss_param'][-2]:
+                torch.save({
+                    'epoch': self.epoch,
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict(),
+                    'loss': self.loss,
+                }, self.path2save_model)
+
     def run(self):
         self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
 
-        train_dataset = dataset.data_loader(self.train_dataset,
-                                            self.processor.load_data,
-                                            self.processor.mask,
-                                            self.num_outputs,
-                                            self.batch_size['train'])
+        train_dataset = dataset.torch_data_loader(self.train_dataset,
+                                                  self.processor.load_data,
+                                                  self.batch_size['train'])
 
-        test_dataset = dataset.data_loader(self.test_dataset,
-                                           self.processor.load_data,
-                                           self.processor.mask,
-                                           self.num_outputs,
-                                           self.batch_size['test'])
+        test_dataset = dataset.torch_data_loader(self.test_dataset,
+                                                 self.processor.load_data,
+                                                 self.batch_size['test'])
 
-        val_dataset = dataset.data_loader(self.val_dataset,
-                                          self.processor.load_data,
-                                          self.processor.mask,
-                                          self.num_outputs,
-                                          self.batch_size['valid'])
+        val_dataset = dataset.torch_data_loader(self.val_dataset,
+                                                self.processor.load_data,
+                                                self.batch_size['valid'])
 
-        plot_model(self.model,
-                   to_file=self.path2save_plot_model,
-                   show_shapes=True,
-                   show_layer_names=True)
+        self.data_loader = {'train': train_dataset,
+                            'test': test_dataset,
+                            'valid': val_dataset}
 
-        mlflow.keras.autolog()
+        torch_utils.utils.save_plot_model(input_shape='vdvd', model=self.model)
 
-        with tf.device('/GPU:3'):
-            with mlflow.start_run():
-                self.model.fit(x=train_dataset,
-                               epochs=self.epochs,
-                               verbose=1,
-                               validation_data=val_dataset,
-                               callbacks=self.callbacks,
-                               steps_per_epoch=self.steps_per_epoch,
-                               validation_steps=self.validation_steps,
-                               initial_epoch=0,
-                               use_multiprocessing=True)
+        mlflow.pytorch.autolog()
+        with mlflow.start_run():  # as run:
+            self.set_on_gpus()
+            self.train_model()
 
-                folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
-                mlflow.keras.save_model(self.model, os.path.join(self.path2save_model, folder_name))
-                tf.keras.models.save_model(model=self.model,
-                                           filepath=os.path.join(self.path2save_model, folder_name + 'model_ft'))
-
-            self.results.csv_predicted(self.model, test_dataset)
+            # self.results.csv_predicted(self.model, test_dataset)
