@@ -1,0 +1,5 @@
+
+defaults:
+  - train_task: synth_autoencoder_train_task_shlomi
+#  - optimizer: multi_optimizers
+  - _self_

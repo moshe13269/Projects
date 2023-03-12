@@ -2,6 +2,7 @@ import os
 from Projects_torch import torch_utils
 from Projects_torch import losses
 import torch
+import torch.nn as nn
 import dataset
 import mlflow
 import mlflow.pytorch
@@ -15,7 +16,7 @@ class TrainTestTaskSupervised:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
 
-        self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
+        # self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
 
         self.train_dataset = None
         self.test_dataset = None
@@ -27,13 +28,13 @@ class TrainTestTaskSupervised:
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
         self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
-        self.to_metrics = self.cfg.train_task.TrainTask.get('to_metrics')
+        # self.to_metrics = self.cfg.train_task.TrainTask.get('to_metrics')
         self.num_ce_loss = self.cfg.train_task.TrainTask.get('num_ce_loss')
         self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
         self.outputs_dimension_per_outputs = \
             cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
 
-        self.metrics_ = instantiate(cfg.train_task.TrainTask.metrics)
+        # self.metrics_ = instantiate(cfg.train_task.TrainTask.metrics)
         self.metrics_outputs_dimension_per_outputs = cfg.train_task.TrainTask.metrics.outputs_dimension_per_outputs
 
         self.loss_weights = None
@@ -42,7 +43,15 @@ class TrainTestTaskSupervised:
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
         self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
 
-        self.devices = self.cfg.train_task.TrainTask.get('devices')
+        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
+        self.dataloader_ = instantiate(cfg.train_task.TrainTask.dataloader)
+        self.dataloader = torch.utils.data.DataLoader(
+            self.dataloader_,
+            batch_size=self.batch_size['train'],
+            shuffle=True,
+
+        )
+        self.devices = torch.device(self.cfg.train_task.TrainTask.get('devices'))
         self.loss = None
         self.model = None
         self.optimizer = None
@@ -50,17 +59,11 @@ class TrainTestTaskSupervised:
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
         self.running_loss = {'loss_param': [], 'loss_stft': []}
-        self.data_loader = None
 
-        self.processor = instantiate(cfg.train_task.TrainTask.processor)
-        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
-
-        self.results = instantiate(cfg.train_task.TrainTask.results)
-
-        if self.cfg.train_task.TrainTask.get('to_schedule'):
-            self.schedule = instantiate(cfg.train_task.TrainTask.schedule)
-            self.callbacks = list(self.callbacks) + \
-                             [tf.keras.callbacks.LearningRateScheduler(self.schedule.__call__)]
+        # if self.cfg.train_task.TrainTask.get('to_schedule'):
+        #     self.schedule = instantiate(cfg.train_task.TrainTask.schedule)
+        #     self.callbacks = list(self.callbacks) + \
+        #                      [tf.keras.callbacks.LearningRateScheduler(self.schedule.__call__)]
 
     def instantiate_model(self, cfg, path2load_model):
 
@@ -92,6 +95,7 @@ class TrainTestTaskSupervised:
         }, self.path2save_model)
 
     def set_on_gpus(self, dataset2gpu=False):
+        self.model = nn.DataParallel(self.model)
         self.model.to(self.devices)
         if dataset2gpu:
             self.test_dataset.to(self.devices)
@@ -101,6 +105,8 @@ class TrainTestTaskSupervised:
     def train_model(self):
 
         for epoch in range(self.epochs):
+
+            self.dataloader.shuffle_()
 
             running_loss_parmas_counter = 0.0
             running_loss_stft_counter = 0.0

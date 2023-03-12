@@ -5,8 +5,8 @@ from typing import List, Tuple
 
 
 class SynthAutoEncoder(torch.nn.Module):
-    inputs1: Tuple[int, int, int]
-    inputs2: Tuple[int, int, int]
+    # inputs1: Tuple[int, int, int]
+    # inputs2: Tuple[int, int, int]
 
     transformer: Projects_torch.layers.Transformer
     linear_classifier: Projects_torch.layers.LinearClassifier
@@ -29,7 +29,9 @@ class SynthAutoEncoder(torch.nn.Module):
         self.conv_encoder = conv_encoder
         self.conv_decoder = conv_decoder
 
-    def forward(self, inputs1, inputs2):
+    def forward(self, inputs):
+
+        inputs1, inputs2 = inputs
 
         outputs = self.conv_encoder(inputs1)
 

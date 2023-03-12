@@ -76,7 +76,7 @@ class ConvDecoderModel(nn.Module):
 
         self.conv_layers = layers
 
-        self.avg_pool = nn.AvgPool1d()
+        # self.avg_pool = nn.AvgPool1d()
 
         self.fc = nn.Linear(in_features=units, out_features=1)
 

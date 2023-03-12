@@ -3,6 +3,7 @@ import pickle
 import dataset
 import numpy as np
 from scipy import signal
+from random import shuffle
 from typing import List, Tuple
 from scipy.io import wavfile
 from torch.utils.data import Dataset
@@ -18,14 +19,12 @@ from torch.utils.data import Dataset
     """
 
 
-class CustomImageDataset(Dataset):
+class DataLoaderSTFT(Dataset):
     def __init__(self,
                  dataset_path,
                  norm_mean,
                  norm_std,
                  num_classes,
-                 std_mean_calc,
-                 mask: Tuple[int, int, int]
                  ):
 
         self.norm_mean = norm_mean
@@ -36,6 +35,11 @@ class CustomImageDataset(Dataset):
             [sum(num_classes[:i])
              for i in range(len(num_classes))]
         )
+
+        self.files = [os.path.join(self.dataset_path, file)
+                      for file in os.listdir(self.dataset_path) if file.endswith('.wav')]
+        self.labels = [file.replace('data/', 'labels/').replace('.wav', '.npy')
+                       for file in self.files]
 
     def __len__(self):
         return len(self.dataset_path)
@@ -48,6 +52,9 @@ class CustomImageDataset(Dataset):
                     mask_d[i][j] = 0
         return x, mask_d
 
+    def shuffle_(self):
+        shuffle(self.files)
+
     def label2onehot(self, labels):
         onehot_labels = np.zeros(sum(self.num_classes))
         for i in range(labels.shape[0]):
@@ -55,8 +62,10 @@ class CustomImageDataset(Dataset):
         return onehot_labels
 
     def __getitem__(self, idx):
-        label = np.squeeze(np.load(path2data[1]))
-        samplerate, data = wavfile.read(path2data[0])
+        wav_file = self.files[idx]
+        label_file = self.files[idx].replace('data/', 'labels/').replace('.wav', '.npy')
+        label = np.squeeze(np.load(label_file))
+        samplerate, data = wavfile.read(wav_file)
         f, t, Zxx = signal.stft(data, samplerate, nperseg=253, nfft=256)  # nperseg=256)
         data = (np.abs(Zxx) - self.norm_mean) / self.norm_std
         data = np.transpose(data)
@@ -64,6 +73,8 @@ class CustomImageDataset(Dataset):
 
         label = self.label2onehot(label)
         label = np.ndarray.astype(label, np.float32)
+
+        data = list(self.mask(data))
 
         return data, label
 

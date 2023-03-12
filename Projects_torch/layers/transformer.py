@@ -16,10 +16,10 @@ class EncoderLayer(nn.Module):
         super().__init__()
         self.ln1 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
         self.ln2 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
-        self.mha = MultiheadAttention(batch_first=True,
-                                      dropout=dropout,
-                                      num_heads=num_heads,
-                                      embed_dim=d_model)
+        self.mha = nn.MultiheadAttention(batch_first=True,
+                                         dropout=dropout,
+                                         num_heads=num_heads,
+                                         embed_dim=d_model)
         self.dropout1 = Dropout(dropout)
         self.dropout2 = Dropout(dropout)
         self.ffn = FFN(d_model, d_ff, dropout, activation)
@@ -203,7 +203,7 @@ class TransformerDecoder(nn.Module):
                                             _ in range(num_transformer_decoder_blocks))
 
         self.pos_encoding = LearnablePositionalEncoder(d_model,
-                                                        activation='gelu')
+                                                       activation='gelu')
         self.dropout = Dropout(dropout)
         self.layer_norm = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
 
