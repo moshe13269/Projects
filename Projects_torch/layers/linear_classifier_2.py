@@ -1,9 +1,8 @@
-import tensorflow as tf
-from tensorflow.keras.layers import Dense, Dropout, Reshape, Flatten, ReLU
+from torch import nn
 from typing import List, Tuple
 
 
-class LinearClassifier(tf.keras.layers.Layer):
+class LinearClassifier(nn.Module):
     """
     Transformer Encdoer outputs are: (batch, t', channels)
     Given N classes (types of parameters) when all specific class contain num_classes
@@ -26,20 +25,26 @@ class LinearClassifier(tf.keras.layers.Layer):
 
         self.outputs_dimension_per_outputs = outputs_dimension_per_outputs
         self.activation = activation
-        self.layers = tf.keras.Sequential([
-            tf.keras.layers.GlobalAveragePooling1D(), #Flatten(),
-            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation), #Dense(units=512 * 50, activation=self.activation),
-            Dropout(rate=dropout),
-            # Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
-            # Dropout(rate=dropout),
-            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
-            Dropout(rate=dropout),
-            Dense(units=sum(outputs_dimension_per_outputs), activation=self.activation),
-            Dropout(rate=dropout),
-            Dense(units=sum(outputs_dimension_per_outputs), activation=None)
-        ])
+        self.layers = nn.Sequential(
+            # tf.keras.layers.GlobalAveragePooling1D(), #Flatten(),
+            nn.Flatten(),
+            nn.Linear(in_features=65*512, out_features=sum(outputs_dimension_per_outputs)), #Dense(units=512 * 50, activation=self.activation),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(in_features=sum(outputs_dimension_per_outputs),
+                      out_features=sum(outputs_dimension_per_outputs)),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(in_features=sum(outputs_dimension_per_outputs),
+                      out_features=sum(outputs_dimension_per_outputs)),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(in_features=sum(outputs_dimension_per_outputs),
+                      out_features=sum(outputs_dimension_per_outputs)),
+            nn.ReLU()
+        )
 
-    def call(self, inputs, **kwargs):
-        outputs = self.layers(inputs)
+    def forward(self, x):
+        outputs = self.layers(x)
 
         return outputs

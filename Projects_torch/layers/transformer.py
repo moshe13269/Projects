@@ -14,8 +14,8 @@ class EncoderLayer(nn.Module):
                  activation
                  ):
         super().__init__()
-        self.ln1 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
-        self.ln2 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.ln1 = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
+        self.ln2 = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
         self.mha = nn.MultiheadAttention(batch_first=True,
                                          dropout=dropout,
                                          num_heads=num_heads,
@@ -32,7 +32,9 @@ class EncoderLayer(nn.Module):
     def forward(self, inputs):
         x = inputs  # , e_mask = inputs
         x = self.ln1(x)
-        x = x + self.dropout1(self.mha(query=x, value=x, key=x))  # , attention_mask=e_mask))
+        # x = x.transpose(dim0=1, dim1=2)
+        x_ = self.mha(query=x, value=x, key=x, need_weights=False)[0]
+        x = x + self.dropout1(x_)  # , attention_mask=e_mask))
         x = self.ln2(x)
         x = x + self.dropout2(self.activation(self.ffn(x)))
         return x
@@ -68,21 +70,21 @@ class DecoderLayer(nn.Module):
                  activation,
                  num_heads):
         super().__init__()
-        self.ln1 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.ln1 = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
         self.masked_mha = MultiheadAttention(batch_first=True,
                                              dropout=dropout,
                                              num_heads=num_heads,
                                              embed_dim=d_model)
         self.dropout1 = Dropout(dropout)
 
-        self.ln2 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.ln2 = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
         self.mha = MultiheadAttention(batch_first=True,
                                       dropout=dropout,
                                       num_heads=num_heads,
                                       embed_dim=d_model)
         self.dropout2 = Dropout(dropout)
 
-        self.ln3 = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.ln3 = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
         self.feed_forward = FFN(d_model, d_ff, dropout, activation)
         self.dropout3 = Dropout(dropout)
 
@@ -91,19 +93,21 @@ class DecoderLayer(nn.Module):
 
         x_1 = self.ln1(x)  # (B, L, d_model)
 
-        x = x + self.dropout1(
-            self.masked_mha(x_1, x_1, x_1, mask=d_mask)  # use_causal_mask=True) #
+        x_ = self.masked_mha(x_1, x_1, x_1, attn_mask=d_mask, need_weights=False)[0]
+        x = x_1 + self.dropout1(x_
+              # use_causal_mask=True) #
         )  # (B, L, d_model)
 
         x_2 = self.ln2(x)  # (B, L, d_model)
 
-        x = x + self.dropout2(
-            self.mha(x_2, e_output, e_output)  # e_mask)
+        x_ = self.mha(x_2, e_output, e_output)[0]
+        x = x_2 + self.dropout2(
+              x_# e_mask)
         )  # (B, L, d_model)
 
         x_3 = self.ln3(x)  # (B, L, d_model)
 
-        x = x + self.dropout3(self.feed_forward(x_3))  # (B, L, d_model)
+        x = x_3 + self.dropout3(self.feed_forward(x_3))  # (B, L, d_model)
 
         return x  # (B, L, d_model)
 
@@ -125,7 +129,7 @@ class LearnablePositionalEncoder(nn.Module):
         else:
             self.activation = ReLU()
 
-        self.ln = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.ln = LayerNorm([d_model, 65], elementwise_affine=True, eps=1e-6)
 
     def forward(self, inputs):
         output = self.activation(self.conv(inputs))
@@ -175,13 +179,15 @@ class TransformerEncoder(nn.Module):
         self.pos_encoding = LearnablePositionalEncoder(d_model,
                                                        activation='gelu')
         self.dropout = Dropout(dropout)
-        self.layer_norm = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.layer_norm = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
 
     def forward(self, inputs):
         x = inputs  # x, e_mask = inputs
         x = self.pos_encoding(x)
 
         x = self.dropout(x)
+
+        x = x.transpose(dim0=1, dim1=2) # x: (batch, channels, t) -> (batch, t, channels)
 
         for encoder in self.encoder_blocks:
             x = encoder(x)  # x = encoder([x, e_mask])
@@ -205,13 +211,15 @@ class TransformerDecoder(nn.Module):
         self.pos_encoding = LearnablePositionalEncoder(d_model,
                                                        activation='gelu')
         self.dropout = Dropout(dropout)
-        self.layer_norm = LayerNorm([d_model], elementwise_affine=True, eps=1e-6)
+        self.layer_norm = LayerNorm([65, d_model], elementwise_affine=True, eps=1e-6)
 
     def forward(self, inputs):
         x, e_output, d_mask = inputs  # x, e_output, e_mask, d_mask = inputs
 
+        # x = x.transpose(dim0=1, dim1=2) # x: (batch, t, channels) -> (batch, channels, t)
         x = self.pos_encoding(x)
         x = self.dropout(x)
+        x = x.transpose(dim0=1, dim1=2)  # x: (batch, channels, t) -> (batch, t, channels)
 
         for decoder in self.decoder_blocks:
             x = decoder([x, e_output, d_mask])

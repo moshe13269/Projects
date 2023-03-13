@@ -33,7 +33,7 @@ class SynthAutoEncoder(torch.nn.Module):
 
         inputs1, inputs2 = inputs
 
-        outputs = self.conv_encoder(inputs1)
+        outputs = self.conv_encoder(inputs1) # output:(batch, t, channel)
 
         decoder_outputs, encoder_outputs = self.transformer([outputs, inputs2])
 

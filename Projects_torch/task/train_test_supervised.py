@@ -96,7 +96,7 @@ class TrainTestTaskSupervised:
 
     def set_on_gpus(self, dataset2gpu=False):
         self.model = nn.DataParallel(self.model)
-        self.model.to(self.devices)
+        self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         if dataset2gpu:
             self.test_dataset.to(self.devices)
             self.train_dataset.to(self.devices)
@@ -152,25 +152,25 @@ class TrainTestTaskSupervised:
                 }, self.path2save_model)
 
     def run(self):
-        self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
+        # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
+        #
+        # train_dataset = dataset.torch_data_loader(self.train_dataset,
+        #                                           self.processor.load_data,
+        #                                           self.batch_size['train'])
+        #
+        # test_dataset = dataset.torch_data_loader(self.test_dataset,
+        #                                          self.processor.load_data,
+        #                                          self.batch_size['test'])
+        #
+        # val_dataset = dataset.torch_data_loader(self.val_dataset,
+        #                                         self.processor.load_data,
+        #                                         self.batch_size['valid'])
+        #
+        # self.data_loader = {'train': train_dataset,
+        #                     'test': test_dataset,
+        #                     'valid': val_dataset}
 
-        train_dataset = dataset.torch_data_loader(self.train_dataset,
-                                                  self.processor.load_data,
-                                                  self.batch_size['train'])
-
-        test_dataset = dataset.torch_data_loader(self.test_dataset,
-                                                 self.processor.load_data,
-                                                 self.batch_size['test'])
-
-        val_dataset = dataset.torch_data_loader(self.val_dataset,
-                                                self.processor.load_data,
-                                                self.batch_size['valid'])
-
-        self.data_loader = {'train': train_dataset,
-                            'test': test_dataset,
-                            'valid': val_dataset}
-
-        torch_utils.utils.save_plot_model(input_shape='vdvd', model=self.model)
+        torch_utils.utils.save_plot_model(model=self.model) #, input_shape=None)
 
         mlflow.pytorch.autolog()
         with mlflow.start_run():  # as run:

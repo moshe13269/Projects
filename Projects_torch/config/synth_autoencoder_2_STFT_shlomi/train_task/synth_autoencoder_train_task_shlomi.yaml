@@ -46,7 +46,7 @@ TrainTask:
       units: 512
       conv_layers:
         -
-          - 1
+          - 130
           - 512
           - 4
           - 2
@@ -83,12 +83,13 @@ TrainTask:
     conv_decoder:
       _target_: Projects_torch.layers.conv_wav_decoder.ConvDecoderModel
       activation: gelu
-      units: 129
+      units: 512
       conv_layers:
         -
           - 512
           - 512
-          - 2
+          - 3
+          - 1
           - 1
 
         -
@@ -96,11 +97,13 @@ TrainTask:
           - 512
           - 3
           - 1
+          - 1
 
         -
           - 512
           - 512
           - 3
+          - 1
           - 1
 
         -
@@ -108,6 +111,7 @@ TrainTask:
           - 512
           - 4
           - 2
+          - 1
 
       num_duplicate_layer:
         - 1

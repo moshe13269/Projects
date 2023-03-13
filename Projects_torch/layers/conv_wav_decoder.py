@@ -22,7 +22,7 @@ class ConvDecoderModel(nn.Module):
                   is_group_norm=True,
                   conv_bias=False):
 
-            (in_channels, dim, kernel, stride) = layers_param  # (dim, kernel, stride, output_padding) = layers_param
+            (in_channels, dim, kernel, stride, padding) = layers_param  # (dim, kernel, stride, output_padding) = layers_param
 
             def make_conv():
                 conv = nn.ConvTranspose1d(in_channels=in_channels,
@@ -30,7 +30,7 @@ class ConvDecoderModel(nn.Module):
                                           kernel_size=kernel,
                                           stride=stride,
                                           bias=conv_bias,
-                                          padding=1,
+                                          padding=padding,
                                           )
                 return conv
 
@@ -78,14 +78,16 @@ class ConvDecoderModel(nn.Module):
 
         # self.avg_pool = nn.AvgPool1d()
 
-        self.fc = nn.Linear(in_features=units, out_features=1)
+        self.fc = nn.Linear(in_features=units, out_features=129)
 
         self.activation = nn.GELU()
 
     def forward(self, x, **kwargs):
         # BxT -> BxTxC
+        x = x.transpose(dim0=1, dim1=2)
         for conv in self.conv_layers:
             x = conv(x)
+        x = x.transpose(dim0=1, dim1=2)
         return self.activation(self.fc(x))
 
 
