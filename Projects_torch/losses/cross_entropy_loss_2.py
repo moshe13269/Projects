@@ -1,7 +1,9 @@
-import tensorflow as tf
+
+import torch
+from torch import nn
 
 
-class CELoss(tf.keras.losses.Loss):
+class CELoss(nn.Module):
     """
     inputs: (batch, c') where c'=sum(outputs_dimension_per_outputs)
 
@@ -18,7 +20,7 @@ class CELoss(tf.keras.losses.Loss):
         self.index2split = [sum(self.outputs_dimension_per_outputs[:i])
                             for i in range(len(self.outputs_dimension_per_outputs) + 1)]
 
-        self.ce = tf.keras.losses.CategoricalCrossentropy()
+        self.ce = nn.CrossEntropyLoss()
 
         self.classes_weight = {'8': [0.750588, 0.249412],
                                '10': [0.211888, 0.363552, 0.363552, 0.363552],
@@ -38,27 +40,26 @@ class CELoss(tf.keras.losses.Loss):
                                }
         self.classes_with_weights = [8, 10, 11, 12, 13, 14, 15]
 
-    def call(self, y_true, y_pred):
+    def forward(self, output, target):
         # tf.print(tf.shape(y_true), tf.shape(y_true))
-        y_true = self.split(y_true)
-        y_pred = self.split(y_pred)
+        output = self.split(output)
+        target = self.split(target)
 
         # y_pred = [tf.nn.softmax(output) for output in y_pred]
 
         # loss = [tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
         #         for i in range(len(y_pred))]
         loss = 0.0
-        for i in range(len(y_pred)):
+        for i in range(len(target)):
             # if i in self.classes_with_weights and len(y_pred) > 9:
             #     loss += self.ce(y_true[i], tf.nn.softmax(y_pred[i]),
             #                     sample_weight=tf.constant(self.classes_weight[str(i)]))
             # else:
-                loss += self.ce(y_true[i], tf.nn.softmax(y_pred[i]))
+                loss += self.ce(output[i], torch.nn.functional.softmax(target[i]))
             # loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
-        loss = loss / len(y_pred)
+        loss = loss / len(target)
         return loss
 
-    @tf.autograph.experimental.do_not_convert
     def split(self, inputs):
         return [inputs[:, self.index2split[i]: self.index2split[i + 1]] for i in range(len(self.index2split) - 1)]
         # tf.keras.layers.Lambda(lambda x: tf.squeeze(x, axis=-1))

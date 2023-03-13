@@ -43,7 +43,7 @@ class SynthAutoEncoder(torch.nn.Module):
 
         stft = torch.cat([inputs1, stft_outputs], dim=0)
 
-        return outputs_params_list, inputs1, stft
+        return outputs_params_list, stft
 
 
 if __name__ == '__main__':

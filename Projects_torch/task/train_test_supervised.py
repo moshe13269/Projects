@@ -9,6 +9,8 @@ import mlflow.pytorch
 from mlflow import MlflowClient
 from omegaconf import DictConfig
 from hydra.utils import instantiate
+from torch.utils.data.distributed import DistributedSampler
+from torch.nn.parallel import DistributedDataParallel as DDP
 
 
 class TrainTestTaskSupervised:
@@ -49,8 +51,9 @@ class TrainTestTaskSupervised:
             self.dataloader_,
             batch_size=self.batch_size['train'],
             shuffle=True,
-
+            num_workers=6
         )
+        self.lr = self.cfg.train_task.TrainTask.get('learning_rate')
         self.devices = torch.device(self.cfg.train_task.TrainTask.get('devices'))
         self.loss = None
         self.model = None
@@ -68,14 +71,13 @@ class TrainTestTaskSupervised:
     def instantiate_model(self, cfg, path2load_model):
 
         self.model = instantiate(cfg.train_task.TrainTask.model)
-        self.optimizer = instantiate(cfg.train_task.TrainTask.optimizer)
-
+        self.optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.lr)
         if path2load_model is not None:
             checkpoint = torch.load(path2load_model)
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             self.epoch = checkpoint['epoch']
-            self.loss = checkpoint['loss']
+            self.loss = checkpoint['loss'].cuda()
             #
             # model.eval()
             # # - or -
@@ -84,6 +86,8 @@ class TrainTestTaskSupervised:
                                                   cfg.train_task.TrainTask.loss_ce,
                                                   list(self.outputs_dimension_per_outputs),
                                                   cfg.train_task.TrainTask.loss)
+            for i in range(len(self.loss)):
+                self.loss[i] = self.loss[i].cuda()
         self.model.train()  # model.train(mode=False)
 
     def save_model(self):
@@ -91,12 +95,16 @@ class TrainTestTaskSupervised:
             'epoch': self.epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'loss': self.loss
+            'loss_stft': self.loss[0],
+            'loss_param': self.loss[1]
         }, self.path2save_model)
 
     def set_on_gpus(self, dataset2gpu=False):
-        self.model = nn.DataParallel(self.model)
-        self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        self.model.to('cuda')  # .to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        # self.model = DDP(self.model, device_ids=[0, 1, 2, 3])
+        self.model = nn.DataParallel(self.model, device_ids=[0, 1, 2, 3]).cuda()
+        self.model.train()
+
         if dataset2gpu:
             self.test_dataset.to(self.devices)
             self.train_dataset.to(self.devices)
@@ -104,32 +112,40 @@ class TrainTestTaskSupervised:
 
     def train_model(self):
 
+        # model = self.model
         for epoch in range(self.epochs):
 
-            self.dataloader.shuffle_()
+            # self.dataloader.shuffle_()
 
             running_loss_parmas_counter = 0.0
             running_loss_stft_counter = 0.0
 
             num_steps = 0
 
-            for i, data in enumerate(self.data_loader['train']):
+            for i, data in enumerate(self.dataloader, 0):
                 inputs, labels = data
-                inputs, labels = inputs.to(self.devices), labels.to(self.devices)
+                labels = labels.cuda()
+                inputs0 = inputs[0].cuda()#.to(self.devices)
+                inputs1 = inputs[1].cuda()#.to(self.devices)
+                inputs = [inputs0, inputs1]
                 self.optimizer.zero_grad()
 
                 pred_param, stft_rec = self.model(inputs)
-                loss_param = self.loss[0](pred_param, labels)
-                loss_stft = self.loss[1](stft_rec, inputs[0])
+                loss_param = self.loss[1](pred_param, labels)
+                loss_stft = self.loss[0](stft_rec, inputs[0])
 
-                loss_param.backward()
+                loss_param.backward(retain_graph=True)
                 loss_stft.backward()
                 self.optimizer.step()
 
                 running_loss_parmas_counter += loss_param.item()
                 running_loss_stft_counter += loss_stft.item()
 
-                num_steps = i
+                num_steps += 1
+
+                if num_steps > 0:
+                    print('loss_param: %f, loss_stft: %f'
+                          % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
 
             running_loss_parmas_counter = running_loss_parmas_counter / num_steps
             running_loss_stft_counter = running_loss_stft_counter / num_steps
@@ -144,9 +160,11 @@ class TrainTestTaskSupervised:
     def custom_checkpoints(self):
         if len(self.running_loss['loss_param']) >= 2:
             if self.running_loss['loss_param'][-1] < self.running_loss['loss_param'][-2]:
+                model = self.model
+                model = model.cpu().state_dict()
                 torch.save({
                     'epoch': self.epoch,
-                    'model_state_dict': self.model.state_dict(),
+                    'model_state_dict': model,
                     'optimizer_state_dict': self.optimizer.state_dict(),
                     'loss': self.loss,
                 }, self.path2save_model)

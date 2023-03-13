@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 from typing import List, Tuple
 
@@ -58,7 +59,7 @@ class ConvFeatureExtractionModel(nn.Module):
                     nn.GELU(),
                 )
 
-        layers = []
+        layers = torch.nn.ModuleList() #[]
 
         for i, layers_param in enumerate(conv_layers):
 

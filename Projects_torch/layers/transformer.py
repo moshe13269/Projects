@@ -93,6 +93,8 @@ class DecoderLayer(nn.Module):
 
         x_1 = self.ln1(x)  # (B, L, d_model)
 
+        if len(d_mask.shape) > 2:
+            d_mask = d_mask[0].squeeze()
         x_ = self.masked_mha(x_1, x_1, x_1, attn_mask=d_mask, need_weights=False)[0]
         x = x_1 + self.dropout1(x_
               # use_causal_mask=True) #

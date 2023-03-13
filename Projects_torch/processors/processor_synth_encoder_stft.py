@@ -45,12 +45,12 @@ class DataLoaderSTFT(Dataset):
         return len(self.dataset_path)
 
     def mask(self, x):
-        mask_d = np.ones((65, 65))
+        mask_d = np.ones((65, 65), dtype=np.float32)
         for i in range(65):
             for j in range(65):
                 if j > i:
                     mask_d[i][j] = 0
-        return x, mask_d
+        return x, mask_d #np.float32(mask_d)
 
     def shuffle_(self):
         shuffle(self.files)
