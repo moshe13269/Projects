@@ -1,4 +1,0 @@
-
-defaults:
-  - train_task: synth_inference_noy_task
-  - _self_

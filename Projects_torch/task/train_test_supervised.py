@@ -102,7 +102,7 @@ class TrainTestTaskSupervised:
     def set_on_gpus(self, dataset2gpu=False):
         self.model.to('cuda')  # .to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         # self.model = DDP(self.model, device_ids=[0, 1, 2, 3])
-        self.model = nn.DataParallel(self.model, device_ids=[0, 1, 2, 3]).cuda()
+        self.model = self.model.cuda() #nn.DataParallel(self.model, device_ids=[0, 1, 2, 3]).cuda()
         self.model.train()
 
         if dataset2gpu:
@@ -130,7 +130,11 @@ class TrainTestTaskSupervised:
                 inputs = [inputs0, inputs1]
                 self.optimizer.zero_grad()
 
-                pred_param, stft_rec = self.model(inputs)
+                try:
+                    pred_param, stft_rec = self.model(inputs)
+                except RuntimeError:
+                    a=0
+                # pred_param, stft_rec = self.model(inputs)
                 loss_param = self.loss[1](pred_param, labels)
                 loss_stft = self.loss[0](stft_rec, inputs[0])
 
@@ -143,7 +147,7 @@ class TrainTestTaskSupervised:
 
                 num_steps += 1
 
-                if num_steps > 0 and num_steps % 100:
+                if num_steps > 0 and num_steps % 200:
                     print('loss_param: %f, loss_stft: %f'
                           % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
 

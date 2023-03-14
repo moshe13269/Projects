@@ -5,9 +5,10 @@ import hydra
 from omegaconf import DictConfig
 
 
-@hydra.main(config_path=os.path.join('../config', 'synth_autoencoder_2_STFT_noy'), config_name='config')
+@hydra.main(config_path=os.path.join('../config', 'data2vec'), config_name='config')
 def main(cfg: DictConfig) -> None:
-    train_task = task.TrainTestTaskSupervised(cfg)
+    # print(OmegaConf.to_yaml(cfg))
+    train_task = task.TrainTask(cfg)
     train_task.run()
 
 

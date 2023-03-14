@@ -1,4 +1,0 @@
-
-defaults:
-  - train_task: synth_autoencoder_2_train_task
-  - _self_

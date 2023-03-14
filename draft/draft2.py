@@ -7,7 +7,7 @@ import tensorflow_addons as tfa
 from tensorflow.data import AUTOTUNE
 # from tensorflow.python.keras.layers import Conv2D, ReLU, Input, Activation, Flatten, Dense
 
-# tf.config_tensorflow.run_functions_eagerly(True)
+# tf.config.run_functions_eagerly(True)
 
 
 def list_of_path2dataset(path2dataset):

@@ -39,7 +39,7 @@ class DataLoaderSTFT(Dataset): #torchvision.datasets.ImageFolder):  #
                       for file in os.listdir(self.dataset_path) if file.endswith('.wav')]
         self.labels = [file.replace('data/', 'labels/').replace('.wav', '.npy')
                        for file in self.files]
-        self.files_ = list(zip(self.files, self.labels))
+        self.files_ = list(zip(self.files[:1536], self.labels[:1536]))
 
     def __len__(self):
         return len(self.files_)

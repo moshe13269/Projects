@@ -55,7 +55,7 @@ class CELoss(nn.Module):
             #     loss += self.ce(y_true[i], tf.nn.softmax(y_pred[i]),
             #                     sample_weight=tf.constant(self.classes_weight[str(i)]))
             # else:
-                loss += self.ce(output[i], torch.nn.functional.softmax(target[i]))
+                loss += self.ce(output[i], torch.nn.functional.softmax(target[i], dim=1))
             # loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
         loss = loss / len(target)
         return loss
