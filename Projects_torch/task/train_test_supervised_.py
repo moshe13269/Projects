@@ -3,7 +3,6 @@ from Projects_torch import torch_utils
 from Projects_torch import losses
 import torch
 import torch.nn as nn
-import dataset
 import mlflow
 import mlflow.pytorch
 from mlflow import MlflowClient
@@ -11,6 +10,31 @@ from omegaconf import DictConfig
 from hydra.utils import instantiate
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.distributed as dist
+
+
+def init_distributed():
+
+    # Initializes the distributed backend which will take care of synchronizing nodes/GPUs
+    dist_url = "env://"  # default
+
+    # only works with torch.distributed.launch // torch.run
+    # dist.init_process_group(backend='nccl', world_size=0, rank=0)
+    dist.init_process_group(backend='nccl', world_size=2, rank=0, init_method='tcp://127.0.0.1:22334')
+    rank = int(os.environ["RANK"])
+    world_size = int(os.environ['WORLD_SIZE'])
+    local_rank = int(os.environ['LOCAL_RANK'])
+    dist.init_process_group(
+        backend="nccl",
+        init_method=dist_url,
+        world_size=world_size,
+        rank=rank)
+
+    # this will make all .cuda() calls work properly
+    torch.cuda.set_device(local_rank)
+
+    # synchronizes all the threads to reach this point before moving on
+    dist.barrier()
 
 
 class TrainTestTaskSupervised:
@@ -113,8 +137,55 @@ class TrainTestTaskSupervised:
 
     def train_model(self):
 
+        rank = 1 * 2 + 2
+        dist.init_process_group(
+            backend='nccl',
+            init_method='env://',
+            world_size=4,
+            rank=rank
+        )
+        torch.manual_seed(0)
+        torch.cuda.set_device(2)
+        self.loss[0] = self.loss[0].cuda(2)
+        self.loss[1] = self.loss[1].cuda(2)
+        self.model.cuda(2)
+        self.model = nn.parallel.DistributedDataParallel(self.model,
+                                                    device_ids=[2])
+
+        train_sampler = DistributedSampler(dataset=self.dataloader_,
+                                           num_replicas=4,
+                                           rank=rank,
+                                           shuffle=True)
+
+        self.dataloader = torch.utils.data.DataLoader(self.dataloader_,
+                                                      batch_size=self.batch_size['train'],
+                                                      sampler=train_sampler,
+                                                      shuffle=False,
+                                                      num_workers=10,
+                                                      pin_memory=True)
+        a =0
+
+        # init_distributed()
+
+        # os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+        #
+        # self.model = self.model.cuda()
+        # # self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
+        # # local_rank = int(os.environ['LOCAL_RANK'])
+        # self.model = nn.parallel.DistributedDataParallel(self.model) #, device_ids=[0, 1])
+        #
+        # train_sampler = DistributedSampler(dataset=self.dataloader_, shuffle=True)
+        # self.dataloader = torch.utils.data.DataLoader(self.dataloader_,
+        #                                               batch_size=self.batch_size['train'],
+        #                                               sampler=train_sampler,
+        #                                               num_workers=10,
+        #                                               pin_memory=True)
+
+
         # model = self.model
         for epoch in range(self.epochs):
+
+            # self.dataloader.sampler.se
 
             # self.dataloader.shuffle_()
 
@@ -127,8 +198,8 @@ class TrainTestTaskSupervised:
             for step, (inputs, labels) in enumerate(self.dataloader, 1):
                 # inputs, labels = data
                 labels = labels.cuda()
-                inputs0 = inputs[0].cuda()#.to(self.devices)
-                inputs1 = inputs[1].cuda()#.to(self.devices)
+                inputs0 = inputs[0].cuda(non_blocking=True)#.to(self.devices)
+                inputs1 = inputs[1].cuda(non_blocking=True)#.to(self.devices)
                 inputs = [inputs0, inputs1]
                 self.optimizer.zero_grad()
 
@@ -176,29 +247,14 @@ class TrainTestTaskSupervised:
                 }, self.path2save_model)
 
     def run(self):
-        # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
-        #
-        # train_dataset = dataset.torch_data_loader(self.train_dataset,
-        #                                           self.processor.load_data,
-        #                                           self.batch_size['train'])
-        #
-        # test_dataset = dataset.torch_data_loader(self.test_dataset,
-        #                                          self.processor.load_data,
-        #                                          self.batch_size['test'])
-        #
-        # val_dataset = dataset.torch_data_loader(self.val_dataset,
-        #                                         self.processor.load_data,
-        #                                         self.batch_size['valid'])
-        #
-        # self.data_loader = {'train': train_dataset,
-        #                     'test': test_dataset,
-        #                     'valid': val_dataset}
 
         torch_utils.utils.save_plot_model(model=self.model) #, input_shape=None)
 
         mlflow.pytorch.autolog()
         with mlflow.start_run():  # as run:
-            self.set_on_gpus()
+            # self.set_on_gpus() ###################################
             self.train_model()
 
             # self.results.csv_predicted(self.model, test_dataset)
+
+
