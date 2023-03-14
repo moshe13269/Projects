@@ -1,5 +1,8 @@
 import os
 import pickle
+
+import torchvision
+
 import dataset
 import numpy as np
 from scipy import signal
@@ -19,14 +22,10 @@ from torch.utils.data import Dataset
     """
 
 
-class DataLoaderSTFT(Dataset):
-    def __init__(self,
-                 dataset_path,
-                 norm_mean,
-                 norm_std,
-                 num_classes,
-                 ):
+class DataLoaderSTFT(Dataset): #torchvision.datasets.ImageFolder):  #
+    def __init__(self, dataset_path, norm_mean, norm_std, num_classes):
 
+        super().__init__()
         self.norm_mean = norm_mean
         self.norm_std = norm_std
         self.dataset_path = dataset_path
@@ -40,9 +39,10 @@ class DataLoaderSTFT(Dataset):
                       for file in os.listdir(self.dataset_path) if file.endswith('.wav')]
         self.labels = [file.replace('data/', 'labels/').replace('.wav', '.npy')
                        for file in self.files]
+        self.files_ = list(zip(self.files, self.labels))
 
     def __len__(self):
-        return len(self.dataset_path)
+        return len(self.files_)
 
     def mask(self, x):
         mask_d = np.ones((65, 65), dtype=np.float32)
@@ -50,7 +50,7 @@ class DataLoaderSTFT(Dataset):
             for j in range(65):
                 if j > i:
                     mask_d[i][j] = 0
-        return x, mask_d #np.float32(mask_d)
+        return x, mask_d  # np.float32(mask_d)
 
     def shuffle_(self):
         shuffle(self.files)
@@ -62,8 +62,8 @@ class DataLoaderSTFT(Dataset):
         return onehot_labels
 
     def __getitem__(self, idx):
-        wav_file = self.files[idx]
-        label_file = self.files[idx].replace('data/', 'labels/').replace('.wav', '.npy')
+        wav_file = self.files_[idx][0]
+        label_file = self.files_[idx][0].replace('data/', 'labels/').replace('.wav', '.npy')
         label = np.squeeze(np.load(label_file))
         samplerate, data = wavfile.read(wav_file)
         f, t, Zxx = signal.stft(data, samplerate, nperseg=253, nfft=256)  # nperseg=256)
@@ -77,7 +77,6 @@ class DataLoaderSTFT(Dataset):
         data = list(self.mask(data))
 
         return data, label
-
 
 # class Processor:
 #     std_mean_calc: dataset.StdMeanCalc
