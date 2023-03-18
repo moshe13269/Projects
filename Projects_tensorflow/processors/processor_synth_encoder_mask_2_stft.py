@@ -64,7 +64,7 @@ class Processor:
     @tf.function
     def mask_inference(self, x):
         # mask_e = tf.ones(tuple(self.mask_shape))
-        mask_d = tf.ones(tuple(self.mask_shape))
+        mask_d = tf.ones((65, 1))
         return x, mask_d #mask_e,
 
     def load_data(self, path2data):

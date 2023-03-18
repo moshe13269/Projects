@@ -11,10 +11,10 @@ from hydra.utils import instantiate
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
+import torch.multiprocessing as mp
 
 
 def init_distributed():
-
     # Initializes the distributed backend which will take care of synchronizing nodes/GPUs
     dist_url = "env://"  # default
 
@@ -126,7 +126,7 @@ class TrainTestTaskSupervised:
     def set_on_gpus(self, dataset2gpu=False):
         self.model.to('cuda')  # .to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         # self.model = DDP(self.model, device_ids=[0, 1, 2, 3])
-        self.model = self.model.cuda() #nn.DataParallel(self.model, device_ids=[0, 1, 2, 3]).cuda()
+        self.model = torch.nn.DataParallel(self.model, device_ids=[0, 1, 2, 3]).cuda() #self.model.cuda()  #
 
         self.model.train()
 
@@ -137,24 +137,28 @@ class TrainTestTaskSupervised:
 
     def train_model(self):
 
-        rank = 1 * 2 + 2
-        dist.init_process_group(
-            backend='nccl',
-            init_method='env://',
-            world_size=4,
-            rank=rank
-        )
-        torch.manual_seed(0)
-        torch.cuda.set_device(2)
-        self.loss[0] = self.loss[0].cuda(2)
-        self.loss[1] = self.loss[1].cuda(2)
-        self.model.cuda(2)
-        self.model = nn.parallel.DistributedDataParallel(self.model,
-                                                    device_ids=[2])
+        # rank = 1 * 2 + 2
+        # os.environ["MASTER_ADDR"] = "localhost"
+        # os.environ["MASTER_PORT"] = "12357"  # "12355"
+        # dist.init_process_group(
+        #     backend='nccl',
+        #     init_method='env://',
+        #     world_size=torch.cuda.device_count(),  # 4
+        #     rank=0  # rank
+        # )
+        # torch.manual_seed(0)
+        # torch.cuda.set_device(0)
+        # self.loss[0] = self.loss[0].cuda(0)
+        # self.loss[1] = self.loss[1].cuda(0)
+        # self.model.cuda(0)
+        # torch.cuda.set_device(0)
+        # self.model = nn.parallel.DistributedDataParallel(self.model,
+        #                                                  device_ids=[0],
+        #                                                  output_device=0)
 
         train_sampler = DistributedSampler(dataset=self.dataloader_,
                                            num_replicas=4,
-                                           rank=rank,
+                                           rank=0,
                                            shuffle=True)
 
         self.dataloader = torch.utils.data.DataLoader(self.dataloader_,
@@ -163,7 +167,7 @@ class TrainTestTaskSupervised:
                                                       shuffle=False,
                                                       num_workers=10,
                                                       pin_memory=True)
-        a =0
+        a = 0
 
         # init_distributed()
 
@@ -181,7 +185,6 @@ class TrainTestTaskSupervised:
         #                                               num_workers=10,
         #                                               pin_memory=True)
 
-
         # model = self.model
         for epoch in range(self.epochs):
 
@@ -198,16 +201,16 @@ class TrainTestTaskSupervised:
             for step, (inputs, labels) in enumerate(self.dataloader, 1):
                 # inputs, labels = data
                 labels = labels.cuda()
-                inputs0 = inputs[0].cuda(non_blocking=True)#.to(self.devices)
-                inputs1 = inputs[1].cuda(non_blocking=True)#.to(self.devices)
+                inputs0 = inputs[0].cuda(non_blocking=True)  # .to(self.devices)
+                inputs1 = inputs[1].cuda(non_blocking=True)  # .to(self.devices)
                 inputs = [inputs0, inputs1]
                 self.optimizer.zero_grad()
 
-                try:
-                    pred_param, stft_rec = self.model(inputs)
-                except RuntimeError:
-                    a=0
+                # try:
                 # pred_param, stft_rec = self.model(inputs)
+                # except RuntimeError:
+                #     a = 0
+                pred_param, stft_rec = self.model(inputs)
                 loss_param = self.loss[1](pred_param, labels)
                 loss_stft = self.loss[0](stft_rec, inputs[0])
 
@@ -222,7 +225,7 @@ class TrainTestTaskSupervised:
 
                 if num_steps > 0 and num_steps % 200:
                     print('loss_param: %f, loss_stft: %f'
-                          % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
+                          % (running_loss_parmas_counter / num_steps, running_loss_stft_counter / num_steps))
 
             running_loss_parmas_counter = running_loss_parmas_counter / num_steps
             running_loss_stft_counter = running_loss_stft_counter / num_steps
@@ -248,13 +251,11 @@ class TrainTestTaskSupervised:
 
     def run(self):
 
-        torch_utils.utils.save_plot_model(model=self.model) #, input_shape=None)
+        torch_utils.utils.save_plot_model(model=self.model)  # , input_shape=None)
 
         mlflow.pytorch.autolog()
         with mlflow.start_run():  # as run:
-            # self.set_on_gpus() ###################################
+            self.set_on_gpus() ###################################
             self.train_model()
 
             # self.results.csv_predicted(self.model, test_dataset)
-
-

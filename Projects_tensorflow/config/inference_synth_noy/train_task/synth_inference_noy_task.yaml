@@ -1,0 +1,63 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load:
+      - /home/moshelaufer/PycharmProjects/datasets/noy_synth/
+    type_files: wav
+    labels: True
+    dataset_names: tal_noise_1
+
+  path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/9/ #7
+
+  outputs_dimension_per_outputs:
+    - 3
+    - 12
+    - 20
+    - 31
+    - 4
+    - 5
+    - 8
+    - 5
+    - 16
+
+  processor:
+    _target_: Projects_tensorflow.processors.processor_synth_encoder_mask_2_stft.Processor #processors.processor_synth_encoder.Processor #
+    norm_mean: 0.013329904
+    norm_std: 0.041720923
+    std_mean_calc:
+      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
+      stft: True
+    mask:
+      - 65
+      - 1
+    num_classes:
+      - 3
+      - 12
+      - 20
+      - 31
+      - 4
+      - 5
+      - 8
+      - 5
+      - 16
+
+  batch_size:
+    train: 1
+    test: 1
+    valid: 1
+
+  epochs: 1
+  path2save_model: /home/moshelaufer/PycharmProjects/results/models
+  model_name: synth_encoder
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/noy_autoencoder/
+  num_outputs: 9
+
+  results:
+    _target_: Projects_tensorflow.results.results.Results
+    path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
+    num_class: 100
+
