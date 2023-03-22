@@ -15,8 +15,7 @@ def ce_loss_instantiate(outputs_dimension_per_outputs, loss_ce):
 
 def losses_instantiate(num_ce_loss, cfg, outputs_dimension_per_outputs):
     loss_ce = cfg.train_task.TrainTask.loss_ce
-    if 'loss' in cfg.train_task.TrainTask:
-        loss = cfg.train_task.TrainTask.loss
+
     if num_ce_loss == 1:
         loss_ce = [instantiate(loss_ce)]
     else:
@@ -26,7 +25,7 @@ def losses_instantiate(num_ce_loss, cfg, outputs_dimension_per_outputs):
     #     loss_ce = [loss_ce]
 
     if 'loss' in cfg.train_task.TrainTask:
-        # num_losses = len(loss)
+        loss = cfg.train_task.TrainTask.loss
         audio_loss = instantiate(loss)
         # if num_losses == 1:
         #     audio_loss = [audio_loss]
