@@ -1,0 +1,8 @@
+[2023-01-25 17:56:43,508][tensorflow][WARNING] - AutoGraph could not transform <bound method CELoss.call of <losses.cross_entropy_loss_2.CELoss object at 0x7f99e03a2af0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-01-25 18:10:03,472][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 18:22:43,062][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 18:35:22,617][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 18:48:02,529][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.

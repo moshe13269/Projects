@@ -1,0 +1,4 @@
+[2023-02-15 00:01:14,130][tensorflow][WARNING] - AutoGraph could not transform <bound method GroupNormalization.call of <tensorflow_addons.layers.normalizations.GroupNormalization object at 0x7ff068ac1f40>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert

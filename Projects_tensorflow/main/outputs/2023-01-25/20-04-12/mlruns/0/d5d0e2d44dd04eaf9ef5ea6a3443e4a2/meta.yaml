@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-25/20-04-12/mlruns/0/d5d0e2d44dd04eaf9ef5ea6a3443e4a2/artifacts
+end_time: 1674681619567
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d5d0e2d44dd04eaf9ef5ea6a3443e4a2
+run_name: delightful-finch-718
+run_uuid: d5d0e2d44dd04eaf9ef5ea6a3443e4a2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1674669864368
+status: 4
+tags: []
+user_id: moshelaufer

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/Projects_tensorflow/main/outputs/2023-03-14/12-06-20/mlruns/0/f71ce8fc57f04999a16c70ddec235a82/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: f71ce8fc57f04999a16c70ddec235a82
+run_name: able-pig-201
+run_uuid: f71ce8fc57f04999a16c70ddec235a82
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1678788391638
+status: 1
+tags: []
+user_id: moshelaufer

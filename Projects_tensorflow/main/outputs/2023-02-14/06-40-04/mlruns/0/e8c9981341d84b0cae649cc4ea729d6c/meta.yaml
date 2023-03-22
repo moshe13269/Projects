@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-02-14/06-40-04/mlruns/0/e8c9981341d84b0cae649cc4ea729d6c/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e8c9981341d84b0cae649cc4ea729d6c
+run_name: redolent-ant-433
+run_uuid: e8c9981341d84b0cae649cc4ea729d6c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676349615596
+status: 1
+tags: []
+user_id: moshelaufer

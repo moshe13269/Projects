@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/Projects_tensorflow/main/outputs/2023-03-18/19-12-31/mlruns/0/a3ae4749f1004931929bed1536eafaae/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: a3ae4749f1004931929bed1536eafaae
+run_name: omniscient-carp-861
+run_uuid: a3ae4749f1004931929bed1536eafaae
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1679159562748
+status: 1
+tags: []
+user_id: moshelaufer

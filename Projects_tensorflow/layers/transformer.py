@@ -184,6 +184,7 @@ class Transformer(Layer):
                  d_ff,
                  dropout,
                  activation,
+                 decoder=True,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -194,13 +195,15 @@ class Transformer(Layer):
                                                       dropout,
                                                       activation)
 
-        self.transformer_decoder = TransformerDecoder(
-            num_transformer_blocks,
-            d_model,
-            num_heads,
-            d_ff,
-            dropout,
-            activation)
+        self.decoder = decoder
+        if self.decoder:
+            self.transformer_decoder = TransformerDecoder(
+                num_transformer_blocks,
+                d_model,
+                num_heads,
+                d_ff,
+                dropout,
+                activation)
 
         self.fc = Dense(d_model, activation=activation)
 
@@ -209,11 +212,13 @@ class Transformer(Layer):
 
         enc_outputs = self.transformer_encoder(x)
 
-        x = self.transformer_decoder([x, enc_outputs, d_mask])
+        if self.decoder:
+            x = self.transformer_decoder([x, enc_outputs, d_mask])
 
-        x = self.fc(x)
+            x = self.fc(x)
 
-        return x, enc_outputs
+            return x, enc_outputs
+        return enc_outputs
 
 
 if __name__ == '__main__':

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-31/08-40-39/mlruns/0/360e0d7cd4154b47bf73f44de9d4fe80/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 360e0d7cd4154b47bf73f44de9d4fe80
+run_name: enthused-shrimp-176
+run_uuid: 360e0d7cd4154b47bf73f44de9d4fe80
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1675147254078
+status: 1
+tags: []
+user_id: moshelaufer

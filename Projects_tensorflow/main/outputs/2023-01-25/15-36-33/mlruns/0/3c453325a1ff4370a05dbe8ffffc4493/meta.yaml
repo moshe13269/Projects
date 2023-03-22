@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-25/15-36-33/mlruns/0/3c453325a1ff4370a05dbe8ffffc4493/artifacts
+end_time: 1674662157974
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 3c453325a1ff4370a05dbe8ffffc4493
+run_name: bemused-mare-67
+run_uuid: 3c453325a1ff4370a05dbe8ffffc4493
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1674653827312
+status: 4
+tags: []
+user_id: moshelaufer

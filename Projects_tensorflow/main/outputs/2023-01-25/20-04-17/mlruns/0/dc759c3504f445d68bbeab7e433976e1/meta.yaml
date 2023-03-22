@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-25/20-04-17/mlruns/0/dc759c3504f445d68bbeab7e433976e1/artifacts
+end_time: 1674681568399
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: dc759c3504f445d68bbeab7e433976e1
+run_name: powerful-goose-54
+run_uuid: dc759c3504f445d68bbeab7e433976e1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1674669871285
+status: 4
+tags: []
+user_id: moshelaufer

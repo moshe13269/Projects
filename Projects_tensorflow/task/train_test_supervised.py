@@ -33,9 +33,8 @@ class TrainTestTaskSupervised:
             cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
 
         self.loss = losses.losses_instantiate(self.num_ce_loss,
-                                              cfg.train_task.TrainTask.loss_ce,
-                                              list(self.outputs_dimension_per_outputs),
-                                              cfg.train_task.TrainTask.loss)
+                                              cfg,
+                                              list(self.outputs_dimension_per_outputs))
 
         # self.metrics = metrics.acc_metrics_instantiate2(
         #     self.to_metrics,

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-02-14/06-34-04/mlruns/0/ad0047191785427181ba2b2a51822b68/artifacts
+end_time: 1676349464913
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ad0047191785427181ba2b2a51822b68
+run_name: smiling-elk-38
+run_uuid: ad0047191785427181ba2b2a51822b68
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676349414106
+status: 4
+tags: []
+user_id: moshelaufer

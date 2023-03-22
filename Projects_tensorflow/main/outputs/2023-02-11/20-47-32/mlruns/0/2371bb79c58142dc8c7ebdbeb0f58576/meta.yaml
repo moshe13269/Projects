@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-02-11/20-47-32/mlruns/0/2371bb79c58142dc8c7ebdbeb0f58576/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 2371bb79c58142dc8c7ebdbeb0f58576
+run_name: angry-shrimp-408
+run_uuid: 2371bb79c58142dc8c7ebdbeb0f58576
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676141263923
+status: 1
+tags: []
+user_id: moshelaufer

@@ -1,0 +1,13 @@
+[2023-02-14 06:35:02,287][tensorflow][WARNING] - AutoGraph could not transform <bound method GroupNormalization.call of <tensorflow_addons.layers.normalizations.GroupNormalization object at 0x7fc3e072c370>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-02-14 06:36:52,473][tensorflow][WARNING] - AutoGraph could not transform <bound method Processor.mask of <tensorflow.python.eager.function.TfMethodTarget object at 0x7fc63fad8e50>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-02-14 06:37:11,963][tensorflow][WARNING] - Model was constructed with shape (None, 65, 1) for input KerasTensor(type_spec=TensorSpec(shape=(None, 65, 1), dtype=tf.float32, name='input_2'), name='input_2', description="created by layer 'input_2'"), but it was called on an input with incompatible shape (None, 65, 65).
+[2023-02-14 06:37:18,513][tensorflow][WARNING] - AutoGraph could not transform <bound method CELoss.call of <losses.cross_entropy_loss_2.CELoss object at 0x7fc5a15a56d0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert

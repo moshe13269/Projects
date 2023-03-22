@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-25/09-21-16/mlruns/0/42189477a0bd4eb4afabee8c1f3be6c7/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 42189477a0bd4eb4afabee8c1f3be6c7
+run_name: legendary-skunk-767
+run_uuid: 42189477a0bd4eb4afabee8c1f3be6c7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1674631291100
+status: 1
+tags: []
+user_id: moshelaufer

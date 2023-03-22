@@ -1,0 +1,23 @@
+[2023-01-25 20:04:23,975][tensorflow][WARNING] - AutoGraph could not transform <bound method GroupNormalization.call of <tensorflow_addons.layers.normalizations.GroupNormalization object at 0x7fd71fd6fc40>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-01-25 20:04:34,529][tensorflow][WARNING] - AutoGraph could not transform <bound method CELoss.call of <losses.cross_entropy_loss_2.CELoss object at 0x7fd7285c23a0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-01-25 20:17:43,888][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 20:30:08,344][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 20:42:33,944][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 20:55:00,102][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 21:07:25,825][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 21:19:51,503][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 21:32:16,608][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 21:44:42,406][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 21:57:07,533][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 22:09:32,826][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 22:21:57,367][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 22:34:22,747][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 22:46:47,959][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 22:59:13,130][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.
+[2023-01-25 23:11:38,186][tensorflow][WARNING] - Can save best model only with linear_classifier available, skipping.

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-02-13/22-26-32/mlruns/0/52bbeea61f7e4cfa9c2755cf74d33a17/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 52bbeea61f7e4cfa9c2755cf74d33a17
+run_name: gentle-perch-391
+run_uuid: 52bbeea61f7e4cfa9c2755cf74d33a17
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676320028781
+status: 1
+tags: []
+user_id: moshelaufer

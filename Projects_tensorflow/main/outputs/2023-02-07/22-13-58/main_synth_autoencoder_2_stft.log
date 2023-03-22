@@ -1,0 +1,20 @@
+[2023-02-07 22:14:05,052][tensorflow][WARNING] - AutoGraph could not transform <bound method GroupNormalization.call of <tensorflow_addons.layers.normalizations.GroupNormalization object at 0x7f06f42574f0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-02-07 22:14:12,327][tensorflow][WARNING] - AutoGraph could not transform <bound method Processor.mask of <tensorflow.python.eager.function.TfMethodTarget object at 0x7f06e80191f0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-02-07 22:14:13,180][tensorflow][WARNING] - Model was constructed with shape (None, 65, 1) for input KerasTensor(type_spec=TensorSpec(shape=(None, 65, 1), dtype=tf.float32, name='input_2'), name='input_2', description="created by layer 'input_2'"), but it was called on an input with incompatible shape (None, 65, 65).
+[2023-02-07 22:14:16,498][tensorflow][WARNING] - AutoGraph could not transform <bound method CELoss.call of <losses.cross_entropy_loss_2.CELoss object at 0x7f06f55082e0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+[2023-02-07 22:14:29,168][tensorflow][WARNING] - Model was constructed with shape (None, 65, 1) for input KerasTensor(type_spec=TensorSpec(shape=(None, 65, 1), dtype=tf.float32, name='input_2'), name='input_2', description="created by layer 'input_2'"), but it was called on an input with incompatible shape (None, 65, 65).
+[2023-02-07 22:40:01,002][tensorflow][WARNING] - Model was constructed with shape (None, 65, 1) for input KerasTensor(type_spec=TensorSpec(shape=(None, 65, 1), dtype=tf.float32, name='input_2'), name='input_2', description="created by layer 'input_2'"), but it was called on an input with incompatible shape (None, 65, 65).
+[2023-02-07 23:59:17,581][tensorflow][WARNING] - Skipping full serialization of Keras layer <tensorflow.python.keras.layers.core.Activation object at 0x7f06f4c7aa30>, because it is not built.
+[2023-02-07 23:59:18,267][tensorflow][WARNING] - Skipping full serialization of Keras layer <tensorflow.python.keras.layers.pooling.AveragePooling1D object at 0x7f06f4c74460>, because it is not built.
+[2023-02-07 23:59:56,386][absl][WARNING] - Found untraced functions such as activation_layer_call_and_return_conditional_losses, activation_layer_call_fn, dense_layer_call_and_return_conditional_losses, dense_layer_call_fn, transformer_encoder_layer_call_and_return_conditional_losses while saving (showing 5 of 2530). These functions will not be directly callable after loading.
+[2023-02-07 23:59:57,216][absl][WARNING] - Found untraced functions such as activation_layer_call_and_return_conditional_losses, activation_layer_call_fn, dense_layer_call_and_return_conditional_losses, dense_layer_call_fn, transformer_encoder_layer_call_and_return_conditional_losses while saving (showing 5 of 2530). These functions will not be directly callable after loading.
+[2023-02-08 00:00:46,869][tensorflow][INFO] - Assets written to: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_tal/7/assets

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-02-11/20-34-50/mlruns/0/4c78ede95bfe49278a9f3b42969477f2/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 4c78ede95bfe49278a9f3b42969477f2
+run_name: nervous-sow-364
+run_uuid: 4c78ede95bfe49278a9f3b42969477f2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676140503355
+status: 1
+tags: []
+user_id: moshelaufer

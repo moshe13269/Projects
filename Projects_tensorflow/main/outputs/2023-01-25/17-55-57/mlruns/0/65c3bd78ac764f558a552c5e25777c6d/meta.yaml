@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-25/17-55-57/mlruns/0/65c3bd78ac764f558a552c5e25777c6d/artifacts
+end_time: 1674665367303
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 65c3bd78ac764f558a552c5e25777c6d
+run_name: calm-horse-88
+run_uuid: 65c3bd78ac764f558a552c5e25777c6d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1674662192924
+status: 4
+tags: []
+user_id: moshelaufer

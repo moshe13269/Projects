@@ -1,0 +1,15 @@
+artifact_uri: file:///home/moshelaufer/PycharmProjects/Projects/main/outputs/2023-01-25/17-56-07/mlruns/0/7f39f1b3e6c9459b86f524482f5fe591/artifacts
+end_time: 1674665371097
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7f39f1b3e6c9459b86f524482f5fe591
+run_name: carefree-donkey-581
+run_uuid: 7f39f1b3e6c9459b86f524482f5fe591
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1674662202560
+status: 4
+tags: []
+user_id: moshelaufer
