@@ -1,0 +1,64 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load:
+      - /home/moshelaufer/PycharmProjects/datasets/tal_noise_2/
+    type_files: wav
+    labels: True
+    dataset_names: tal_noise_1
+
+  path2load_model: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_shlomi_v2/1
+
+  outputs_dimension_per_outputs:
+      - 16
+      - 4
+      - 9
+      - 4
+      - 17
+      - 17
+      - 4
+      - 17
+      - 17
+
+
+  processor:
+    _target_: Projects_tensorflow.processors.processor_synth_encoder_mask_2_stft.Processor
+    norm_mean: 0.026406644
+    norm_std: 0.20221268
+    std_mean_calc:
+      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
+      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
+      stft: True
+    mask:
+      - 65
+      - 1
+    num_classes:
+      - 16
+      - 4
+      - 9
+      - 4
+      - 17
+      - 17
+      - 4
+      - 17
+      - 17
+
+  batch_size:
+    train: 1
+    test: 1
+    valid: 1
+
+  epochs: 1
+  path2save_model: /home/moshelaufer/PycharmProjects/results/models/Tal_infra
+  model_name: synth_encoder
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/tal_autoencoder/
+  num_outputs: 9
+
+  results:
+    _target_: Projects_tensorflow.results.results.Results
+    path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
+    num_class: 100
+

@@ -128,7 +128,7 @@ TrainTask:
       save_best_only: True
       save_freq: 2000 #'epoch'
       initial_value_threshold: 5
-      monitor: 'linear_classifier_loss'
+      monitor: 'loss'
       verbose: 1
 
 #    -
