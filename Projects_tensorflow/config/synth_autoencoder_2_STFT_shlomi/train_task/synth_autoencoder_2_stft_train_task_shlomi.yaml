@@ -5,6 +5,7 @@ TrainTask:
   dataset_class:
     _target_: dataset.dataset.Dataset
     path2load:
+      - /home/moshela/work/moshe/pycharm
       - /home/moshelaufer/PycharmProjects/datasets/tal_noise_2/
     type_files: wav
     labels: True
@@ -233,9 +234,9 @@ TrainTask:
       - 17
 
   batch_size:
-    train: 58 #57 #48
+    train: 164 #57 #48
     test: 1
-    valid: 58 #57 #48
+    valid: 164 #57 #48
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/
@@ -244,7 +245,7 @@ TrainTask:
   num_outputs: 2 #10 #1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_shlomi.png
 
-  steps_per_epoch: 1000 # 2500
+  steps_per_epoch: 1500 # 2500
   validation_steps: 150
 
   results:

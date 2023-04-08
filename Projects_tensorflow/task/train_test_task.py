@@ -1,5 +1,6 @@
 
 import os
+import sys
 import utils
 import mlflow
 import mlflow.keras
@@ -8,6 +9,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
+sys.path.append('/home/moshela/work/moshe/pycharm/Projects/')
 
 class TrainTestTask:
 
