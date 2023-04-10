@@ -1,7 +1,10 @@
 import os
+import sys
 import pickle
+import argparse
 import numpy as np
 import pandas as pd
+sys.path.append("..")
 
 
 class LabelsConverter:
@@ -75,11 +78,23 @@ def paras_labels(path2csv, path2save):
     np.save(arr=np.asarray(labelsconverter.num_classes_refernce), file=os.path.join(path2save, 'reference'))
     print('Labels files had been created')
 
+# path2csv = "/home/shlomis/PycharmProjects/Tal/full_parameters_osc_lfo_am.csv"
+# path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/labels/"
 
-# path2csv = "/home/shlomis/PycharmProjects/TiFGAN/data/Data_custom_synth.csv"
-# path2save = '/home/moshelaufer/PycharmProjects/datasets/noy_synth/labels/'
-# path2csv = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/full_parameters.csv"
-# path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise/labels/"
-path2csv = "/home/shlomis/PycharmProjects/Tal/full_parameters_osc_lfo_am.csv"
-path2save = "/home/moshelaufer/PycharmProjects/datasets/tal_noise_shlomi/labels/"
-paras_labels(path2csv, path2save)
+
+def main(args):
+    paras_labels(args.path2csv, args.path2save)
+
+
+if __name__ == '__main__':
+
+    sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
+    parser = argparse.ArgumentParser(description=None)
+    parser.add_argument('--path2csv', required=False,
+                        help='path2csv', default='s')
+    parser.add_argument('--path2save', required=False,
+                        help='path2save', default='s')
+
+    args = parser.parse_args()
+    # main(workspace=args.workspace, schema=args.schema, dem=args.dem)
+    main(args)
