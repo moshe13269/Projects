@@ -28,7 +28,8 @@ class LabelsConverter:
             for i in range(label.shape[0]):
                 value = self.labels_list[i].index(label[i])
                 label[i] = value
-            np.save(file=os.path.join(self.path2save, str(row)), arr=label)
+
+            np.save(file=os.path.join(self.path2save, str(row)), arr=label.astype(int))
         print('Labels had been created')
         return
 
