@@ -24,7 +24,7 @@ class LabelsConverter:
     def convert_csv_rows2npy(self):
 
         for row in range(self.df.shape[0]):
-            label = self.df.iloc[row].to_numpy()
+            label = self.df.iloc[row].to_numpy()[1:]
             for i in range(label.shape[0]):
                 value = self.labels_list[i].index(label[i])
                 label[i] = value
