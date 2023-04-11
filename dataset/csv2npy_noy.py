@@ -34,7 +34,7 @@ class LabelsConverter:
 
 
 def main(args):
-    labels_converter = LabelsConverter(args.path2csv, args.path2save)
+    labels_converter = LabelsConverter(path2csv=args.path2csv, path2save=args.path2save)
     labels_converter.create_labels_list()
     labels_converter.convert_csv_rows2npy()
 
