@@ -5,7 +5,8 @@ TrainTask:
   dataset_class:
     _target_: dataset.dataset.Dataset
     path2load:
-      - /home/moshelaufer/PycharmProjects/datasets/tal_noise_2/
+#      - /home/moshelaufer/PycharmProjects/datasets/tal_noise_2/
+      - /home/moshela/work/moshe/pycharm/dataset/tal
     type_files: wav
     labels: True
     dataset_names: tal_noise_1
@@ -122,7 +123,7 @@ TrainTask:
   callbacks:
     -
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
-      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_shlomi_v2/1/
+      filepath: /home/moshela/work/moshe/pycharm/checkpoints/tal
       save_best_only: True
       save_freq: 2000 #'epoch'
       initial_value_threshold: 20
@@ -174,7 +175,7 @@ TrainTask:
     norm_std: 0.4324925
     std_mean_calc:
       _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
-      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
+      path2dataset: /home/moshela/work/moshe/pycharm/dataset/tal #/home/moshelaufer/PycharmProjects/datasets/tal_noise/
       stft: True
     mask:
       - 65 #33
@@ -191,16 +192,17 @@ TrainTask:
       - 17
 
   batch_size:
-    train: 128 #57 #48
+    train: 148 #57 #48
     test: 1
-    valid: 128 #57 #48
+    valid: 148 #57 #48
 
   epochs: 4000
-  path2save_model: /home/moshelaufer/PycharmProjects/results/models/
+  path2save_model: /home/moshela/work/moshe/pycharm/saved_models
+# /home/moshelaufer/PycharmProjects/results/models/
   model_name: synth_autoencoder_2_stft_tal_shlomi_v2
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft_shlomi/
   num_outputs: 1 #10 #1
-  path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_shlomi_v2.png
+  path2save_plot_model: /home/moshela/work/moshe/pycharm/saved_models/model_plot_tal_v2.png
 
   steps_per_epoch: 1000 # 2500
   validation_steps: 150
