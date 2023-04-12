@@ -11,7 +11,7 @@ from keras.utils.vis_utils import plot_model
 
 class TrainTestTaskSupervised:
 
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, args):
         self.cfg = cfg
 
         self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
@@ -69,6 +69,7 @@ class TrainTestTaskSupervised:
             # self.model.optimizer.lr = 1.1e-6
             a=0
         else:
+            print('create model!!!')
             model = instantiate(cfg.train_task.TrainTask.model)
             self.model = model.build()
             self.model.compile(optimizer=self.optimizer,
