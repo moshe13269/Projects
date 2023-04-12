@@ -73,10 +73,12 @@ class TrainTestTaskSupervised:
             model = instantiate(cfg.train_task.TrainTask.model)
             print('create model!!!')
             self.model = model.build()
+            print('create model!!!')
             self.model.compile(optimizer=self.optimizer,
                                loss=list(self.loss),
                                metrics=None, #self.metrics_,
                                loss_weights=self.loss_weights)
+            print('create model!!!')
 
         self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
 
