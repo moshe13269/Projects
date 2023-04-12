@@ -2,6 +2,7 @@
 import os
 import sys
 sys.path.append('/home/moshela/work/moshe/pycharm/Projects/')
+sys.path.append('/home/moshela/work/moshe/pycharm/Projects/Projects_tensorflow')
 from Projects_tensorflow import task
 import hydra
 from omegaconf import DictConfig

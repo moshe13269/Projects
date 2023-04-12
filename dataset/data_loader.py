@@ -1,13 +1,13 @@
 import tensorflow as tf
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 
 
-def torch_data_loader(dataset_list, processor_function, batch_size):
-    return DataLoader(dataset_list,
-                      batch_size=batch_size,
-                      collate_fn=processor_function,
-                      pin_memory=True)
+# def torch_data_loader(dataset_list, processor_function, batch_size):
+#     return DataLoader(dataset_list,
+#                       batch_size=batch_size,
+#                       collate_fn=processor_function,
+#                       pin_memory=True)
 
 
 def data_loader(dataset_list,

@@ -78,17 +78,13 @@ class ConvFeatureExtractionModel(tf.keras.layers.Layer):
 
         self.conv_layers = layers
 
-        # self.avg_pool = AveragePooling1D()
-
         self.fc = Dense(units=units, activation=activation)
-        print('encoder')
 
     def call(self, x, **kwargs):
         # BxT -> BxTxC
 
         for conv in self.conv_layers:
             x = conv(x)
-            # print(x.shape)
         return self.activation(self.fc(x))
 
 
