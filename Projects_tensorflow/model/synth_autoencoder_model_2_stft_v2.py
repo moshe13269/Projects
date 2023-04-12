@@ -6,7 +6,6 @@ from Projects_tensorflow import layers
 class SynthAutoEncoder:
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
-    # inputs3: Tuple[int, int, int]
 
     transformer: layers.Transformer
     linear_classifier: layers.LinearClassifier
@@ -34,13 +33,12 @@ class SynthAutoEncoder:
     def build(self):
         inputs1 = self.inputs1
         inputs2 = self.inputs2
-        # inputs3 = self.inputs3
 
-        outputs = self.conv_encoder(inputs1)
+        outputs = self.conv_encoder.call(inputs1)
 
-        encoder_outputs = self.transformer([outputs, inputs2])
+        encoder_outputs = self.transformer.call([outputs, inputs2])
 
-        outputs_params_list = self.linear_classifier(encoder_outputs)
+        outputs_params_list = self.linear_classifier.call(encoder_outputs)
 
         return tf.keras.Model(inputs=[inputs1, inputs2],
                               outputs=[outputs_params_list])
