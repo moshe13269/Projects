@@ -69,9 +69,9 @@ class TrainTestTaskSupervised:
             # self.model.optimizer.lr = 1.1e-6
             a=0
         else:
-            print('create model!!!')
+            # print('create model!!!')
             model = instantiate(cfg.train_task.TrainTask.model)
-            print('create model!!!')
+            # print('create model!!!')
             self.model = model.build()
             self.model.compile(optimizer=self.optimizer,
                                loss=list(self.loss),
