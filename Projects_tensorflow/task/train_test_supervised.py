@@ -71,6 +71,7 @@ class TrainTestTaskSupervised:
         else:
             print('create model!!!')
             model = instantiate(cfg.train_task.TrainTask.model)
+            print('create model!!!')
             self.model = model.build()
             self.model.compile(optimizer=self.optimizer,
                                loss=list(self.loss),
