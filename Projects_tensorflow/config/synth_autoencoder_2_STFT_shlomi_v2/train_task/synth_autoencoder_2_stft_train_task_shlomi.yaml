@@ -192,9 +192,9 @@ TrainTask:
       - 17
 
   batch_size:
-    train: 148 #57 #48
+    train: 57 #57 #48
     test: 1
-    valid: 148 #57 #48
+    valid: 57 #57 #48
 
   epochs: 4000
   path2save_model: /home/moshela/work/moshe/pycharm/saved_models
