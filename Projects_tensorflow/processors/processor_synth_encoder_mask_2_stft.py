@@ -40,8 +40,9 @@ class Processor:
     def label2onehot(self, labels):
         onehot_labels = np.zeros(sum(self.num_classes))
         for i in range(labels.shape[0]):
-            print(labels + '\n')
-            print(self.num_classes_per_outputs + '\n')
+            tf.print(labels)
+            tf.print(self.num_classes)
+            tf.print(self.num_classes_per_outputs)
             onehot_labels[int(labels[i]) + int(self.num_classes_per_outputs[i])] = 1.
         return onehot_labels
 
