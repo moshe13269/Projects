@@ -11,7 +11,7 @@ from keras.utils.vis_utils import plot_model
 
 class TrainTestTaskSupervised:
 
-    def __init__(self, cfg: DictConfig, args):
+    def __init__(self, cfg: DictConfig):
         self.cfg = cfg
 
         self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)

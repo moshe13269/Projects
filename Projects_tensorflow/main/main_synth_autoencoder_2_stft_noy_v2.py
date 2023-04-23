@@ -10,7 +10,6 @@ from omegaconf import DictConfig
 @hydra.main(config_path=os.path.join('../config', 'synth_autoencoder_2_STFT_noy_v2'), config_name='config')
 def main(cfg: DictConfig) -> None:
     train_task = task.TrainTestTaskSupervised(cfg)
-    print(cfg)
     train_task.run()
 
 
