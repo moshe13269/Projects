@@ -5,7 +5,8 @@ TrainTask:
   dataset_class:
     _target_: dataset.dataset.Dataset
     path2load:
-      - /home/moshelaufer/PycharmProjects/datasets/noy_synth/
+#      - /home/moshelaufer/PycharmProjects/datasets/noy_synth/
+      - /home/moshela/work/moshe/pycharm/dataset/noy
     type_files: wav
     labels: True
     dataset_names: tal_noise_1
