@@ -127,7 +127,7 @@ class TrainTestTaskSupervised:
                                verbose=1,
                                validation_data=val_dataset,
                                callbacks=self.callbacks,
-                               # steps_per_epoch=self.steps_per_epoch,
+                               steps_per_epoch=self.steps_per_epoch,
                                validation_steps=self.validation_steps,
                                initial_epoch=0,
                                # use_multiprocessing=True
