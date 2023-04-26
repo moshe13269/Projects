@@ -127,10 +127,11 @@ class TrainTestTaskSupervised:
                                verbose=1,
                                validation_data=val_dataset,
                                callbacks=self.callbacks,
-                               steps_per_epoch=self.steps_per_epoch,
+                               # steps_per_epoch=self.steps_per_epoch,
                                validation_steps=self.validation_steps,
                                initial_epoch=0,
-                               use_multiprocessing=True)
+                               # use_multiprocessing=True
+                               )
 
                 folder_name = str(len([x[0] for x in os.walk(self.path2save_model)]) - 1)
                 mlflow.keras.save_model(self.model, os.path.join(self.path2save_model, folder_name))
