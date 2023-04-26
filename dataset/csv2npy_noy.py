@@ -25,12 +25,12 @@ class LabelsConverter:
 
         for row in range(self.df.shape[0]):
             label = self.df.iloc[row].to_numpy()[1:]
-            index = self.df.iloc[row].to_numpy()[:1]
+            ind = int(self.df.iloc[row].to_numpy()[:1][0])
             for i in range(label.shape[0]):
                 value = self.labels_list[i].index(label[i])
                 label[i] = value
 
-            np.save(file=os.path.join(self.path2save, str(index)), arr=label.astype(int))
+            np.save(file=os.path.join(self.path2save, str(ind)), arr=label.astype(int))
         print('Labels had been created')
         return
 
