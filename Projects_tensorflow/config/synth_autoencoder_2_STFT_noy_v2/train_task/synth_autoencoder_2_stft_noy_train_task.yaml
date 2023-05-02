@@ -127,8 +127,8 @@ TrainTask:
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
       filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy_v2/1/
       save_best_only: True
-      save_freq: 2000 #'epoch'
-      initial_value_threshold: 5
+      save_freq: 700 #'epoch'
+      initial_value_threshold: 1
       monitor: 'loss'
       verbose: 1
 
