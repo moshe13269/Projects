@@ -197,9 +197,9 @@ TrainTask:
       - 16
 
   batch_size:
-    train: 128 #57 #
+    train: 140 #57 #
     test: 1
-    valid: 128 #57 #
+    valid: 140 #57 #
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/
@@ -208,8 +208,8 @@ TrainTask:
   num_outputs: 1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise_v2.png
 
-  steps_per_epoch: 1000 # 2500
-  validation_steps: 150
+  steps_per_epoch: 700 # 2500
+  validation_steps: 75
 
   results:
     _target_: Projects_tensorflow.results.results.Results
