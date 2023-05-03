@@ -1,5 +1,7 @@
 
 import os
+import sys
+sys.path.append('/home/moshela/work/moshe/pycharm/Projects/')
 from Projects_torch import task
 import hydra
 from omegaconf import DictConfig
