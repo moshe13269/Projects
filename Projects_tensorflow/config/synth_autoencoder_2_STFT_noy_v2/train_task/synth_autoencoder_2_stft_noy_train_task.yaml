@@ -208,7 +208,7 @@ TrainTask:
   num_outputs: 1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise_v2.png
 
-  steps_per_epoch: 7 # 2500
+  steps_per_epoch: 8 # 2500
   validation_steps: 2
 
   results:
