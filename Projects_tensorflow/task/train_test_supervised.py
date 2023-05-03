@@ -125,10 +125,10 @@ class TrainTestTaskSupervised:
                 self.model.fit(x=train_dataset,
                                epochs=self.epochs,
                                verbose=1,
-                               validation_data=val_dataset,
+                               # validation_data=val_dataset,
                                callbacks=self.callbacks,
                                steps_per_epoch=self.steps_per_epoch,
-                               validation_steps=self.validation_steps,
+                               # validation_steps=self.validation_steps,
                                # initial_epoch=0,
                                # use_multiprocessing=True
                                )
