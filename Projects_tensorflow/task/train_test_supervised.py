@@ -6,7 +6,7 @@ import mlflow.tensorflow
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig
-from tensorflow.keras.utils.vis_utils import plot_model
+# from tensorflow.keras.utils.vis_utils import plot_model
 
 
 class TrainTestTaskSupervised:
@@ -57,17 +57,17 @@ class TrainTestTaskSupervised:
             model = instantiate(cfg.train_task.TrainTask.model)
             self.model = model.build()
             self.model.set_weights(loaded_model.get_weights())
-            opt_ = loaded_model.optimizer #tf.keras.optimizers.Adam()
+            opt_ = loaded_model.optimizer  # tf.keras.optimizers.Adam()
             adam = tf.keras.optimizers.Adam()
             adam.set_weights(opt_.get_weights())
 
-            self.model.compile(optimizer=adam, #'adam',
+            self.model.compile(optimizer=adam,  # 'adam',
                                loss=list(self.loss),
-                               metrics=None, #self.metrics_,
+                               metrics=None,  # self.metrics_,
                                loss_weights=self.loss_weights)
             # self.model.compile(optimizer=self.model.optimizer.set_weights(m.optimizer))
             # self.model.optimizer.lr = 1.1e-6
-            a=0
+            a = 0
         else:
             # print('create model!!!')
             model = instantiate(cfg.train_task.TrainTask.model)
@@ -75,7 +75,7 @@ class TrainTestTaskSupervised:
             self.model = model.build()
             self.model.compile(optimizer=self.optimizer,
                                loss=list(self.loss),
-                               metrics=None, #self.metrics_,
+                               metrics=None,  # self.metrics_,
                                loss_weights=self.loss_weights)
 
         self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
@@ -113,10 +113,10 @@ class TrainTestTaskSupervised:
                                           self.num_outputs,
                                           self.batch_size['valid'])
 
-        plot_model(self.model,
-                   to_file=self.path2save_plot_model,
-                   show_shapes=True,
-                   show_layer_names=True)
+        tf.keras.utils.plot_model(self.model,
+                                  to_file=self.path2save_plot_model,
+                                  show_shapes=True,
+                                  show_layer_names=True)
 
         mlflow.keras.autolog()
 
