@@ -6,8 +6,7 @@ import mlflow.tensorflow
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import DictConfig
-from tensorflow.python.keras.utils.vis_utils import plot_model
-from tensorflow.python.keras.models import Model, load_model
+from tensorflow.keras.utils.vis_utils import plot_model
 
 
 class TrainTestTaskSupervised:
