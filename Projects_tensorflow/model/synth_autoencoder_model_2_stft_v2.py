@@ -3,7 +3,7 @@ from typing import List, Tuple
 from Projects_tensorflow import layers
 
 
-class SynthAutoEncoder:
+class SynthAutoEncoder(tf.keras.Model):
     inputs1: Tuple[int, int, int]
     inputs2: Tuple[int, int, int]
 
