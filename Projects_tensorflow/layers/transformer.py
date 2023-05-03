@@ -3,7 +3,7 @@ from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Drop
     Conv1D, Dense, Layer, Conv2D, InputLayer
 
 
-class EncoderLayer(tf.keras.layer.Layer):
+class EncoderLayer(Layer):
 
     def __init__(self, d_model, num_heads, d_ff, dropout, activation, **kwargs):
         super().__init__(**kwargs)
@@ -25,7 +25,7 @@ class EncoderLayer(tf.keras.layer.Layer):
         return x
 
 
-class FFN(tf.keras.layer.Layer):
+class FFN(Layer):
 
     def __init__(self, d_model, d_ff, dropout, activation):
         super().__init__()
@@ -40,7 +40,7 @@ class FFN(tf.keras.layer.Layer):
         return x
 
 
-class DecoderLayer(tf.keras.layer.Layer):
+class DecoderLayer(Layer):
     def __init__(self, d_model, d_ff, dropout, activation, num_heads):
         super().__init__()
         self.ln1 = LayerNormalization(epsilon=1e-6)
@@ -77,7 +77,7 @@ class DecoderLayer(tf.keras.layer.Layer):
         return x  # (B, L, d_model)
 
 
-class LearnablePositionalEncoder(tf.keras.layer.Layer):
+class LearnablePositionalEncoder(Layer):
     def __init__(self, d_model, activation='relu', kernel_size=3, stride=1):
         super().__init__()
         self.d_model = d_model
@@ -90,7 +90,7 @@ class LearnablePositionalEncoder(tf.keras.layer.Layer):
         return self.ln(outputs + inputs)
 
 
-class PositionalEncoder(tf.keras.layer.Layer):
+class PositionalEncoder(Layer):
     def __init__(self, seq_len, d_model):
         super().__init__()
         self.d_model = d_model
@@ -116,7 +116,7 @@ class PositionalEncoder(tf.keras.layer.Layer):
         return x
 
 
-class TransformerEncoder(tf.keras.layer.Layer):
+class TransformerEncoder(Layer):
 
     def __init__(self,
                  num_transformer_blocks,
@@ -146,7 +146,7 @@ class TransformerEncoder(tf.keras.layer.Layer):
         return x
 
 
-class TransformerDecoder(tf.keras.layer.Layer):
+class TransformerDecoder(Layer):
 
     def __init__(self,
                  num_transformer_decoder_blocks,
@@ -176,7 +176,7 @@ class TransformerDecoder(tf.keras.layer.Layer):
         return x
 
 
-class Transformer(tf.keras.layer.Layer):
+class Transformer(Layer):
     def __init__(self,
                  num_transformer_blocks,
                  d_model,
