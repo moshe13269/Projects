@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Dropout, Reshape, Flatten, ReLU
+from tensorflow.python.keras.layers import Dense, Dropout, Reshape, Flatten, ReLU
 from typing import List, Tuple
 
 

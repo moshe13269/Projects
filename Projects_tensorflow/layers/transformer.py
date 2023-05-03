@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Dropout, \
+from tensorflow.python.keras.layers import LayerNormalization, MultiHeadAttention, Dropout, \
     Conv1D, Dense, Layer, Conv2D, InputLayer
 
 
