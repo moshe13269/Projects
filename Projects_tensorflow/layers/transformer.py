@@ -7,8 +7,8 @@ class EncoderLayer(Layer):
 
     def __init__(self, d_model, num_heads, d_ff, dropout, activation, **kwargs):
         super().__init__(**kwargs)
-        self.ln1 = LayerNormalization(epsilon=1e-6)
-        self.ln2 = LayerNormalization(epsilon=1e-6)
+        self.ln1 = LayerNormalization()
+        self.ln2 = LayerNormalization()
         self.mha = MultiHeadAttention(
             key_dim=d_model, num_heads=num_heads, dropout=dropout
         )
