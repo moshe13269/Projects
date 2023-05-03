@@ -1,14 +1,14 @@
 import tensorflow as tf
-from tensorflow.python.keras.layers import LayerNormalization, MultiHeadAttention, Dropout, \
-    Conv1D, Dense, Layer, Conv2D, InputLayer
+from tensorflow.python.keras.layers import MultiHeadAttention, Dropout, \
+    Conv1D, Dense, Layer
 
 
 class EncoderLayer(Layer):
 
     def __init__(self, d_model, num_heads, d_ff, dropout, activation, **kwargs):
         super().__init__(**kwargs)
-        self.ln1 = LayerNormalization()
-        self.ln2 = LayerNormalization()
+        self.ln1 = tf.keras.layers.LayerNormalization()
+        self.ln2 = tf.keras.layers.LayerNormalization()
         self.mha = MultiHeadAttention(
             key_dim=d_model, num_heads=num_heads, dropout=dropout
         )
@@ -43,15 +43,15 @@ class FFN(Layer):
 class DecoderLayer(Layer):
     def __init__(self, d_model, d_ff, dropout, activation, num_heads):
         super().__init__()
-        self.ln1 = LayerNormalization(epsilon=1e-6)
+        self.ln1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.masked_mha = MultiHeadAttention(key_dim=d_model, num_heads=num_heads, dropout=dropout)
         self.dropout1 = Dropout(dropout)
 
-        self.ln2 = LayerNormalization(epsilon=1e-6)
+        self.ln2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.mha = MultiHeadAttention(key_dim=d_model, num_heads=num_heads, dropout=dropout)
         self.dropout2 = Dropout(dropout)
 
-        self.ln3 = LayerNormalization(epsilon=1e-6)
+        self.ln3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.feed_forward = FFN(d_model, d_ff, dropout, activation)
         self.dropout3 = Dropout(dropout)
 
@@ -83,7 +83,7 @@ class LearnablePositionalEncoder(Layer):
         self.d_model = d_model
         self.conv = Conv1D(filters=d_model, kernel_size=kernel_size, strides=stride,
                            activation=activation, padding='same')
-        self.ln = LayerNormalization(epsilon=1e-6)
+        self.ln = tf.keras.layers.LayerNormalization(epsilon=1e-6)
 
     def call(self, inputs, **kwargs):
         outputs = self.conv(inputs)
