@@ -209,7 +209,7 @@ TrainTask:
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise_v2.png
 
   steps_per_epoch: 7 # 2500
-  validation_steps: 75
+  validation_steps: 2
 
   results:
     _target_: Projects_tensorflow.results.results.Results
