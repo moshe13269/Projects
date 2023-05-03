@@ -1,6 +1,6 @@
 import tensorflow as tf
-from tensorflow.python.keras.layers import Dense, Dropout, Reshape, Flatten, ReLU
-from typing import List, Tuple
+from tensorflow.python.keras.layers import Dense, Dropout
+from typing import List
 
 
 class LinearClassifier(tf.keras.layers.Layer):

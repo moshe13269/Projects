@@ -24,11 +24,11 @@ class SynthAutoEncoder:
         self.inputs1 = tf.keras.layers.Input(inputs1)
         self.inputs2 = tf.keras.layers.Input(inputs2)
 
+        self.conv_encoder = conv_encoder
+
         self.transformer = transformer
 
         self.linear_classifier = linear_classifier
-
-        self.conv_encoder = conv_encoder
 
     def build(self):
         inputs1 = self.inputs1

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from typing import List, Tuple
 import tensorflow_addons as tfa
-from tensorflow.python.keras.layers import Conv1D, Dropout, Dense, AveragePooling1D, Reshape
+from tensorflow.python.keras.layers import Conv1D, Dropout, Dense
 
 
 class ConvFeatureExtractionModel(tf.keras.layers.Layer):
