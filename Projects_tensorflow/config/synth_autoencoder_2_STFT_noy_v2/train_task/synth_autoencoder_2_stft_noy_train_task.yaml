@@ -127,7 +127,7 @@ TrainTask:
       _target_: tensorflow.keras.callbacks.ModelCheckpoint
       filepath: /home/moshela/work/moshe/pycharm/checkpoints/noy/1
       save_best_only: True
-      save_freq: 700 #'epoch'
+      save_freq: 7 #'epoch'
       initial_value_threshold: 5.
       monitor: 'loss'
       verbose: 1
@@ -208,7 +208,7 @@ TrainTask:
   num_outputs: 1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise_v2.png
 
-  steps_per_epoch: 700 # 2500
+  steps_per_epoch: 7 # 2500
   validation_steps: 75
 
   results:
