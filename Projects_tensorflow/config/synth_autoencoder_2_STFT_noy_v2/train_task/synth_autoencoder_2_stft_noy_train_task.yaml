@@ -197,9 +197,9 @@ TrainTask:
       - 16
 
   batch_size:
-    train: 140 #57 #
+    train: 57 #
     test: 1
-    valid: 140 #57 #
+    valid: 57 #
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/
