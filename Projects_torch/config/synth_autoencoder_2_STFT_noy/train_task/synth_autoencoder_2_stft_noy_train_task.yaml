@@ -13,41 +13,38 @@ TrainTask:
   saved_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
 
   model:
-    _target_: model.synth_autoencoder_model_2_stft.SynthAutoEncoder
+    _target_: Projects_torch.model.synth_tranformerE_model.SynthAutoEncoder
 
-    inputs1:
-      - 130 #33 #129
-      - 129 #40 #512
-
-    inputs2:
-      - 65 #33 #129
-      - 1
-
-#    inputs3:
-#      - 65 #33
-#      - 1
+    # transformer:
+    num_layers: 12
+    d_model: 512
+    nhead: 16
 
     conv_encoder:
-      _target_: layers.conv_wav_encoder.ConvFeatureExtractionModel
+      _target_: Projects_torch.layers.conv_wav_encoder.ConvFeatureExtractionModel
       activation: gelu
       units: 512
       conv_layers:
         -
+          - 130     # (in_channels, dim, kernel, stride)
           - 512
           - 4
           - 2
 
         -
           - 512
-          - 3
-          - 1
-
-        -
           - 512
           - 3
           - 1
 
         -
+          - 512
+          - 512
+          - 3
+          - 1
+
+        -
+          - 512
           - 512
           - 2
           - 1
@@ -62,55 +59,9 @@ TrainTask:
       conv_bias: True
       is_group_norm: True
       is_layer_norm: False
-
-    conv_decoder:
-      _target_: layers.conv_wav_decoder.ConvDecoderModel
-      activation: gelu
-      units: 129
-      conv_layers:
-        -
-          - 512
-          - 2
-          - 1
-
-        -
-          - 512
-          - 3
-          - 1
-
-        -
-          - 512
-          - 3
-          - 1
-
-        -
-          - 512
-          - 4
-          - 2
-
-      num_duplicate_layer:
-        - 1
-        - 1
-        - 1
-        - 1
-
-      dropout: 0.1
-      conv_bias: True
-      is_group_norm: True
-      is_layer_norm: False
-
-
-    transformer:
-      _target_: layers.transformer_2.Transformer
-      num_transformer_blocks: 12
-      d_model: 512
-      num_heads: 12
-      d_ff: 3072
-      dropout: 0.1
-      activation: gelu
 
     linear_classifier:
-      _target_: layers.linear_classifier_2.LinearClassifier
+      _target_: Projects_torch.layers.linear_classifier_2.LinearClassifier
       activation: relu
       dropout: 0.2
       outputs_dimension_per_outputs:
@@ -127,7 +78,7 @@ TrainTask:
   to_metrics: False #
 
   metrics:
-    _target_: metrics.accuracy_2.CustomAccuracy2
+    _target_: Projects_torch.metrics.accuracy_2.CustomAccuracy2
     outputs_dimension_per_outputs:
       - 3
       - 12
@@ -143,10 +94,10 @@ TrainTask:
 
   loss:
 #    - _target_: losses.spectral_magnitude_losses.Spectral_LogSTFTMagnitude_Loss
-    - _target_: losses.l2_loss.L2Loss
+    - _target_: Projects_torch.losses.l2_loss.L2Loss
 
   loss_ce:
-    _target_: losses.cross_entropy_loss_2.CELoss
+    _target_: Projects_torch.losses.cross_entropy_loss_2.CELoss
     num_classes: 1
     index_y_true: 1
     outputs_dimension_per_outputs:
@@ -160,6 +111,8 @@ TrainTask:
         - 5
         - 16
   num_ce_loss: 1
+
+  loss_l2: False
 
   callbacks:
     -
@@ -214,13 +167,14 @@ TrainTask:
 #      min_learn_rate: 3e-8
 
   processor:
-    _target_: processors.processor_synth_encoder_mask_2_stft.Processor #processors.processor_synth_encoder.Processor #
+    _target_: Projects_torch.processors.processor_synth_encoder_stft.DataLoaderSTFT
+    masking: False
     norm_mean: 0.013329904
     norm_std: 0.041720923
-    std_mean_calc:
-      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
-      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
-      stft: True
+#    std_mean_calc:
+#      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
+#      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
+#      stft: True
     mask:
       - 65 #33 #129
       - 1
@@ -236,9 +190,11 @@ TrainTask:
       - 16
 
   batch_size:
-    train: 59 #48
+    train: 2 #48
     test: 1
-    valid: 59 #48
+    valid: 2 #48
+
+  learning_rate: 0.5e-7
 
   epochs: 4000
   path2save_model: /home/moshelaufer/PycharmProjects/results/models/
@@ -251,7 +207,7 @@ TrainTask:
   validation_steps: 150
 
   results:
-    _target_: results.results.Results
+    _target_: Projects_torch.results.results.Results
     path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
     num_class: 100
 

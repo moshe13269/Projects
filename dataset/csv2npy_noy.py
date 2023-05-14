@@ -45,9 +45,11 @@ if __name__ == '__main__':
     sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--path2csv', required=False,
-                        help='path2csv', default='s')
+                        help='path2csv',
+                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
     parser.add_argument('--path2save', required=False,
-                        help='path2save', default='s')
+                        help='path2save',
+                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\labels')
 
     args = parser.parse_args()
     main(args)

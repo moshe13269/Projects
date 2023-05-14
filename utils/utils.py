@@ -1,6 +1,8 @@
 import os
+import torch
 import numpy as np
 import pandas as pd
+import torch.nn as nn
 from scipy.io import wavfile
 
 
@@ -72,3 +74,19 @@ def outputs_conv_size(conv_layers, num_duplicate_layer, inputs_size, p, avg_pool
     if avg_pooling:
         return int(clac_conv_output(layers_params, inputs_size, p) / 2)
     return int(clac_conv_output(layers_params, inputs_size, p))
+
+
+def init_weight_model(m):
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv1d):
+        y = m.in_channels
+        m.weight.data.normal_(0.0, 1 / np.sqrt(y))
+        m.bias.data.fill_(0.)
+
+    elif isinstance(m, nn.Linear):
+        y = m.in_features
+        m.weight.data.normal_(0.0, 1/np.sqrt(y))
+        m.bias.data.fill_(0.)
+
+
+def load_model(path2load_model):
+    pass

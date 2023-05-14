@@ -9,157 +9,135 @@ import mlflow.pytorch
 from mlflow import MlflowClient
 from omegaconf import DictConfig
 from hydra.utils import instantiate
+from utils.utils import init_weight_model, load_model
 from torch.utils.data.distributed import DistributedSampler
-from torch.nn.parallel import DistributedDataParallel as DDP
 
 
 class TrainTestTaskSupervised:
 
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, args):
         self.cfg = cfg
-
-        # self.dataset_class = instantiate(cfg.train_task.TrainTask.dataset_class)
 
         self.train_dataset = None
         self.test_dataset = None
         self.val_dataset = None
 
-        self.steps_per_epoch = self.cfg.train_task.TrainTask.get('steps_per_epoch')
-        self.validation_steps = self.cfg.train_task.TrainTask.get('validation_steps')
-
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
-        self.path2save_csv = self.cfg.train_task.TrainTask.get('path2save_csv')
 
-        # self.to_metrics = self.cfg.train_task.TrainTask.get('to_metrics')
         self.num_ce_loss = self.cfg.train_task.TrainTask.get('num_ce_loss')
         self.num_outputs = self.cfg.train_task.TrainTask.get('num_outputs')
         self.outputs_dimension_per_outputs = \
             cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
 
-        # self.metrics_ = instantiate(cfg.train_task.TrainTask.metrics)
-        self.metrics_outputs_dimension_per_outputs = cfg.train_task.TrainTask.metrics.outputs_dimension_per_outputs
-
-        self.loss_weights = None
-
-        self.epoch = 0
+        self.epoch_counter = 0
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
-        self.callbacks = instantiate(cfg.train_task.TrainTask.callbacks)
 
-        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
-        self.dataloader_ = instantiate(cfg.train_task.TrainTask.dataloader)
+        self.batch_size = self.cfg.train_task.TrainTask.get('batch_size') #args.batch
+        self.dataset = instantiate(cfg.train_task.TrainTask.processor)
+        self.dataset.load_dataset(args.path2data)
         self.dataloader = torch.utils.data.DataLoader(
-            self.dataloader_,
+            self.dataset,
             batch_size=self.batch_size['train'],
             shuffle=True,
-            num_workers=6
+            num_workers=10
         )
+
         self.lr = self.cfg.train_task.TrainTask.get('learning_rate')
-        self.devices = torch.device(self.cfg.train_task.TrainTask.get('devices'))
         self.loss = None
-        self.model = None
-        self.optimizer = None
-        self.instantiate_model(cfg=cfg, path2load_model=None)
+
+        self.loss = losses.losses_instantiate(self.num_ce_loss,
+                                              cfg.train_task.TrainTask.loss_ce,
+                                              list(self.outputs_dimension_per_outputs),
+                                              cfg.train_task.TrainTask.loss)
+        if self.cfg.train_task.TrainTask.get('loss_l2'):
+            self.loss = self.loss[1]
+        for i in range(len(self.loss)):
+            self.loss[i] = self.loss[i].cuda()
+
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
-        self.path2save_plot_model = self.cfg.train_task.TrainTask.get('path2save_plot_model')
-        self.running_loss = {'loss_param': [], 'loss_stft': []}
+        self.path2load_model = self.cfg.train_task.TrainTask.get('path2load_model')
 
-        # if self.cfg.train_task.TrainTask.get('to_schedule'):
-        #     self.schedule = instantiate(cfg.train_task.TrainTask.schedule)
-        #     self.callbacks = list(self.callbacks) + \
-        #                      [tf.keras.callbacks.LearningRateScheduler(self.schedule.__call__)]
-
-    def instantiate_model(self, cfg, path2load_model):
-
-        self.model = instantiate(cfg.train_task.TrainTask.model)
-        self.optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.lr)
-        if path2load_model is not None:
-            checkpoint = torch.load(path2load_model)
-            self.model.load_state_dict(checkpoint['model_state_dict'])
-            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            self.epoch = checkpoint['epoch']
-            self.loss = checkpoint['loss'].cuda()
-            #
-            # model.eval()
-            # # - or -
+        if self.path2load_model is None:
+            self.model = instantiate(cfg.train_task.TrainTask.model)
+            # init_weight_model(self.model)
+            self.model.apply(init_weight_model)
+            self.optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.lr)
         else:
-            self.loss = losses.losses_instantiate(self.num_ce_loss,
-                                                  cfg.train_task.TrainTask.loss_ce,
-                                                  list(self.outputs_dimension_per_outputs),
-                                                  cfg.train_task.TrainTask.loss)
-            for i in range(len(self.loss)):
-                self.loss[i] = self.loss[i].cuda()
-        self.model.train()  # model.train(mode=False)
+            self.model, self.optimizer = load_model(self.path2load_model)
+
+        if torch.cuda.is_available():
+            self.model.cuda()
+
+        self.running_loss = {'loss_param': [], 'loss_stft': []}
 
     def save_model(self):
         torch.save({
-            'epoch': self.epoch,
+            'epoch': self.epoch_counter,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'loss_stft': self.loss[0],
             'loss_param': self.loss[1]
         }, self.path2save_model)
 
-    def set_on_gpus(self, dataset2gpu=False):
-        self.model.to('cuda')  # .to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-        # self.model = DDP(self.model, device_ids=[0, 1, 2, 3])
-        self.model = self.model.cuda() #nn.DataParallel(self.model, device_ids=[0, 1, 2, 3]).cuda()
-
-        self.model.train()
-
-        if dataset2gpu:
-            self.test_dataset.to(self.devices)
-            self.train_dataset.to(self.devices)
-            self.val_dataset.to(self.devices)
-
     def train_model(self):
+        mlflow.pytorch.autolog()
+        with mlflow.start_run() as run:
 
-        # model = self.model
-        for epoch in range(self.epochs):
+            for epoch in range(self.epochs):
 
-            # self.dataloader.shuffle_()
+                running_loss_parmas_counter = 0.0
+                running_loss_stft_counter = 0.0
 
-            running_loss_parmas_counter = 0.0
-            running_loss_stft_counter = 0.0
+                num_steps = 0
 
-            num_steps = 0
+                for step, (inputs, labels) in enumerate(self.dataloader, 1):
+                    if torch.cuda.is_available():
+                        labels = labels.cuda()
+                    if isinstance(inputs, list) or isinstance(inputs, tuple):
+                        if torch.cuda.is_available():
+                            inputs0 = inputs[0].cuda()
+                            inputs1 = inputs[1].cuda()
+                        inputs = [inputs0, inputs1]
+                    else:
+                        if torch.cuda.is_available():
+                            inputs.cuda()
+                    self.optimizer.zero_grad()
 
-            # for i, data in enumerate(self.dataloader, 0):
-            for step, (inputs, labels) in enumerate(self.dataloader, 1):
-                # inputs, labels = data
-                labels = labels.cuda()
-                inputs0 = inputs[0].cuda()#.to(self.devices)
-                inputs1 = inputs[1].cuda()#.to(self.devices)
-                inputs = [inputs0, inputs1]
-                self.optimizer.zero_grad()
+                    output = self.model(inputs)
 
-                try:
-                    pred_param, stft_rec = self.model(inputs)
-                except RuntimeError:
-                    a=0
-                # pred_param, stft_rec = self.model(inputs)
-                loss_param = self.loss[1](pred_param, labels)
-                loss_stft = self.loss[0](stft_rec, inputs[0])
+                    if isinstance(output, list):
+                        pred_param, stft_rec = output
+                        loss_param = self.loss[1](pred_param, labels)
+                        loss_stft = self.loss[0](stft_rec, inputs[0])
+                        loss_param.backward(retain_graph=True)
+                        loss_stft.backward()
+                        self.optimizer.step()
 
-                loss_param.backward(retain_graph=True)
-                loss_stft.backward()
-                self.optimizer.step()
+                        running_loss_parmas_counter += loss_param.item()
+                        running_loss_stft_counter += loss_stft.item()
+                    else:
+                        pred_param = output
 
-                running_loss_parmas_counter += loss_param.item()
-                running_loss_stft_counter += loss_stft.item()
+                        loss_param = self.loss[0](pred_param, labels)
 
-                num_steps += 1
+                        loss_param.backward()
+                        self.optimizer.step()
 
-                if num_steps > 0 and num_steps % 200:
-                    print('loss_param: %f, loss_stft: %f'
-                          % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
+                        running_loss_parmas_counter += loss_param.item()
 
-            running_loss_parmas_counter = running_loss_parmas_counter / num_steps
-            running_loss_stft_counter = running_loss_stft_counter / num_steps
-            self.running_loss['loss_param'].append(running_loss_parmas_counter)
-            self.running_loss['loss_stft'].append(running_loss_stft_counter)
+                    num_steps += 1
 
-            self.custom_checkpoints()
-            self.epoch += 1
+                    if num_steps > 0 and num_steps % 200:
+                        print('loss_param: %f, loss_stft: %f'
+                              % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
+
+                running_loss_parmas_counter = running_loss_parmas_counter / num_steps
+                running_loss_stft_counter = running_loss_stft_counter / num_steps
+                self.running_loss['loss_param'].append(running_loss_parmas_counter)
+                self.running_loss['loss_stft'].append(running_loss_stft_counter)
+
+                self.custom_checkpoints()
+                self.epoch_counter += 1
 
         self.save_model()
 
@@ -175,30 +153,64 @@ class TrainTestTaskSupervised:
                     'loss': self.loss,
                 }, self.path2save_model)
 
-    def run(self):
-        # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
-        #
-        # train_dataset = dataset.torch_data_loader(self.train_dataset,
-        #                                           self.processor.load_data,
-        #                                           self.batch_size['train'])
-        #
-        # test_dataset = dataset.torch_data_loader(self.test_dataset,
-        #                                          self.processor.load_data,
-        #                                          self.batch_size['test'])
-        #
-        # val_dataset = dataset.torch_data_loader(self.val_dataset,
-        #                                         self.processor.load_data,
-        #                                         self.batch_size['valid'])
-        #
-        # self.data_loader = {'train': train_dataset,
-        #                     'test': test_dataset,
-        #                     'valid': val_dataset}
-
-        torch_utils.utils.save_plot_model(model=self.model) #, input_shape=None)
-
-        mlflow.pytorch.autolog()
-        with mlflow.start_run():  # as run:
-            self.set_on_gpus()
-            self.train_model()
+    # def run(self):
+    #     # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
+    #     #
+    #     # train_dataset = dataset.torch_data_loader(self.train_dataset,
+    #     #                                           self.processor.load_data,
+    #     #                                           self.batch_size['train'])
+    #     #
+    #     # test_dataset = dataset.torch_data_loader(self.test_dataset,
+    #     #                                          self.processor.load_data,
+    #     #                                          self.batch_size['test'])
+    #     #
+    #     # val_dataset = dataset.torch_data_loader(self.val_dataset,
+    #     #                                         self.processor.load_data,
+    #     #                                         self.batch_size['valid'])
+    #     #
+    #     # self.data_loader = {'train': train_dataset,
+    #     #                     'test': test_dataset,
+    #     #                     'valid': val_dataset}
+    #
+    #     torch_utils.utils.save_plot_model(model=self.model) #, input_shape=None)
+    #
+    #     mlflow.pytorch.autolog()
+    #     with mlflow.start_run():  # as run:
+    #         self.set_on_gpus()
+    #         self.train_model()
 
             # self.results.csv_predicted(self.model, test_dataset)
+
+
+
+# def instantiate_model(self, cfg, path2load_model):
+#
+#     self.model = instantiate(cfg.train_task.TrainTask.model)
+#     self.optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.lr)
+#     if path2load_model is not None:
+#         checkpoint = torch.load(path2load_model)
+#         self.model.load_state_dict(checkpoint['model_state_dict'])
+#         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+#         self.epoch = checkpoint['epoch']
+#         self.loss = checkpoint['loss'].cuda()
+#
+#     else:
+#         self.loss = losses.losses_instantiate(self.num_ce_loss,
+#                                               cfg.train_task.TrainTask.loss_ce,
+#                                               list(self.outputs_dimension_per_outputs),
+#                                               cfg.train_task.TrainTask.loss)
+#         for i in range(len(self.loss)):
+#             self.loss[i] = self.loss[i].cuda()
+#     self.model.train()  # model.train(mode=False)
+
+# def set_on_gpus(self, dataset2gpu=False):
+#     self.model.to('cuda')
+#     self.model = self.model.cuda()
+#
+#     self.model.train()
+#
+#     if dataset2gpu:
+#         self.test_dataset.to(self.devices)
+#         self.train_dataset.to(self.devices)
+#         self.val_dataset.to(self.devices)
+
