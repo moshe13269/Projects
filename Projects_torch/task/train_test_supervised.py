@@ -134,7 +134,8 @@ class TrainTestTaskSupervised:
                 running_loss_parmas_counter = running_loss_parmas_counter / num_steps
                 running_loss_stft_counter = running_loss_stft_counter / num_steps
                 self.running_loss['loss_param'].append(running_loss_parmas_counter)
-                self.running_loss['loss_stft'].append(running_loss_stft_counter)
+                if len(self.loss) > 1:
+                    self.running_loss['loss_stft'].append(running_loss_stft_counter)
 
                 self.custom_checkpoints()
                 self.epoch_counter += 1
@@ -147,7 +148,7 @@ class TrainTestTaskSupervised:
                 model = self.model
                 model = model.cpu().state_dict()
                 torch.save({
-                    'epoch': self.epoch,
+                    'epoch': self.epoch_counter,
                     'model_state_dict': model,
                     'optimizer_state_dict': self.optimizer.state_dict(),
                     'loss': self.loss,
