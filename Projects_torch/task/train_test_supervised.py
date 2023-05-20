@@ -35,6 +35,7 @@ class TrainTestTaskSupervised:
         self.batch_size = self.cfg.train_task.TrainTask.get('batch_size') #args.batch
         self.dataset = instantiate(cfg.train_task.TrainTask.processor)
         self.dataset.load_dataset(args.path2data)
+        print(len(self.dataset))
         self.dataloader = torch.utils.data.DataLoader(
             self.dataset,
             batch_size=self.batch_size['train'],
