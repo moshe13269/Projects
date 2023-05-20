@@ -154,7 +154,7 @@ class TrainTestTaskSupervised:
                     'optimizer_state_dict': self.optimizer.state_dict(),
                     'loss': self.loss,
                 }, self.path2save_model)
-
+        self.model.train().cuda()
     # def run(self):
     #     # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
     #     #
