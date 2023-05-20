@@ -12,7 +12,7 @@ from omegaconf import DictConfig
 def main(cfg: DictConfig) -> None:
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--path2data', required=False,
-                        default='/home/moshela/work/moshe/pycharm/dataset/noy',
+                        default='/home/moshela/work/moshe/pycharm/dataset/noy/data/',
                         # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data',
                         help='path2data')
     parser.add_argument('--path2save', required=False,
