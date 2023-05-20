@@ -101,7 +101,7 @@ class TrainTestTaskSupervised:
                         inputs = [inputs0, inputs1]
                     else:
                         if torch.cuda.is_available():
-                            inputs.cuda()
+                            inputs = inputs.cuda()
                     self.optimizer.zero_grad()
 
                     output = self.model(inputs)
