@@ -50,8 +50,8 @@ class TrainTestTaskSupervised:
                                               cfg.train_task.TrainTask.loss_ce,
                                               list(self.outputs_dimension_per_outputs),
                                               cfg.train_task.TrainTask.loss)
-        if self.cfg.train_task.TrainTask.get('loss_l2'):
-            self.loss = self.loss[1]
+        if not self.cfg.train_task.TrainTask.get('loss_l2'):
+            self.loss = self.loss[1:]
         for i in range(len(self.loss)):
             self.loss[i] = self.loss[i].cuda()
 
