@@ -85,7 +85,7 @@ class TrainTestTaskSupervised:
         with mlflow.start_run() as run:
 
             for epoch in range(self.epochs):
-
+                print('Start epoch %d' % epoch)
                 running_loss_parmas_counter = 0.0
                 running_loss_stft_counter = 0.0
 
@@ -155,6 +155,7 @@ class TrainTestTaskSupervised:
                     'loss': self.loss,
                 }, self.path2save_model)
         self.model.train().cuda()
+        print('Model had been saved')
     # def run(self):
     #     # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
     #     #
