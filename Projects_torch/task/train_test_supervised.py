@@ -91,7 +91,7 @@ class TrainTestTaskSupervised:
 
                 num_steps = 0
 
-                for step, (inputs, labels) in enumerate(self.dataloader, 1):
+                for step, (inputs, labels) in enumerate(self.dataloader): #, 1
                     if torch.cuda.is_available():
                         labels = labels.cuda()
                     if isinstance(inputs, list) or isinstance(inputs, tuple):
@@ -128,7 +128,7 @@ class TrainTestTaskSupervised:
 
                     num_steps += 1
 
-                    if num_steps > 0 and num_steps % 10000:
+                    if num_steps > 0 and num_steps % 30000:
                         print('loss_param: %f, loss_stft: %f'
                               % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
 
