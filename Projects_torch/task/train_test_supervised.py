@@ -115,6 +115,13 @@ class TrainTestTaskSupervised:
 
                         running_loss_parmas_counter += loss_param.item()
                         running_loss_stft_counter += loss_stft.item()
+
+                        num_steps += 1
+
+                        if num_steps > 0 and num_steps % 1000 == 0:
+                            print('loss_param: %f, loss_stft: %f'
+                                  % (running_loss_parmas_counter / step, running_loss_stft_counter / step))
+
                     else:
                         pred_param = output
 
@@ -125,12 +132,11 @@ class TrainTestTaskSupervised:
 
                         running_loss_parmas_counter += loss_param.item()
 
-                    num_steps += 1
+                        num_steps += 1
 
-                    if num_steps > 0 and num_steps % 1000 == 0:
-                        print('loss_param: %f, loss_stft: %f'
-                              % (running_loss_parmas_counter/num_steps, running_loss_stft_counter/num_steps))
-                        print(step)
+                        if num_steps > 0 and num_steps % 1000 == 0:
+                            print('loss_param: %f, %f'
+                                  % (running_loss_parmas_counter/step, running_loss_parmas_counter))
 
                 running_loss_parmas_counter = running_loss_parmas_counter / num_steps
                 running_loss_stft_counter = running_loss_stft_counter / num_steps
