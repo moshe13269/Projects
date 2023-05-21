@@ -140,9 +140,12 @@ class TrainTestTaskSupervised:
 
                 running_loss_parmas_counter = running_loss_parmas_counter / num_steps
                 running_loss_stft_counter = running_loss_stft_counter / num_steps
+
+                print('Loss param: %f' % running_loss_parmas_counter)
                 self.running_loss['loss_param'].append(running_loss_parmas_counter)
                 if len(self.loss) > 1:
                     self.running_loss['loss_stft'].append(running_loss_stft_counter)
+                    print('Loss stft: %f' % running_loss_stft_counter)
 
                 self.custom_checkpoints()
                 self.epoch_counter += 1
