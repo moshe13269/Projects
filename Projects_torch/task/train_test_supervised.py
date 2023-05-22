@@ -63,6 +63,7 @@ class TrainTestTaskSupervised:
             # init_weight_model(self.model)
             self.model.apply(init_weight_model)
             self.optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.lr)
+            print("Learning rate: %f" % self.lr)
         else:
             self.model, self.optimizer = load_model(self.path2load_model)
 
