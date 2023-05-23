@@ -85,6 +85,8 @@ class TrainTestTaskSupervised:
         mlflow.pytorch.autolog()
         with mlflow.start_run() as run:
 
+            self.custom_checkpoints(flag=True)
+
             for epoch in range(self.epochs):
                 print('Start epoch %d' % epoch)
                 running_loss_parmas_counter = 0.0
@@ -153,7 +155,7 @@ class TrainTestTaskSupervised:
 
         self.save_model()
 
-    def custom_checkpoints(self):
+    def custom_checkpoints(self, flag=False):
         if len(self.running_loss['loss_param']) >= 1:
             if (self.running_loss['loss_param'][-1] + 0.001) < min(self.running_loss['loss_param']):
                 model = self.model
@@ -165,8 +167,19 @@ class TrainTestTaskSupervised:
                     'loss_param': self.running_loss['loss_param'],
                     'loss_stft': self.running_loss['loss_stft'],
                 }, self.path2save_model)
-        self.model.train().cuda()
-        print('Model had been saved')
+                self.model.train().cuda()
+                print('Model had been saved')
+        elif flag:
+            model = self.model
+            model = model.cpu().state_dict()
+            torch.save({
+                'epoch': self.epoch_counter,
+                'model_state_dict': model,
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'loss_param': self.running_loss['loss_param'],
+                'loss_stft': self.running_loss['loss_stft'],
+            }, self.path2save_model)
+            self.model.train().cuda()
     # def run(self):
     #     # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
     #     #
