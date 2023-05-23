@@ -137,7 +137,7 @@ class TrainTestTaskSupervised:
 
                         num_steps += 1
 
-                        if num_steps > 0 and num_steps % 500 == 0:
+                        if num_steps > 0 and num_steps % 100 == 0:
                             print('loss_param: %f, %f'
                                   % (running_loss_parmas_counter/step, running_loss_parmas_counter))
 
