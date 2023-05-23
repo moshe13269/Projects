@@ -162,7 +162,8 @@ class TrainTestTaskSupervised:
                     'epoch': self.epoch_counter,
                     'model_state_dict': model,
                     'optimizer_state_dict': self.optimizer.state_dict(),
-                    'loss': self.loss,
+                    'loss_param': self.running_loss['loss_param'],
+                    'loss_stft': self.running_loss['loss_stft'],
                 }, self.path2save_model)
         self.model.train().cuda()
         print('Model had been saved')
