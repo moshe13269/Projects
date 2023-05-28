@@ -140,7 +140,7 @@ class TrainTestTaskSupervised:
                         if num_steps > 0 and num_steps % 100 == 0:
                             print('loss_param: %f, %f'
                                   % (running_loss_parmas_counter/step, running_loss_parmas_counter))
-
+                            print(self.running_loss['loss_param'])
                         if step == 100:
                             break;
 
