@@ -141,6 +141,9 @@ class TrainTestTaskSupervised:
                             print('loss_param: %f, %f'
                                   % (running_loss_parmas_counter/step, running_loss_parmas_counter))
 
+                        if step == 5000:
+                            break;
+
                 running_loss_parmas_counter = running_loss_parmas_counter / num_steps
                 running_loss_stft_counter = running_loss_stft_counter / num_steps
 
