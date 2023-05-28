@@ -169,6 +169,7 @@ class TrainTestTaskSupervised:
                 }, self.path2save_model)
                 self.model.train().cuda()
                 print('Model had been saved')
+                print(self.running_loss['loss_param'], self.running_loss['loss_stft'])
         elif flag:
             model = self.model
             model = model.cpu().state_dict()
@@ -180,6 +181,7 @@ class TrainTestTaskSupervised:
                 'loss_stft': self.running_loss['loss_stft'],
             }, self.path2save_model)
             self.model.train().cuda()
+            print(self.running_loss['loss_param'], self.running_loss['loss_stft'])
     # def run(self):
     #     # self.train_dataset, self.test_dataset, self.val_dataset = dataset.split_dataset(self.dataset_class)
     #     #
