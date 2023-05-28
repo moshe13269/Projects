@@ -160,8 +160,8 @@ class TrainTestTaskSupervised:
 
     def custom_checkpoints(self, flag=False):
         if len(self.running_loss['loss_param']) >= 1:
-            print('sssdsdsds')
             if (self.running_loss['loss_param'][-1] + 0.0001) < min(self.running_loss['loss_param']):
+                print('sssdsdsds')
                 model = self.model
                 model = model.cpu().state_dict()
                 torch.save({
