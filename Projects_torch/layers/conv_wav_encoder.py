@@ -41,7 +41,7 @@ class ConvFeatureExtractionModel(nn.Module):
                     make_conv(),
                     nn.Dropout(p=dropout),
                     nn.LayerNorm([512], elementwise_affine=True, eps=1e-6),
-                    nn.GELU(),
+                    nn.ReLU(),
                 )
 
             elif is_group_norm and activation is not None:
@@ -49,14 +49,14 @@ class ConvFeatureExtractionModel(nn.Module):
                     make_conv(),
                     nn.Dropout(p=dropout),
                     nn.GroupNorm(num_groups=32, num_channels=512, eps=1e-6),
-                    nn.GELU(),
+                    nn.ReLU(),
                 )
 
             else:
                 return nn.Sequential(
                     make_conv(),
                     nn.Dropout(p=dropout),
-                    nn.GELU(),
+                    nn.ReLU(),
                 )
 
         layers = torch.nn.ModuleList() #[]

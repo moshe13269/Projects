@@ -22,7 +22,7 @@ TrainTask:
 
     conv_encoder:
       _target_: Projects_torch.layers.conv_wav_encoder.ConvFeatureExtractionModel
-      activation: gelu
+      activation: relu
       units: 512
       conv_layers:
         -
@@ -57,8 +57,8 @@ TrainTask:
 
       dropout: 0.1
       conv_bias: True
-      is_group_norm: True
-      is_layer_norm: False
+      is_group_norm: False
+      is_layer_norm: True
 
     linear_classifier:
       _target_: Projects_torch.layers.linear_classifier_2.LinearClassifier
