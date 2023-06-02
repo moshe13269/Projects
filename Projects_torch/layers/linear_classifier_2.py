@@ -29,19 +29,20 @@ class LinearClassifier(nn.Module):
             # tf.keras.layers.GlobalAveragePooling1D(), #Flatten(),
             nn.Flatten(),
             nn.Linear(in_features=65*512, out_features=sum(outputs_dimension_per_outputs)), #Dense(units=512 * 50, activation=self.activation),
-            nn.ReLU(),
+            # nn.Dropout(p=dropout),
+            # nn.ReLU(),
+            # nn.Linear(in_features=sum(outputs_dimension_per_outputs),
+            #           out_features=sum(outputs_dimension_per_outputs)),
+            # nn.Dropout(p=dropout),
+            # nn.ReLU(),
+            # nn.Linear(in_features=sum(outputs_dimension_per_outputs),
+            #           out_features=sum(outputs_dimension_per_outputs)),
+
             nn.Dropout(p=dropout),
+            nn.ReLU(),
             nn.Linear(in_features=sum(outputs_dimension_per_outputs),
                       out_features=sum(outputs_dimension_per_outputs)),
-            nn.ReLU(),
-            nn.Dropout(p=dropout),
-            nn.Linear(in_features=sum(outputs_dimension_per_outputs),
-                      out_features=sum(outputs_dimension_per_outputs)),
-            nn.ReLU(),
-            nn.Dropout(p=dropout),
-            nn.Linear(in_features=sum(outputs_dimension_per_outputs),
-                      out_features=sum(outputs_dimension_per_outputs)),
-            nn.ReLU()
+            # nn.ReLU()
         )
 
     def forward(self, x):
