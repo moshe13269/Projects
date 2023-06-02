@@ -194,7 +194,7 @@ TrainTask:
     test: 1
     valid: 64 #48
 
-  learning_rate: 8e-4 #0.5e-7
+  learning_rate: 1e-3 #8e-4 #0.5e-7
 
   epochs: 4000
   path2save_model: /home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
