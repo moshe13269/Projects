@@ -126,6 +126,7 @@ class TrainTestTaskSupervised:
                               % (running_loss_parmas_counter / step, running_loss_stft_counter / step))
 
                 else:
+
                     loss_param = self.loss[0](output, labels)
 
                     loss_param.backward()
@@ -135,23 +136,23 @@ class TrainTestTaskSupervised:
 
                     num_steps += 1
 
-                running_loss_parmas_counter = running_loss_parmas_counter / num_steps
-                running_loss_stft_counter = running_loss_stft_counter / num_steps
+            running_loss_parmas_counter = running_loss_parmas_counter / num_steps
+            running_loss_stft_counter = running_loss_stft_counter / num_steps
 
-                print('Loss param: %f' % running_loss_parmas_counter)
-                self.running_loss['loss_param'].append(running_loss_parmas_counter)
-                if len(self.loss) > 1:
-                    self.running_loss['loss_stft'].append(running_loss_stft_counter)
-                    print('Loss stft: %f' % running_loss_stft_counter)
+            print('Loss param: %f' % running_loss_parmas_counter)
+            self.running_loss['loss_param'].append(running_loss_parmas_counter)
+            if len(self.loss) > 1:
+                self.running_loss['loss_stft'].append(running_loss_stft_counter)
+                print('Loss stft: %f' % running_loss_stft_counter)
 
-                self.custom_checkpoints()
-                self.epoch_counter += 1
+            self.custom_checkpoints()
+            self.epoch_counter += 1
 
         self.save_model()
 
     def custom_checkpoints(self, flag=False):
         if len(self.running_loss['loss_param']) >= 3:
-            if (self.running_loss['loss_param'][-1] + 1e8) < \
+            if (self.running_loss['loss_param'][-1] + 0.0001) < \
                     min(self.running_loss['loss_param'][:len(self.running_loss['loss_param'])-2]):
                 model = self.model
                 model = model.cpu().state_dict()
