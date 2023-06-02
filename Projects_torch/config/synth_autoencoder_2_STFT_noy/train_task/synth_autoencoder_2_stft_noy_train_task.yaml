@@ -10,7 +10,7 @@ TrainTask:
     labels: True
     dataset_names: tal_noise_1
 
-  saved_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
+  path2load_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
 
   model:
     _target_: Projects_torch.model.synth_tranformerE_model.SynthAutoEncoder
