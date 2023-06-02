@@ -82,67 +82,58 @@ class TrainTestTaskSupervised:
         }, self.path2save_model)
 
     def train_model(self):
-        mlflow.pytorch.autolog()
-        with mlflow.start_run() as run:
+        # mlflow.pytorch.autolog()
+        # with mlflow.start_run() as run:
 
-            self.custom_checkpoints(flag=True)
+        self.custom_checkpoints(flag=True)
 
-            for epoch in range(self.epochs):
-                print('Start epoch %d' % epoch)
-                running_loss_parmas_counter = 0.0
-                running_loss_stft_counter = 0.0
+        for epoch in range(self.epochs):
+            print('Start epoch %d' % epoch)
+            running_loss_parmas_counter = 0.0
+            running_loss_stft_counter = 0.0
 
-                num_steps = 0
+            num_steps = 0
 
-                for step, (inputs, labels) in enumerate(self.dataloader): #, 1
+            for step, (inputs, labels) in enumerate(self.dataloader):
+                if torch.cuda.is_available():
+                    labels = labels.cuda()
+                if isinstance(inputs, list) or isinstance(inputs, tuple):
                     if torch.cuda.is_available():
-                        labels = labels.cuda()
-                    if isinstance(inputs, list) or isinstance(inputs, tuple):
-                        if torch.cuda.is_available():
-                            inputs0 = inputs[0].cuda()
-                            inputs1 = inputs[1].cuda()
-                        inputs = [inputs0, inputs1]
-                    else:
-                        if torch.cuda.is_available():
-                            inputs = inputs.cuda()
-                    self.optimizer.zero_grad()
-                    output = self.model(inputs)
+                        inputs0 = inputs[0].cuda()
+                        inputs1 = inputs[1].cuda()
+                    inputs = [inputs0, inputs1]
+                else:
+                    if torch.cuda.is_available():
+                        inputs = inputs.cuda()
+                self.optimizer.zero_grad()
+                output = self.model(inputs)
 
-                    if isinstance(output, list):
-                        pred_param, stft_rec = output
-                        loss_param = self.loss[1](pred_param, labels)
-                        loss_stft = self.loss[0](stft_rec, inputs[0])
-                        loss_param.backward(retain_graph=True)
-                        loss_stft.backward()
-                        self.optimizer.step()
+                if isinstance(output, list):
+                    pred_param, stft_rec = output
+                    loss_param = self.loss[1](pred_param, labels)
+                    loss_stft = self.loss[0](stft_rec, inputs[0])
+                    loss_param.backward(retain_graph=True)
+                    loss_stft.backward()
+                    self.optimizer.step()
 
-                        running_loss_parmas_counter += loss_param.item()
-                        running_loss_stft_counter += loss_stft.item()
+                    running_loss_parmas_counter += loss_param.item()
+                    running_loss_stft_counter += loss_stft.item()
 
-                        num_steps += 1
+                    num_steps += 1
 
-                        if num_steps > 0 and num_steps % 1000 == 0:
-                            print('loss_param: %f, loss_stft: %f'
-                                  % (running_loss_parmas_counter / step, running_loss_stft_counter / step))
+                    if num_steps > 0 and num_steps % 1000 == 0:
+                        print('loss_param: %f, loss_stft: %f'
+                              % (running_loss_parmas_counter / step, running_loss_stft_counter / step))
 
-                    else:
-                        pred_param = output
+                else:
+                    loss_param = self.loss[0](output, labels)
 
-                        loss_param = self.loss[0](pred_param, labels)
+                    loss_param.backward()
+                    self.optimizer.step()
 
-                        loss_param.backward()
-                        self.optimizer.step()
+                    running_loss_parmas_counter += loss_param.item()
 
-                        running_loss_parmas_counter += loss_param.item()
-
-                        num_steps += 1
-
-                        # if num_steps > 0 and num_steps % 100 == 0:
-                        #     print('loss_param: %f, %f'
-                        #           % (running_loss_parmas_counter/step, running_loss_parmas_counter))
-                        #     print(self.running_loss['loss_param'])
-                        # if step == 100:
-                        #     break;
+                    num_steps += 1
 
                 running_loss_parmas_counter = running_loss_parmas_counter / num_steps
                 running_loss_stft_counter = running_loss_stft_counter / num_steps
@@ -160,7 +151,7 @@ class TrainTestTaskSupervised:
 
     def custom_checkpoints(self, flag=False):
         if len(self.running_loss['loss_param']) >= 3:
-            if (self.running_loss['loss_param'][-1] + 0.0001) < \
+            if (self.running_loss['loss_param'][-1] + 1e8) < \
                     min(self.running_loss['loss_param'][:len(self.running_loss['loss_param'])-2]):
                 model = self.model
                 model = model.cpu().state_dict()
