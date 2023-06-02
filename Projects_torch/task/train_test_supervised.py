@@ -159,7 +159,7 @@ class TrainTestTaskSupervised:
         self.save_model()
 
     def custom_checkpoints(self, flag=False):
-        if len(self.running_loss['loss_param']) >= 1:
+        if len(self.running_loss['loss_param']) >= 3:
             if (self.running_loss['loss_param'][-1] + 0.0001) < \
                     min(self.running_loss['loss_param'][:len(self.running_loss['loss_param'])-2]):
                 print('sssdsdsds')
