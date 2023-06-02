@@ -41,22 +41,12 @@ class CELoss(nn.Module):
         self.classes_with_weights = [8, 10, 11, 12, 13, 14, 15]
 
     def forward(self, output, target):
-        # tf.print(tf.shape(y_true), tf.shape(y_true))
         output = self.split(output)
         target = self.split(target)
 
-        # y_pred = [tf.nn.softmax(output) for output in y_pred]
-
-        # loss = [tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
-        #         for i in range(len(y_pred))]
         loss = 0.0
         for i in range(len(target)):
-            # if i in self.classes_with_weights and len(y_pred) > 9:
-            #     loss += self.ce(y_true[i], tf.nn.softmax(y_pred[i]),
-            #                     sample_weight=tf.constant(self.classes_weight[str(i)]))
-            # else:
-                loss += self.ce(output[i], torch.nn.functional.softmax(target[i], dim=1))
-            # loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true[i], logits=y_pred[i]))
+            loss += self.ce(output[i], target[i])# torch.nn.functional.softmax(target[i], dim=1))
         loss = loss / len(target)
         return loss
 
