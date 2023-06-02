@@ -79,12 +79,12 @@ def outputs_conv_size(conv_layers, num_duplicate_layer, inputs_size, p, avg_pool
 def init_weight_model(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.Conv1d):
         y = m.in_channels
-        m.weight.data.normal_(0.0, 1 / np.sqrt(y))
+        m.weight.data.normal_(0.0, 1.)# / np.sqrt(y))
         m.bias.data.fill_(0.)
 
     elif isinstance(m, nn.Linear):
         y = m.in_features
-        m.weight.data.normal_(0.0, 1/np.sqrt(y))
+        m.weight.data.normal_(0.0, 1.)# /np.sqrt(y))
         m.bias.data.fill_(0.)
 
 
