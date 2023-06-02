@@ -1,12 +1,12 @@
-import os
-from Projects_torch import torch_utils
+# import os
+# from Projects_torch import torch_utils
 from Projects_torch import losses
 import torch
-import torch.nn as nn
-import dataset
+# import torch.nn as nn
+# import dataset
 import mlflow
 import mlflow.pytorch
-from mlflow import MlflowClient
+# from mlflow import MlflowClient
 from omegaconf import DictConfig
 from hydra.utils import instantiate
 from utils.utils import init_weight_model, load_model
@@ -162,7 +162,6 @@ class TrainTestTaskSupervised:
         if len(self.running_loss['loss_param']) >= 3:
             if (self.running_loss['loss_param'][-1] + 0.0001) < \
                     min(self.running_loss['loss_param'][:len(self.running_loss['loss_param'])-2]):
-                print('sssdsdsds')
                 model = self.model
                 model = model.cpu().state_dict()
                 torch.save({
