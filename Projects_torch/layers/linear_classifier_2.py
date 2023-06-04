@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 from typing import List, Tuple
 
@@ -17,7 +18,6 @@ class LinearClassifier(nn.Module):
 
     def __init__(self,
                  outputs_dimension_per_outputs,
-                 # num_classes_per_param: List[int],
                  activation: str = 'relu',
                  dropout: float = 0.2,
                  **kwargs):
@@ -25,27 +25,33 @@ class LinearClassifier(nn.Module):
 
         self.outputs_dimension_per_outputs = outputs_dimension_per_outputs
         self.activation = activation
-        self.layers = nn.Sequential(
-            # tf.keras.layers.GlobalAveragePooling1D(), #Flatten(),
-            nn.Flatten(),
-            nn.Linear(in_features=65*512, out_features=sum(outputs_dimension_per_outputs)), #Dense(units=512 * 50, activation=self.activation),
-            # nn.Dropout(p=dropout),
-            # nn.ReLU(),
-            # nn.Linear(in_features=sum(outputs_dimension_per_outputs),
-            #           out_features=sum(outputs_dimension_per_outputs)),
-            # nn.Dropout(p=dropout),
-            # nn.ReLU(),
-            # nn.Linear(in_features=sum(outputs_dimension_per_outputs),
-            #           out_features=sum(outputs_dimension_per_outputs)),
-
-            nn.Dropout(p=dropout),
-            nn.ReLU(),
-            nn.Linear(in_features=sum(outputs_dimension_per_outputs),
-                      out_features=sum(outputs_dimension_per_outputs)),
-            # nn.ReLU()
-        )
+        self.layers = torch.nn.ModuleList()
+        for output_size in self.outputs_dimension_per_outputs:
+            self.layers.append(
+                nn.Sequential(
+                    nn.Flatten(),
+                    nn.Linear(in_features=130 * 512, out_features=output_size),
+                    nn.Dropout(p=dropout),
+                    nn.ReLU(),
+                    nn.Linear(in_features=output_size,
+                              out_features=output_size),
+                    nn.Softmax(dim=-1)
+                )
+            )
 
     def forward(self, x):
-        outputs = self.layers(x)
-
+        outputs = []
+        for layer in self.layers:
+            outputs.append(layer(x))
         return outputs
+        #torch.nn.ModuleList() ???
+
+
+if __name__ == "__main__":
+    linear = LinearClassifier([3, 12, 20, 31, 4, 5, 8, 5, 16])
+    input = torch.normal(torch.zeros(32, 130, 512))
+    output = linear(input)
+    loss = nn.CrossEntropyLoss()
+    target = torch.empty((32,), dtype=torch.long).random_(3)
+    output = loss(output[0], target)
+    print(output)

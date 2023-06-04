@@ -4,7 +4,7 @@ import Projects_torch.layers
 from typing import List, Tuple
 
 
-class SynthEncoder(nn.Module):
+class SynthTransformerAutoEncoder(nn.Module):
     num_layers: int
     d_model: int
     nhead: int
@@ -17,12 +17,12 @@ class SynthEncoder(nn.Module):
                  d_model,
                  nhead,
                  linear_classifier: Projects_torch.layers.LinearClassifier,
+                 transformer: Projects_torch.layers.Transformer
                  ):
 
-        super(SynthEncoder, self).__init__()
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
+        super(SynthTransformerAutoEncoder, self).__init__()
 
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.transformer = transformer
 
         self.linear_classifier = linear_classifier
 
@@ -32,10 +32,8 @@ class SynthEncoder(nn.Module):
 
         outputs = self.conv_encoder(inputs)
 
-        outputs = torch.permute(outputs, (0, 2, 1))
-
-        encoder_outputs = self.transformer(outputs)
+        output, encoder_outputs = self.transformer(outputs)
 
         outputs_params_list = self.linear_classifier(encoder_outputs)
 
-        return outputs_params_list
+        return output, outputs_params_list

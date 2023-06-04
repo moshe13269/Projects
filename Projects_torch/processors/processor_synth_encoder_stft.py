@@ -22,7 +22,7 @@ from torch.utils.data import Dataset
 
 
 class DataLoaderSTFT(Dataset):
-    def __init__(self, num_classes, masking=True, mask=None, norm_mean=None, norm_std=None, dataset_path=None):
+    def __init__(self, num_classes, autoencoder=False, norm_mean=None, norm_std=None, dataset_path=None):
 
         super().__init__()
         self.norm_mean = norm_mean
@@ -36,7 +36,7 @@ class DataLoaderSTFT(Dataset):
         self.files = None
         self.files_ = None
         self.labels = None
-        self.masking = masking
+        self.autoencoder = autoencoder
 
     def load_dataset(self, dataset_path):
         self.files = [os.path.join(dataset_path, file)
@@ -51,14 +51,6 @@ class DataLoaderSTFT(Dataset):
 
     def __len__(self):
         return len(self.files_)
-
-    def mask(self, x):
-        mask_d = np.ones((65, 65), dtype=np.float32)
-        for i in range(65):
-            for j in range(65):
-                if j > i:
-                    mask_d[i][j] = 0
-        return x, mask_d  # np.float32(mask_d)
 
     def shuffle_(self):
         shuffle(self.files)
@@ -82,10 +74,28 @@ class DataLoaderSTFT(Dataset):
         data = np.transpose(np.abs(Zxx))
         data = np.ndarray.astype(data, np.float32)
 
-        label = self.label2onehot(label)
+        # label = self.label2onehot(label)
+        label = np.expand_dims(label, 1)
         label = np.ndarray.astype(label, np.float32)
 
-        if self.masking:
-            data = list(self.mask(data))
-
+        if self.autoencoder:
+            return data, [data, label]
         return data, label
+
+
+if __name__ == '__main__':
+    num_classes = [3, 12, 20, 31, 4, 5, 8, 5, 16]
+    dl = DataLoaderSTFT(num_classes=num_classes, autoencoder=False)
+    dl.load_dataset(dataset_path=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data')
+    a = dl.__getitem__(78)
+    a=0
+
+
+
+    # def mask(self, x):
+    #     mask_d = np.ones((65, 65), dtype=np.float32)
+    #     for i in range(65):
+    #         for j in range(65):
+    #             if j > i:
+    #                 mask_d[i][j] = 0
+    #     return x, mask_d  # np.float32(mask_d)

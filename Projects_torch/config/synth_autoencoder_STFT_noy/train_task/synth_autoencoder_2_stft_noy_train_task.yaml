@@ -16,9 +16,18 @@ TrainTask:
     _target_: Projects_torch.model.synth_tranformerE_model.SynthAutoEncoder
 
     # transformer:
-    num_layers: 12
-    d_model: 512
-    nhead: 16
+    transformer:
+      _target_: Projects_torch.layers.transformer.TransformerE
+      d_model: 512
+      num_heads: 8
+      num_layers: 12
+      d_ff: 2048
+      max_seq_length: 130
+      dropout: 0.1
+
+#    num_layers: 12
+#    d_model: 512
+#    nhead: 16
 
     conv_encoder:
       _target_: Projects_torch.layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -171,6 +180,7 @@ TrainTask:
     masking: False
     norm_mean: 0.013329904
     norm_std: 0.041720923
+    autoencoder: True
 #    std_mean_calc:
 #      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
 #      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/

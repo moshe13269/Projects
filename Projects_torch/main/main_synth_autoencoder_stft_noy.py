@@ -8,7 +8,7 @@ from Projects_torch import task
 from omegaconf import DictConfig
 
 
-@hydra.main(config_path=os.path.join('../config', 'synth_autoencoder_2_STFT_noy'), config_name='config')
+@hydra.main(config_path=os.path.join('../config', 'synth_autoencoder_STFT_noy'), config_name='config')
 def main(cfg: DictConfig) -> None:
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--path2data', required=False,
@@ -22,7 +22,7 @@ def main(cfg: DictConfig) -> None:
 
     parser.add_argument('--batch', required=False,
                         default=2,
-                        help='batch')  ########
+                        help='batch')
 
     args = parser.parse_args()
 
