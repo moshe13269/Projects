@@ -23,7 +23,7 @@ class MultiHeadAttention(nn.Module):
     def scaled_dot_product_attention(self, Q, K, V, mask=None):
         attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         if mask is not None:
-            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9)
+            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9) #(mask.cuda() == 0, -1e9)
         attn_probs = torch.softmax(attn_scores, dim=-1)
         output = torch.matmul(attn_probs, V)
         return output
@@ -116,8 +116,6 @@ class Transformer(nn.Module):
     def __init__(self, d_model, num_heads, num_layers, d_ff, max_seq_length,
                  dropout, output_channels=129):
         super(Transformer, self).__init__()
-        # self.encoder_embedding = nn.Embedding(src_vocab_size, d_model)
-        # self.decoder_embedding = nn.Embedding(tgt_vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
         self.encoder_layers = nn.ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
@@ -150,7 +148,7 @@ class Transformer(nn.Module):
         dec_output = tgt_embedded
         for dec_layer in self.decoder_layers:
             dec_output = dec_layer(dec_output, enc_output, src_mask, tgt_mask)
-        output = self.fc(dec_output)
+        output = dec_output #self.fc(dec_output)
         return output, enc_output # (64, 99, 5000)
 
 

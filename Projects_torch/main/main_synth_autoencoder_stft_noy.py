@@ -26,9 +26,7 @@ def main(cfg: DictConfig) -> None:
 
     args = parser.parse_args()
 
-    train_task = task.TrainTestTaskSupervised(cfg, args)
-
-    train_task.train_model()
+    train_task = task.TrainTaskSupervised(cfg, args)
 
 
 if __name__ == "__main__":

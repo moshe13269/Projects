@@ -13,6 +13,7 @@ class SynthTransformerAutoEncoder(nn.Module):
 
     def __init__(self,
                  conv_encoder: Projects_torch.layers.ConvFeatureExtractionModel,
+                 conv_decoder: Projects_torch.layers.conv_wav_decoder.ConvDecoderModel,
                  linear_classifier: Projects_torch.layers.LinearClassifier,
                  transformer: Projects_torch.layers.Transformer
                  ):
@@ -24,13 +25,15 @@ class SynthTransformerAutoEncoder(nn.Module):
         self.linear_classifier = linear_classifier
 
         self.conv_encoder = conv_encoder
+        self.conv_decoder = conv_decoder
 
     def forward(self, inputs):
-
         outputs = self.conv_encoder(inputs)
 
-        output, encoder_outputs = self.transformer(outputs)
+        output, encoder_outputs = self.transformer(src=outputs, tgt=outputs)
 
         outputs_params_list = self.linear_classifier(encoder_outputs)
 
-        return output, outputs_params_list
+        stft = self.conv_decoder(output)
+
+        return [inputs, stft], [outputs, output], outputs_params_list

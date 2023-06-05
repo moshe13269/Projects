@@ -96,9 +96,23 @@ class TrainTaskSupervised:
                                   tracking_uri="file:./ml-runs",
                                   save_dir=None)
 
+        # from lightning.pytorch.callbacks import RichProgressBar
+        # from lightning.pytorch.callbacks.progress.rich_progress import RichProgressBarTheme
+        # progress_bar = RichProgressBar(
+        #     theme=RichProgressBarTheme(
+        #         description="green_yellow",
+        #         progress_bar="green1",
+        #         progress_bar_finished="green1",
+        #         progress_bar_pulse="#6206E0",
+        #         batch_progress="green_yellow",
+        #         time="grey82",
+        #         processing_speed="grey82",
+        #         metrics="grey82",
+        #     ))
+
         checkpoint_callback = ModelCheckpoint(dirpath=self.path2save_model,
                                               save_weights_only=False,
-                                              monitor='val_loss',
+                                              # monitor='val_loss',
                                               save_last=True,
                                               verbose=True)
 

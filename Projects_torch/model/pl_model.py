@@ -20,7 +20,7 @@ class LitModel(pl.LightningModule):
         output = self.model(x)
         loss = 0.0
         for i in range(len(self.losses)):
-            loss += self.losses[i](output[i], y[i])
+            loss += self.losses[i](output, y)
 
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
