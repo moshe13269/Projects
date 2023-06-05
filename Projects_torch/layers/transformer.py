@@ -165,7 +165,7 @@ class TransformerE(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def generate_mask(self, src):
-        src_mask = torch.zeros(src.shape[0], src.shape[1]).unsqueeze(1).unsqueeze(2)
+        src_mask = torch.Tensor(torch.zeros(src.shape[0], src.shape[1]).unsqueeze(1).unsqueeze(2))
         return src_mask
 
     def forward(self, src):
