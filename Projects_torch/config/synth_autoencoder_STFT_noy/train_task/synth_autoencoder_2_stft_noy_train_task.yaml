@@ -196,7 +196,7 @@ TrainTask:
   learning_rate: 8e-4 #0.5e-7
 
   epochs: 4000
-  path2save_model: /home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
+  path2save_model: /home/moshela/work/moshe/pycharm/checkpoints/noy/encoder #    /home/moshelaufer/PycharmProjects/results/models/
   model_name: synth_autoencoder_2_stft_noy
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft/
   num_outputs: 2 #10 #1
