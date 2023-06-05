@@ -30,7 +30,7 @@ class LinearClassifier(nn.Module):
             self.layers.append(
                 nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(in_features=130 * 512, out_features=output_size),
+                    nn.Linear(in_features=65 * 512, out_features=output_size),
                     nn.Dropout(p=dropout),
                     nn.ReLU(),
                     nn.Linear(in_features=output_size,

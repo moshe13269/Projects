@@ -13,9 +13,6 @@ class SynthTransformerAutoEncoder(nn.Module):
 
     def __init__(self,
                  conv_encoder: Projects_torch.layers.ConvFeatureExtractionModel,
-                 num_layers,
-                 d_model,
-                 nhead,
                  linear_classifier: Projects_torch.layers.LinearClassifier,
                  transformer: Projects_torch.layers.Transformer
                  ):

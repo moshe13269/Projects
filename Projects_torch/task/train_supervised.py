@@ -9,7 +9,7 @@ from lightning.pytorch.loggers import MLFlowLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from utils.utils import init_weight_model, load_model
 from torch.utils.data.sampler import SubsetRandomSampler
-from torch.utils.data.distributed import DistributedSampler
+# from torch.utils.data.distributed import DistributedSampler
 
 
 class TrainTaskSupervised:
@@ -42,8 +42,6 @@ class TrainTaskSupervised:
 
         if not self.cfg.train_task.TrainTask.get('loss_l2'):
             self.loss = self.loss[1:]
-        for i in range(len(self.loss)):
-            self.loss[i] = self.loss[i].cuda()
 
         ################################
         # model instantiate
@@ -82,16 +80,14 @@ class TrainTaskSupervised:
         valid_sampler = SubsetRandomSampler(val_indices)
 
         train_loader = torch.utils.data.DataLoader(self.dataset,
-                                                   shuffle=True,
                                                    batch_size=self.batch_size['train'],
                                                    sampler=train_sampler,
-                                                   num_workers=10)
+                                                   num_workers=1)
 
         validation_loader = torch.utils.data.DataLoader(self.dataset,
-                                                        shuffle=True,
-                                                        batch_size=self.batch_size['val'],
+                                                        batch_size=self.batch_size['valid'],
                                                         sampler=valid_sampler,
-                                                        num_workers=10)
+                                                        num_workers=1)
 
         #######################################
         # logger & checkpoint & trainer & fit
@@ -110,6 +106,7 @@ class TrainTaskSupervised:
             accelerator = 'gpu'
         else:
             accelerator = 'cpu'
+        print('Use the accelerator: {}'.format(accelerator))
 
         self.trainer = Trainer(logger=mlf_logger,
                                callbacks=[checkpoint_callback],
@@ -119,4 +116,4 @@ class TrainTaskSupervised:
         self.trainer.fit(model=pl_model,
                          train_dataloaders=train_loader,
                          val_dataloaders=validation_loader,
-                         ckpt_path=self.path2save_model)
+                         ckpt_path=None)

@@ -13,19 +13,15 @@ TrainTask:
   path2load_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
 
   model:
-    _target_: Projects_torch.model.synth_tranformerE_model.SynthEncoder
+    _target_: Projects_torch.model.synth_transformer_encoder.SynthTransformerEncoder
     transformer:
       _target_: Projects_torch.layers.transformer.TransformerE
       d_model: 512
       num_heads: 8
       num_layers: 12
       d_ff: 2048
-      max_seq_length: 130
+      max_seq_length: 65
       dropout: 0.1
-
-#    num_layers: 12
-#    d_model: 512
-#    nhead: 16
 
     conv_encoder:
       _target_: Projects_torch.layers.conv_wav_encoder.ConvFeatureExtractionModel
@@ -175,7 +171,6 @@ TrainTask:
 
   processor:
     _target_: Projects_torch.processors.processor_synth_encoder_stft.DataLoaderSTFT
-    masking: False
     norm_mean: 0.013329904
     norm_std: 0.041720923
     autoencoder: False
@@ -183,9 +178,9 @@ TrainTask:
 #      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
 #      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
 #      stft: True
-    mask:
-      - 65 #33 #129
-      - 1
+#    mask:
+#      - 65 #33 #129
+#      - 1
     num_classes:
       - 3
       - 12
@@ -200,12 +195,12 @@ TrainTask:
   batch_size:
     train: 256 #48
     test: 1
-    valid: 64 #48
+    valid: 256 #48
 
-  learning_rate: 1e-3 #8e-4 #0.5e-7
+  learning_rate: 8e-4 #0.5e-7
 
   epochs: 4000
-  path2save_model: /home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
+  path2save_model: C:\Users\moshe\PycharmProjects\ckt #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
   model_name: synth_autoencoder_2_stft_noy
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft/
   num_outputs: 2 #10 #1

@@ -113,7 +113,7 @@ class DecoderLayer(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, src_vocab_size, tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length,
+    def __init__(self, d_model, num_heads, num_layers, d_ff, max_seq_length,
                  dropout, output_channels=129):
         super(Transformer, self).__init__()
         # self.encoder_embedding = nn.Embedding(src_vocab_size, d_model)
@@ -155,7 +155,7 @@ class Transformer(nn.Module):
 
 
 class TransformerE(nn.Module):
-    def __init__(self, src_vocab_size, tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length,
+    def __init__(self, d_model, num_heads, num_layers, d_ff, max_seq_length,
                  dropout, output_channels=129):
         super(TransformerE, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
@@ -164,12 +164,12 @@ class TransformerE(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def generate_mask(self, src, tgt):
+    def generate_mask(self, src):
         src_mask = torch.zeros(src.shape[0], src.shape[1]).unsqueeze(1).unsqueeze(2)
         return src_mask
 
-    def forward(self, src, tgt):
-        src_mask = self.generate_mask(src, tgt) # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
+    def forward(self, src):
+        src_mask = self.generate_mask(src) # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
         src_embedded = self.dropout(self.positional_encoding(src))
 
         enc_output = src_embedded

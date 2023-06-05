@@ -177,7 +177,6 @@ TrainTask:
 
   processor:
     _target_: Projects_torch.processors.processor_synth_encoder_stft.DataLoaderSTFT
-    masking: False
     norm_mean: 0.013329904
     norm_std: 0.041720923
     autoencoder: True
@@ -185,9 +184,9 @@ TrainTask:
 #      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
 #      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
 #      stft: True
-    mask:
-      - 65 #33 #129
-      - 1
+#    mask:
+#      - 65 #33 #129
+#      - 1
     num_classes:
       - 3
       - 12

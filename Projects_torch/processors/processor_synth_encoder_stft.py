@@ -75,8 +75,10 @@ class DataLoaderSTFT(Dataset):
         data = np.ndarray.astype(data, np.float32)
 
         # label = self.label2onehot(label)
-        label = np.expand_dims(label, 1)
-        label = np.ndarray.astype(label, np.float32)
+        label = np.split(label, label.shape[0])
+        label = [np.ndarray.astype(label_, dtype=np.int64)
+                  for label_ in label]
+        # label = np.ndarray.astype(np.expand_dims(label_, 1), np.float32)
 
         if self.autoencoder:
             return data, [data, label]
@@ -88,7 +90,6 @@ if __name__ == '__main__':
     dl = DataLoaderSTFT(num_classes=num_classes, autoencoder=False)
     dl.load_dataset(dataset_path=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data')
     a = dl.__getitem__(78)
-    a=0
 
 
 

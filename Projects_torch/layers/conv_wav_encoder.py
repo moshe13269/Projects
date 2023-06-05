@@ -86,9 +86,10 @@ class ConvFeatureExtractionModel(nn.Module):
 
         for conv in self.conv_layers:
             x = conv(x)
-        x = x.transpose(dim0=1, dim1=2)
-        x = self.activation(self.fc(x))
         return x.transpose(dim0=1, dim1=2)
+        # x = x.transpose(dim0=1, dim1=2)
+        # x = self.activation(self.fc(x))
+        # return x.transpose(dim0=1, dim1=2)
 
 if __name__ == '__main__':
     # data = tf.random.normal((4, 16384, 1))
