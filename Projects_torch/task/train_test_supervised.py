@@ -85,6 +85,7 @@ class TrainTestTaskSupervised:
         # mlflow.pytorch.autolog()
         # with mlflow.start_run() as run:
 
+
         self.custom_checkpoints(flag=True)
 
         for epoch in range(self.epochs):

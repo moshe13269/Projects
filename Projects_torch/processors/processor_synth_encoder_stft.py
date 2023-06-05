@@ -47,7 +47,7 @@ class DataLoaderSTFT(Dataset):
         else:
             self.labels = [file.replace('data/', 'labels/').replace('.wav', '.npy')
                            for file in self.files]
-        self.files_ = list(zip(self.files[:], self.labels[:]))
+        self.files_ = list(zip(self.files, self.labels))
 
     def __len__(self):
         return len(self.files_)
