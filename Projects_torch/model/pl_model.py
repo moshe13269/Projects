@@ -55,7 +55,7 @@ class LitModel(pl.LightningModule):
             loss += self.losses[i](output, y)
 
         acc = 0.0
-        if self.autoencoder:
+        if type(output) == tuple and type(output[0]) == list:
             for output_ in output:
                 if len(output_) > 2:
 
