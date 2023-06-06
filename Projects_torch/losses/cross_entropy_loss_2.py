@@ -34,7 +34,7 @@ class CELoss(nn.Module):
 
                     for i in range(len(target)):
                         loss += self.ce(output_[i], target[1][i].squeeze())
-                    loss = loss / len(target)
+                    loss = loss / len(output_)
         else:
             for i in range(len(target)):
                 loss += self.ce(output[i], target[i].squeeze())
