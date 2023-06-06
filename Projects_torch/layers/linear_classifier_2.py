@@ -34,8 +34,8 @@ class LinearClassifier(nn.Module):
                     nn.Dropout(p=dropout),
                     nn.ReLU(),
                     nn.Linear(in_features=output_size,
-                              out_features=output_size),
-                    nn.Softmax(dim=-1)
+                              out_features=output_size)
+                    # nn.Softmax(dim=-1)
                 )
             )
 
