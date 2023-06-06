@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+import mlflow.pytorch
+from mlflow import MlflowClient
 from omegaconf import DictConfig
 from Projects_torch import model
 from Projects_torch import losses
@@ -9,6 +11,8 @@ from lightning.pytorch.loggers import MLFlowLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from utils.utils import init_weight_model, load_model
 from torch.utils.data.sampler import SubsetRandomSampler
+
+
 # from torch.utils.data.distributed import DistributedSampler
 
 
@@ -127,7 +131,22 @@ class TrainTaskSupervised:
                                accelerator=accelerator,
                                max_epochs=self.epochs)
 
-        self.trainer.fit(model=pl_model,
-                         train_dataloaders=train_loader,
-                         val_dataloaders=validation_loader,
-                         ckpt_path=None)
+        def print_auto_logged_info(r):
+            tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
+            artifacts = [f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")]
+            print("run_id: {}".format(r.info.run_id))
+            print("artifacts: {}".format(artifacts))
+            print("params: {}".format(r.data.params))
+            print("metrics: {}".format(r.data.metrics))
+            print("tags: {}".format(tags))
+
+        mlflow.pytorch.autolog()
+
+        # Train the model
+        with mlflow.start_run() as run:
+            self.trainer.fit(model=pl_model,
+                             train_dataloaders=train_loader,
+                             val_dataloaders=validation_loader,
+                             ckpt_path=None)
+
+        print_auto_logged_info(mlflow.get_run(run_id=run.info.run_id))
