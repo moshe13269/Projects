@@ -4,10 +4,9 @@ import lightning.pytorch as pl
 
 
 class LitModel(pl.LightningModule):
-    def __init__(self, model, losses, learn_rate, logger, autoencoder=False):
+    def __init__(self, model, losses, learn_rate, autoencoder=False):
         super().__init__()
         self.model = model
-        self.log = logger
         self.losses = losses
         self.learn_rate = learn_rate
         self.autoencoder = autoencoder

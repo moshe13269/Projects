@@ -56,8 +56,7 @@ class TrainTaskSupervised:
 
             pl_model = model.pl_model.LitModel(model=self.model,
                                                losses=self.loss,
-                                               learn_rate=self.learning_rate,
-                                               logger=None)
+                                               learn_rate=self.learning_rate)
 
             print("Learning rate: %f" % self.learning_rate)
         else:
