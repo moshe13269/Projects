@@ -17,10 +17,20 @@ class LitModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         output = self.model(x)
-        loss = 0.0
-        for i in range(len(self.losses)):
-            loss += self.losses[i](output, y)
 
+        # loss
+        if len(self.losses) > 1:
+            for i in range(len(self.losses)):
+                loss = 0.0
+                loss += self.losses[i](output, y)
+                self.log("train_loss " + str(type(self.losses[i])), loss, on_epoch=True)
+        else:
+            loss = 0.0
+            for i in range(len(self.losses)):
+                loss += self.losses[i](output, y)
+                self.log("train_loss " + str(type(self.losses[i])), loss, on_epoch=True)
+
+        # accuracy
         acc = 0.0
         if type(output) == tuple and type(output[0]) == list:
             for output_ in output:
@@ -42,7 +52,7 @@ class LitModel(pl.LightningModule):
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
         # self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train_loss", loss, on_epoch=True)
+
         self.log("train_acc", acc, on_epoch=True)
         return loss
 
