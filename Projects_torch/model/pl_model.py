@@ -20,15 +20,17 @@ class LitModel(pl.LightningModule):
 
         # loss
         if len(self.losses) > 1:
+            loss = 0.0
             for i in range(len(self.losses)):
-                loss = 0.0
-                loss += self.losses[i](output, y)
-                self.log("train_loss " + str(type(self.losses[i])), loss, on_epoch=True)
+                loss_ = self.losses[i](output, y)
+                self.log("train_loss " + str(type(self.losses[i])), loss_, on_epoch=True, prog_bar=True, logger=True)
+                loss += loss_
         else:
             loss = 0.0
             for i in range(len(self.losses)):
-                loss += self.losses[i](output, y)
-                self.log("train_loss " + str(type(self.losses[i])), loss, on_epoch=True)
+                loss_ = self.losses[i](output, y)
+                loss += loss_
+                self.log("train_loss " + str(i), loss_, on_epoch=True, prog_bar=True, logger=True)
 
         # accuracy
         acc = 0.0
@@ -37,23 +39,27 @@ class LitModel(pl.LightningModule):
                 if len(output_) > 2:
 
                     for i in range(len(y)):
-                        acc += torchmetrics.functional.accuracy(output_[i], y[1][i].squeeze(),
+                        acc_ = torchmetrics.functional.accuracy(output_[i], y[1][i].squeeze(),
                                                                 task="multiclass",
                                                                 num_classes=output_[i].shape[-1]) #accuracy(output_[i], y[1][i].squeeze())
+                        self.log("train_acc " + str(i), acc_, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+                        acc += acc_
                     acc = acc / len(y)
         else:
             for i in range(len(y)):
-                acc += torchmetrics.functional.accuracy(output[i], y[i].squeeze(),
+                acc_ = torchmetrics.functional.accuracy(output[i], y[i].squeeze(),
                                                         task="multiclass",
                                                         num_classes=output[i].shape[-1])
+                acc += acc_
+                self.log("train_acc " + str(i), acc_, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             acc = acc / len(y)
+
         # acc = accuracy(output, y)
 
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
-        # self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
-        self.log("train_acc", acc, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -61,7 +67,9 @@ class LitModel(pl.LightningModule):
         output = self.model(x)
         loss = 0.0
         for i in range(len(self.losses)):
-            loss += self.losses[i](output, y)
+            loss_ = self.losses[i](output, y)
+            loss += loss_
+            self.log("valid_loss " + str(i), loss_, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
         acc = 0.0
         if type(output) == tuple and type(output[0]) == list:
@@ -69,21 +77,24 @@ class LitModel(pl.LightningModule):
                 if len(output_) > 2:
 
                     for i in range(len(y)):
-                        acc += torchmetrics.functional.accuracy(output_[i], y[1][i].squeeze(),
+                        acc_ = torchmetrics.functional.accuracy(output_[i], y[1][i].squeeze(),
                                                                 task="multiclass",
                                                                 num_classes=output_[i].shape[
                                                                     -1])  # accuracy(output_[i], y[1][i].squeeze())
+                        self.log("validation_acc " + str(i), acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+                        acc += acc_
                     acc = acc / len(y)
         else:
             for i in range(len(y)):
-                acc += torchmetrics.functional.accuracy(output[i], y[i].squeeze(),
+                acc_ = torchmetrics.functional.accuracy(output[i], y[i].squeeze(),
                                                         task="multiclass",
                                                         num_classes=output[i].shape[-1])
+                self.log("validation_acc " + str(i), acc_, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+                acc += acc_
             acc = acc / len(y)
 
-        self.log("validation_loss", loss, on_epoch=True)
-        self.log("validation_acc", acc, on_epoch=True)
-        # self.log("val_loss", loss)
+        self.log("validation_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("validation_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters(), lr=self.learn_rate)
