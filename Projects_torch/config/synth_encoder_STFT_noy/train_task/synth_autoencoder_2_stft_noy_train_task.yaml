@@ -61,7 +61,7 @@ TrainTask:
       dropout: 0.1
       conv_bias: True
       is_group_norm: False
-      is_layer_norm: True
+      is_layer_norm: False
 
     linear_classifier:
       _target_: Projects_torch.layers.linear_classifier_2.LinearClassifier
