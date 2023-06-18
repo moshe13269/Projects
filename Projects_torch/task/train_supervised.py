@@ -52,7 +52,7 @@ class TrainTaskSupervised:
         ################################
         if self.path2load_model is None:
             self.model = instantiate(cfg.train_task.TrainTask.model)
-            self.model.apply(init_weight_model)
+            # self.model.apply(init_weight_model)
 
             pl_model = model.pl_model.LitModel(model=self.model,
                                                losses=self.loss,
@@ -61,6 +61,7 @@ class TrainTaskSupervised:
             print("Learning rate: %f" % self.learning_rate)
         else:
             self.model, self.optimizer = load_model(self.path2load_model)
+            pl_model = self.model
 
         ################################
         # dataset & dataloader
@@ -99,20 +100,6 @@ class TrainTaskSupervised:
                                   tracking_uri="file:./ml-runs",
                                   save_dir=None)
 
-        # from lightning.pytorch.callbacks import RichProgressBar
-        # from lightning.pytorch.callbacks.progress.rich_progress import RichProgressBarTheme
-        # progress_bar = RichProgressBar(
-        #     theme=RichProgressBarTheme(
-        #         description="green_yellow",
-        #         progress_bar="green1",
-        #         progress_bar_finished="green1",
-        #         progress_bar_pulse="#6206E0",
-        #         batch_progress="green_yellow",
-        #         time="grey82",
-        #         processing_speed="grey82",
-        #         metrics="grey82",
-        #     ))
-
         checkpoint_callback = ModelCheckpoint(dirpath=self.path2save_model,
                                               save_weights_only=False,
                                               # monitor='val_loss',
@@ -130,6 +117,11 @@ class TrainTaskSupervised:
                                accelerator=accelerator,
                                max_epochs=self.epochs)
 
+        self.trainer.fit(model=pl_model,
+                         train_dataloaders=train_loader,
+                         val_dataloaders=validation_loader,
+                         ckpt_path=None)
+
         def print_auto_logged_info(r):
             tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
             artifacts = [f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")]
@@ -139,13 +131,8 @@ class TrainTaskSupervised:
             print("metrics: {}".format(r.data.metrics))
             print("tags: {}".format(tags))
 
-        mlflow.pytorch.autolog()
+        # mlflow.pytorch.autolog()
 
         # Train the model
-        with mlflow.start_run() as run:
-            self.trainer.fit(model=pl_model,
-                             train_dataloaders=train_loader,
-                             val_dataloaders=validation_loader,
-                             ckpt_path=None)
-
+        # with mlflow.start_run() as run:
         print_auto_logged_info(mlflow.get_run(run_id=run.info.run_id))

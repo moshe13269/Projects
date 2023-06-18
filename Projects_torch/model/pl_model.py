@@ -6,7 +6,7 @@ import lightning.pytorch as pl
 class LitModel(pl.LightningModule):
     def __init__(self, model, losses, learn_rate, autoencoder=False):
         super().__init__()
-        self.model = model
+        self.model = model.cuda()
         self.losses = losses
         self.learn_rate = learn_rate
         self.autoencoder = autoencoder
@@ -23,14 +23,15 @@ class LitModel(pl.LightningModule):
             loss = 0.0
             for i in range(len(self.losses)):
                 loss_ = self.losses[i](output, y)
-                self.log("train_loss " + str(type(self.losses[i])), loss_, on_epoch=True, prog_bar=True, logger=True)
+                self.log("train_loss " + str(type(self.losses[i])), loss_, on_step=False, on_epoch=True, prog_bar=True,
+                         logger=True)
                 loss += loss_
         else:
             loss = 0.0
             for i in range(len(self.losses)):
                 loss_ = self.losses[i](output, y)
                 loss += loss_
-                self.log("train_loss " + str(i), loss_, on_epoch=True, prog_bar=True, logger=True)
+                self.log("train_loss " + str(i), loss_, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
         # accuracy
         acc = 0.0
@@ -81,7 +82,8 @@ class LitModel(pl.LightningModule):
                                                                 task="multiclass",
                                                                 num_classes=output_[i].shape[
                                                                     -1])  # accuracy(output_[i], y[1][i].squeeze())
-                        self.log("validation_acc " + str(i), acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+                        self.log("validation_acc " + str(i), acc, on_step=False, on_epoch=True, prog_bar=True,
+                                 logger=True)
                         acc += acc_
                     acc = acc / len(y)
         else:
@@ -97,4 +99,4 @@ class LitModel(pl.LightningModule):
         self.log("validation_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=self.learn_rate)
+        return torch.optim.AdamW(self.model.parameters(), lr=self.learn_rate)

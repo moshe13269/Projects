@@ -35,9 +35,9 @@ class ConvDecoderModel(nn.Module):
                                           )
                 return conv
 
-            assert (is_layer_norm and is_group_norm) == False, "layer norm and group norm are exclusive"
+            # assert (is_layer_norm and is_group_norm) == False, "layer norm and group norm are exclusive"
 
-            if is_layer_norm and activation is not None:
+            if is_layer_norm:
                 return nn.Sequential(
                     make_conv(),
                     nn.Dropout(p=dropout),
@@ -45,7 +45,7 @@ class ConvDecoderModel(nn.Module):
                     nn.GELU(),
                 )
 
-            elif is_group_norm and activation is not None:
+            elif is_group_norm:
                 return nn.Sequential(
                     make_conv(),
                     nn.Dropout(p=dropout),

@@ -1,6 +1,7 @@
 import os
 import sys
 import pickle
+import librosa
 import dataset
 import torchvision
 import numpy as np
@@ -21,8 +22,9 @@ from torch.utils.data import Dataset
     """
 
 
-class DataLoaderSTFT(Dataset):
-    def __init__(self, num_classes, autoencoder=False, norm_mean=None, norm_std=None, dataset_path=None):
+class DataLoaderMelSpec(Dataset):
+    def __init__(self, num_classes, autoencoder=False, norm_mean=None, norm_std=None, dataset_path=None,
+                 calc_mean=False):
 
         super().__init__()
         self.norm_mean = norm_mean
@@ -36,6 +38,7 @@ class DataLoaderSTFT(Dataset):
         self.files = None
         self.files_ = None
         self.labels = None
+        self.calc_mean = calc_mean
         self.autoencoder = autoencoder
 
     def load_dataset(self, dataset_path):
@@ -70,11 +73,16 @@ class DataLoaderSTFT(Dataset):
             label_file = self.files_[idx][0].replace('data/', 'labels/').replace('.wav', '.npy')
         label = np.squeeze(np.load(label_file))
         samplerate, data = wavfile.read(wav_file)
-        f, t, Zxx = signal.stft(data, samplerate, nperseg=253, nfft=256)  # nperseg=256)
-        # data = (np.abs(Zxx) - self.norm_mean) / self.norm_std
-        data = (np.abs(Zxx) - 0.013329904)/0.041720923
-        data = np.transpose(data)
-        data = np.ndarray.astype(data, np.float32)
+
+        sgram = librosa.stft(data)
+        sgram_mag, _ = librosa.magphase(sgram)
+        mel_scale_sgram = librosa.feature.melspectrogram(S=sgram_mag, sr=samplerate)
+        mel_sgram = librosa.amplitude_to_db(mel_scale_sgram, ref=np.min)
+
+        if self.calc_mean:
+            return mel_sgram.mean(), mel_sgram.std()
+        # data = np.transpose(data)
+        # data = np.ndarray.astype(data, np.float32)
 
         # label = self.label2onehot(label)
         label = np.split(label, label.shape[0])
@@ -83,15 +91,23 @@ class DataLoaderSTFT(Dataset):
         # label = np.ndarray.astype(np.expand_dims(label_, 1), np.float32)
 
         if self.autoencoder:
-            return data, [data, label]
-        return data, label
+            return mel_sgram, [mel_sgram, label]
+        return mel_sgram, label
 
 
 if __name__ == '__main__':
     num_classes = [3, 12, 20, 31, 4, 5, 8, 5, 16]
-    dl = DataLoaderSTFT(num_classes=num_classes, autoencoder=False)
+    dl = DataLoaderMelSpec(num_classes=num_classes, autoencoder=False, calc_mean=True)
     dl.load_dataset(dataset_path=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data')
-    a = dl.__getitem__(78)
+    mean = 0.0
+    std = 0.0
+    for i in range(len(dl)):
+        mean_, std_ = dl.__getitem__(i)
+        mean += mean_
+        std += std_
+        if i % 1000 == 0:
+            print(i)
+    print('Mean: %f10, Std: %f10' % (mean, std))
 
 
 
