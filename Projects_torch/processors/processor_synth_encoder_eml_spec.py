@@ -10,6 +10,7 @@ from random import shuffle
 from scipy.io import wavfile
 from typing import List, Tuple
 from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
 
 """
     TalNoise:
@@ -85,6 +86,8 @@ class DataLoaderMelSpec(Dataset):
         # data = np.ndarray.astype(data, np.float32)
 
         # label = self.label2onehot(label)
+
+        # mel_sgram = (mel_sgram - 64.08) / 19.48
         label = np.split(label, label.shape[0])
         label = [np.ndarray.astype(label_, dtype=np.int64)
                   for label_ in label]
@@ -97,7 +100,7 @@ class DataLoaderMelSpec(Dataset):
 
 if __name__ == '__main__':
     num_classes = [3, 12, 20, 31, 4, 5, 8, 5, 16]
-    dl = DataLoaderMelSpec(num_classes=num_classes, autoencoder=False, calc_mean=True)
+    dl = DataLoaderMelSpec(num_classes=num_classes, autoencoder=False, calc_mean=False)
     dl.load_dataset(dataset_path=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data')
     mean = 0.0
     std = 0.0
@@ -107,7 +110,11 @@ if __name__ == '__main__':
         std += std_
         if i % 1000 == 0:
             print(i)
-    print('Mean: %f10, Std: %f10' % (mean, std))
+            print('Mean: %f10, Std: %f10' % (mean / i, std / i))
+    print('\n')
+    print('--------------------------------------------------------')
+    print('Mean: %f10, Std: %f10' % (mean/len(dl), std/len(dl)))
+    print('--------------------------------------------------------')
 
 
 

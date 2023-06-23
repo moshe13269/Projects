@@ -23,7 +23,7 @@ class MultiHeadAttention(nn.Module):
     def scaled_dot_product_attention(self, Q, K, V, mask=None):
         attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         if mask is not None:
-            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9) #(mask.cuda() == 0, -1e9)
+            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9)  # (mask.cuda() == 0, -1e9)
         attn_probs = torch.softmax(attn_scores, dim=-1)
         output = torch.matmul(attn_probs, V)
         return output
@@ -84,7 +84,7 @@ class EncoderLayer(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask):
-        attn_output = self.self_attn(x, x, x, mask) # x: (64, 130, 512) = attn_output, mask: (64, 1, 1, 130)
+        attn_output = self.self_attn(x, x, x, mask)  # x: (64, 130, 512) = attn_output, mask: (64, 1, 1, 130)
         x = self.norm1(x + self.dropout(attn_output))
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
@@ -102,10 +102,10 @@ class DecoderLayer(nn.Module):
         self.norm3 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, enc_output, src_mask, tgt_mask):
+    def forward(self, x, enc_output, tgt_mask):  # (self, x, enc_output, src_mask, tgt_mask):
         attn_output = self.self_attn(x, x, x, tgt_mask)
         x = self.norm1(x + self.dropout(attn_output))
-        attn_output = self.cross_attn(x, enc_output, enc_output, src_mask)
+        attn_output = self.cross_attn(x, enc_output, enc_output)
         x = self.norm2(x + self.dropout(attn_output))
         ff_output = self.feed_forward(x)
         x = self.norm3(x + self.dropout(ff_output))
@@ -118,8 +118,10 @@ class Transformer(nn.Module):
         super(Transformer, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
-        self.encoder_layers = nn.ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
-        self.decoder_layers = nn.ModuleList([DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
+        self.encoder_layers = nn.ModuleList(
+            [EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
+        self.decoder_layers = nn.ModuleList(
+            [DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
 
         self.fc = nn.Linear(d_model, output_channels)
         self.dropout = nn.Dropout(dropout)
@@ -131,11 +133,11 @@ class Transformer(nn.Module):
         seq_length = tgt.size(1)
         nopeak_mask = (1 - torch.triu(torch.ones(1, seq_length, seq_length), diagonal=1)).bool()
         tgt_mask = torch.ones(src_mask.shape[0], 1, seq_length, 1).bool()
-        tgt_mask = tgt_mask & nopeak_mask    #### tgt_mask: (64, 1, 129, 1)
+        tgt_mask = tgt_mask & nopeak_mask  #### tgt_mask: (64, 1, 129, 1)
         return src_mask, tgt_mask
 
     def forward(self, src, tgt):
-        src_mask, tgt_mask = self.generate_mask(src, tgt) # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
+        src_mask, tgt_mask = self.generate_mask(src, tgt)  # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
         # src_embedded = self.dropout(self.positional_encoding(self.encoder_embedding(src)))
         # tgt_embedded = self.dropout(self.positional_encoding(self.decoder_embedding(tgt)))
         src_embedded = self.dropout(self.positional_encoding(src))
@@ -148,8 +150,39 @@ class Transformer(nn.Module):
         dec_output = tgt_embedded
         for dec_layer in self.decoder_layers:
             dec_output = dec_layer(dec_output, enc_output, src_mask, tgt_mask)
-        output = dec_output #self.fc(dec_output)
-        return output, enc_output # (64, 99, 5000)
+        output = dec_output  # self.fc(dec_output)
+        return output, enc_output  # (64, 99, 5000)
+
+
+class TransformerD(nn.Module):
+    def __init__(self, tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length,
+                 dropout, output_channels=129):
+        super(TransformerD, self).__init__()
+
+        self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
+        self.decoder_embedding = nn.Embedding(tgt_vocab_size, d_model, max_norm=True)
+        self.decoder_layers = nn.ModuleList(
+            [DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
+
+        self.fc = nn.Linear(d_model, output_channels)
+        self.dropout = nn.Dropout(dropout)
+
+    def generate_mask(self, tgt):
+        # tgt_mask = (tgt != 0).unsqueeze(1).unsqueeze(3)
+        seq_length = tgt.size(1)
+        nopeak_mask = (1 - torch.triu(torch.ones(1, seq_length, seq_length), diagonal=1)).bool()
+        tgt_mask = torch.ones(tgt.shape[0], 1, seq_length, 1).bool()
+        tgt_mask = tgt_mask & nopeak_mask  #### tgt_mask: (64, 1, 129, 1)
+        return tgt_mask
+
+    def forward(self, src, tgt):
+        tgt_embedded = self.dropout(self.positional_encoding(self.decoder_embedding(src)))
+        src_mask, tgt_mask = self.generate_mask(src, tgt)  # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
+
+        dec_output = tgt_embedded
+        for dec_layer in self.decoder_layers:
+            dec_output = dec_layer(dec_output, tgt_embedded, src_mask, tgt_mask)
+        return dec_output  # (64, 99, 5000)
 
 
 class TransformerE(nn.Module):
@@ -158,7 +191,8 @@ class TransformerE(nn.Module):
         super(TransformerE, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
-        self.encoder_layers = nn.ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
+        self.encoder_layers = nn.ModuleList(
+            [EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
 
         self.dropout = nn.Dropout(dropout)
 
@@ -167,13 +201,13 @@ class TransformerE(nn.Module):
         return src_mask
 
     def forward(self, src):
-        src_mask = self.generate_mask(src) # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
+        src_mask = self.generate_mask(src)  # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
         src_embedded = self.dropout(self.positional_encoding(src))
 
         enc_output = src_embedded
         for enc_layer in self.encoder_layers:
             enc_output = enc_layer(enc_output, src_mask)
-        return enc_output # (64, 99, 5000)
+        return enc_output  # (64, 99, 5000)
 
 
 if __name__ == "__main__":
@@ -186,14 +220,22 @@ if __name__ == "__main__":
     max_seq_length = 130
     dropout = 0.1
 
-    transformer = Transformer(src_vocab_size, tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length,
-                              dropout)
+    # transformer = Transformer(src_vocab_size, tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length,
+    #                           dropout)
 
     # Generate random sample data
     # src_data = torch.randint(1, src_vocab_size, (64, max_seq_length))  # (batch_size, seq_length)
     # tgt_data = torch.randint(1, tgt_vocab_size, (64, max_seq_length))  # (batch_size, seq_length)
 
-    src_data = torch.normal(mean=torch.zeros(64, 130, 512))
+    trans_decoder = TransformerD(tgt_vocab_size, d_model=512, num_heads=16, num_layers=12, d_ff=2048,
+                                 max_seq_length=130,
+                                 dropout=0.1, output_channels=512)
+    # src_data = torch.normal(mean=torch.zeros(64, 130, 512))
     tgt_data = torch.normal(mean=torch.zeros(64, 130, 512))
-    output = transformer(src_data, tgt_data[:, :-1])
-
+    src_data = torch.normal(mean=torch.zeros(64, 5, 512))
+    mha = MultiHeadAttention(d_model=512, num_heads=16)
+    mha_output = mha(tgt_data, src_data, src_data)
+    print(mha_output.shape)
+    output_dec = trans_decoder("fc:30, ds:10, fr:90", tgt_data)
+    a=0
+    # output = transformer(src_data, tgt_data[:, :-1])
