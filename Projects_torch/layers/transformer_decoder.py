@@ -155,7 +155,7 @@ class TransformerD(nn.Module):
     """
 
     def __init__(self, d_model, num_heads, num_layers, d_ff, input_shape: tuple[int, int],
-                 dropout=0.1):
+                 dropout=0.1, path2csv=None, num_quant_params=None):
         super(TransformerD, self).__init__()
 
         self.positional_encoding = PositionalEncoding(d_model, input_shape[0])
@@ -167,6 +167,23 @@ class TransformerD(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         self.conv1d = Conv1DLayer(input_shape=input_shape)
+
+        self.path2csv = path2csv
+        self.num_quant_params = num_quant_params
+        self.embedding = None
+
+    def init_embedding_layer(self):
+        if self.path2csv is not None:
+            import pandas as pd
+            csv = pd.read_csv(self.path2csv)
+            params_quant_arr = []
+            for key in csv.keys():
+                len_row_set = len(set(csv[key]))
+                if len_row_set < 500:
+                    params_quant_arr.append(len_row_set)
+            self.num_quant_params = params_quant_arr
+
+        self.embedding = nn.Embedding(num_embeddings=sum(self.num_quant_params), embedding_dim=512, max_norm=True)
 
     def generate_mask(self, tgt):
         seq_length = tgt.size(1)
