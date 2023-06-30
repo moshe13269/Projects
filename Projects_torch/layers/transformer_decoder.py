@@ -171,9 +171,9 @@ class TransformerD(nn.Module):
         self.path2csv = path2csv
         self.num_quant_params = num_quant_params
         self.embedding = None
-        self.init_embedding_layer()
+        self.init_embedding_layer(d_model)
 
-    def init_embedding_layer(self):
+    def init_embedding_layer(self, d_model):
         if self.path2csv is not None:
             import pandas as pd
             csv = pd.read_csv(self.path2csv)
@@ -185,7 +185,7 @@ class TransformerD(nn.Module):
             self.num_quant_params = params_quant_arr
 
         self.embedding = nn.ModuleList(
-            [nn.Embedding(num_embeddings=self.num_quant_params[i], embedding_dim=512, max_norm=True)
+            [nn.Embedding(num_embeddings=self.num_quant_params[i], embedding_dim=d_model, max_norm=True)
              for i in range(len(self.num_quant_params))]
         )
 
@@ -204,12 +204,12 @@ class TransformerD(nn.Module):
         embedding_decoder_inputs = []
         for i in range(len(self.embedding)):
             embedding_decoder_inputs.append(
-                self.embedding[i](decoder_inputs[i])
+                self.embedding[i](decoder_inputs[:, i:i+1])
             )
-        embedding_decoder_inputs = torch.tensor(embedding_decoder_inputs)
+        embedding_decoder_inputs = torch.cat(embedding_decoder_inputs, dim=1)
         masking = self.generate_mask(condition_vector)
 
-        decoder_hidden = self.dropout(self.positional_encoding(condition_vector))
+        decoder_hidden = self.dropout(self.positional_encoding(self.conv1d(condition_vector)))
 
         for dec_layer in self.decoder_layers:
             decoder_hidden = dec_layer(decoder_hidden, embedding_decoder_inputs, masking)
@@ -229,6 +229,6 @@ if __name__ == "__main__":
                                  dropout=0.1,
                                  path2csv=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
     tgt_data = torch.normal(mean=torch.zeros(64, 130, 129))
-    src_data = torch.normal(mean=torch.zeros(64, 5))
+    src_data = torch.randint(0, 3, size=(64, 9))
     output_dec = trans_decoder(src_data, tgt_data)
     print(output_dec.shape)
