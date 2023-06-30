@@ -171,6 +171,7 @@ class TransformerD(nn.Module):
         self.path2csv = path2csv
         self.num_quant_params = num_quant_params
         self.embedding = None
+        self.init_embedding_layer()
 
     def init_embedding_layer(self):
         if self.path2csv is not None:
@@ -183,7 +184,10 @@ class TransformerD(nn.Module):
                     params_quant_arr.append(len_row_set)
             self.num_quant_params = params_quant_arr
 
-        self.embedding = nn.Embedding(num_embeddings=sum(self.num_quant_params), embedding_dim=512, max_norm=True)
+        self.embedding = nn.ModuleList(
+            [nn.Embedding(num_embeddings=self.num_quant_params[i], embedding_dim=512, max_norm=True)
+             for i in range(len(self.num_quant_params))]
+        )
 
     def generate_mask(self, tgt):
         seq_length = tgt.size(1)
@@ -192,25 +196,27 @@ class TransformerD(nn.Module):
         tgt_mask = tgt_mask & nopeak_mask
         return tgt_mask
 
-    """
-    src: param vector with shape (batch, N) where N is the number of param in the synth (row from the cvs)
-    tgt: spectrogram of the target outputs wav: (time_axis, freq_axis)
-    """
+    def forward(self, decoder_inputs: torch.Tensor, condition_vector: torch.Tensor):
+        """
+        src: param vector with shape (batch, N) where N is the number of param in the synth (row from the cvs)
+        tgt: spectrogram of the target outputs wav: (batch, time_axis, freq_axis)
+        """
+        embedding_decoder_inputs = []
+        for i in range(len(self.embedding)):
+            embedding_decoder_inputs.append(
+                self.embedding[i](decoder_inputs[i])
+            )
+        embedding_decoder_inputs = torch.tensor(embedding_decoder_inputs)
+        masking = self.generate_mask(condition_vector)
 
-    def forward(self, src, tgt):
-        tgt = self.conv1d(tgt)
-
-        tgt_mask = self.generate_mask(tgt)
-
-        embeddings_param = torch.nn.functional.relu(self.fc_embeddings(torch.unsqueeze(src, -1)))
-        tgt_output = self.dropout(self.positional_encoding(tgt))
+        decoder_hidden = self.dropout(self.positional_encoding(condition_vector))
 
         for dec_layer in self.decoder_layers:
-            tgt_output = dec_layer(tgt_output, embeddings_param, tgt_mask)
+            decoder_hidden = dec_layer(decoder_hidden, embedding_decoder_inputs, masking)
 
-        tgt_output = torch.nn.functional.relu(self.fc_output(tgt_output))
+        decoder_output = self.fc_output(decoder_hidden)
 
-        return tgt_output
+        return decoder_output
 
 
 if __name__ == "__main__":
@@ -220,7 +226,8 @@ if __name__ == "__main__":
                                  num_layers=12,
                                  d_ff=2048,
                                  input_shape=(130, 129),
-                                 dropout=0.1)
+                                 dropout=0.1,
+                                 path2csv=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
     tgt_data = torch.normal(mean=torch.zeros(64, 130, 129))
     src_data = torch.normal(mean=torch.zeros(64, 5))
     output_dec = trans_decoder(src_data, tgt_data)
