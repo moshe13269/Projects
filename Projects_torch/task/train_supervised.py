@@ -1,3 +1,4 @@
+import sys
 import torch
 import numpy as np
 import mlflow.pytorch
@@ -27,22 +28,29 @@ class TrainTaskSupervised:
         self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
         self.path2load_model = self.cfg.train_task.TrainTask.get('path2load_model')
+        self.path2save_images = self.cfg.train_task.TrainTask.get('path2save_images')
 
         ######################################
         # losses & learning_rate & epochs
         ######################################
         self.num_ce_loss = self.cfg.train_task.TrainTask.get('num_ce_loss')
-        self.outputs_dimension_per_outputs = \
-            cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
+        if 'linear_classifier' in cfg.train_task.TrainTask.model:
+            self.outputs_dimension_per_outputs = \
+                cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
+        else:
+            self.outputs_dimension_per_outputs = None
 
         self.epochs = self.cfg.train_task.TrainTask.get('epochs')
 
         self.learning_rate = self.cfg.train_task.TrainTask.get('learning_rate')
 
-        self.loss = losses.losses_instantiate(self.num_ce_loss,
-                                              cfg.train_task.TrainTask.loss_ce,
-                                              list(self.outputs_dimension_per_outputs),
-                                              cfg.train_task.TrainTask.loss)
+        if self.num_ce_loss is not None:
+            self.loss = losses.losses_instantiate(self.num_ce_loss,
+                                                  cfg.train_task.TrainTask.loss_ce,
+                                                  list(self.outputs_dimension_per_outputs),
+                                                  cfg.train_task.TrainTask.loss)
+        else:
+            self.loss = losses.losses_instantiate(loss=cfg.train_task.TrainTask.loss)
 
         if not self.cfg.train_task.TrainTask.get('loss_l2'):
             self.loss = self.loss[1:]
@@ -54,9 +62,19 @@ class TrainTaskSupervised:
             self.model = instantiate(cfg.train_task.TrainTask.model)
             # self.model.apply(init_weight_model)
 
-            pl_model = model.pl_model.LitModel(model=self.model,
-                                               losses=self.loss,
-                                               learn_rate=self.learning_rate)
+            if self.num_ce_loss is not None:
+                pl_model = model.pl_model.LitModel(model=self.model,
+                                                   losses=self.loss,
+                                                   learn_rate=self.learning_rate)
+            else:
+                pl_model = model.pl_model_decoder.LitModelDecoder(model=self.model,
+                                                                  losses=self.loss,
+                                                                  learn_rate=self.learning_rate,
+                                                                  path2save_images=self.path2save_images)
+
+            # compile
+            if sys.platform != 'win32':
+                pl_model = torch.compile(pl_model)
 
             print("Learning rate: %f" % self.learning_rate)
         else:

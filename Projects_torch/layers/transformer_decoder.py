@@ -20,7 +20,7 @@ class MultiHeadAttention(nn.Module):
     def scaled_dot_product_attention(self, Q, K, V, mask=None):
         attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         if mask is not None:
-            attn_scores = attn_scores.masked_fill(mask == 0, -1e9)  # (mask.cuda() == 0, -1e9)
+            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9)  # (mask.cuda() == 0, -1e9)
         attn_probs = torch.softmax(attn_scores, dim=-1)
         output = torch.matmul(attn_probs, V)
         return output
@@ -204,17 +204,17 @@ class TransformerD(nn.Module):
         embedding_decoder_inputs = []
         for i in range(len(self.embedding)):
             embedding_decoder_inputs.append(
-                self.embedding[i](decoder_inputs[:, i:i+1])
+                self.embedding[i](condition_vector[:, i:i+1])
             )
         embedding_decoder_inputs = torch.cat(embedding_decoder_inputs, dim=1)
-        masking = self.generate_mask(condition_vector)
+        masking = self.generate_mask(decoder_inputs)
 
-        decoder_hidden = self.dropout(self.positional_encoding(self.conv1d(condition_vector)))
+        decoder_hidden = self.dropout(self.positional_encoding(self.conv1d(decoder_inputs)))
 
         for dec_layer in self.decoder_layers:
             decoder_hidden = dec_layer(decoder_hidden, embedding_decoder_inputs, masking)
 
-        decoder_output = self.fc_output(decoder_hidden)
+        decoder_output = torch.nn.functional.relu(self.fc_output(decoder_hidden))
 
         return decoder_output
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
                                  input_shape=(130, 129),
                                  dropout=0.1,
                                  path2csv=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
-    tgt_data = torch.normal(mean=torch.zeros(64, 130, 129))
-    src_data = torch.randint(0, 3, size=(64, 9))
-    output_dec = trans_decoder(src_data, tgt_data)
+    decoder_inputs = torch.normal(mean=torch.zeros(64, 130, 129))
+    condition_vector = torch.randint(0, 3, size=(64, 9))
+    output_dec = trans_decoder(decoder_inputs=decoder_inputs, condition_vector=condition_vector)
     print(output_dec.shape)
