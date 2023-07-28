@@ -20,7 +20,7 @@ class MultiHeadAttention(nn.Module):
     def scaled_dot_product_attention(self, Q, K, V, mask=None):
         attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         if mask is not None:
-            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9)  # (mask.cuda() == 0, -1e9)
+            attn_scores = attn_scores.masked_fill(mask.cuda() == 0, -1e9)  # (maskc == 0, -1e9)
         attn_probs = torch.softmax(attn_scores, dim=-1)
         output = torch.matmul(attn_probs, V)
         return output
@@ -229,6 +229,6 @@ if __name__ == "__main__":
                                  dropout=0.1,
                                  path2csv=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
     decoder_inputs = torch.normal(mean=torch.zeros(64, 130, 129))
-    condition_vector = torch.randint(0, 3, size=(64, 9))
+    condition_vector = torch.randint(0, 3, size=(64, 9, 31)).type(torch.float32)
     output_dec = trans_decoder(decoder_inputs=decoder_inputs, condition_vector=condition_vector)
     print(output_dec.shape)

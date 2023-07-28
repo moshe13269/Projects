@@ -1,16 +1,20 @@
 import os
 import sys
-import pickle
+import torch
+# import pickle
 import librosa
-import dataset
-import torchvision
+# import dataset
+# import torchvision
 import numpy as np
-from scipy import signal
+# from scipy import signal
 from random import shuffle
 from scipy.io import wavfile
-from typing import List, Tuple
+import torch.nn.functional as F
+# from typing import List, Tuple
 from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 """
     TalNoise:
@@ -60,11 +64,22 @@ class DataLoaderMelSpec(Dataset):
     def shuffle_(self):
         shuffle(self.files)
 
-    def label2onehot(self, labels):
-        onehot_labels = np.zeros(sum(self.num_classes))
-        for i in range(labels.shape[0]):
-            onehot_labels[int(labels[i]) + int(self.num_classes_per_outputs[i])] = 1.
-        return onehot_labels
+    # def label2onehot(self, labels):
+    #     onehot_labels = np.zeros(sum(self.num_classes))
+    #     for i in range(labels.shape[0]):
+    #         onehot_labels[int(labels[i]) + int(self.num_classes_per_outputs[i])] = 1.
+    #     return onehot_labels
+
+    def label2onehot(self, label):
+        onehot_label = []
+        for i in range(label.shape[0]):
+            onehot_label.append(
+                F.one_hot(torch.tensor(label[i], dtype=torch.int64),
+                          num_classes=max(self.num_classes))
+            )
+        onehot_label = torch.concatenate([torch.unsqueeze(tensor, dim=0) for tensor in onehot_label], dim=0)
+        onehot_label = onehot_label.type(torch.float32)
+        return onehot_label + torch.normal(torch.zeros_like(onehot_label), std=0.01)
 
     def __getitem__(self, idx):
         wav_file = self.files_[idx][0]
@@ -73,24 +88,25 @@ class DataLoaderMelSpec(Dataset):
         else:
             label_file = self.files_[idx][0].replace('data/', 'labels/').replace('.wav', '.npy')
         label = np.squeeze(np.load(label_file))
+        # label = self.label2onehot(label)
         samplerate, data = wavfile.read(wav_file)
 
-        sgram = librosa.stft(data)
+        sgram = librosa.stft(data, win_length=256, n_fft=1025)
         sgram_mag, _ = librosa.magphase(sgram)
         mel_scale_sgram = librosa.feature.melspectrogram(S=sgram_mag, sr=samplerate)
         mel_sgram = librosa.amplitude_to_db(mel_scale_sgram, ref=np.min)
 
-        if self.calc_mean:
-            return mel_sgram.mean(), mel_sgram.std()
+        # if self.calc_mean:
+        #     return mel_sgram.mean(), mel_sgram.std()
         # data = np.transpose(data)
         # data = np.ndarray.astype(data, np.float32)
 
         # label = self.label2onehot(label)
 
         # mel_sgram = (mel_sgram - 64.08) / 19.48
-        label = np.split(label, label.shape[0])
-        label = [np.ndarray.astype(label_, dtype=np.int64)
-                  for label_ in label]
+        # label = np.split(label, label.shape[0])
+        # label = [np.ndarray.astype(label_, dtype=np.int64)
+        #          for label_ in label]
         # label = np.ndarray.astype(np.expand_dims(label_, 1), np.float32)
 
         if self.autoencoder:
@@ -105,18 +121,52 @@ if __name__ == '__main__':
     mean = 0.0
     std = 0.0
     for i in range(len(dl)):
-        mean_, std_ = dl.__getitem__(i)
-        mean += mean_
-        std += std_
-        if i % 1000 == 0:
-            print(i)
-            print('Mean: %f10, Std: %f10' % (mean / i, std / i))
+        stft, label = dl.__getitem__(i)
+        librosa.display.specshow(stft, sr=16384, x_axis='time', y_axis='mel')
+        a = 0
+        # mean_, std_ = dl.__getitem__(i)
+        # mean += mean_
+        # std += std_
+        # if i % 1000 == 0:
+        #     print(i)
+        #     print('Mean: %f10, Std: %f10' % (mean / i, std / i))
     print('\n')
     print('--------------------------------------------------------')
-    print('Mean: %f10, Std: %f10' % (mean/len(dl), std/len(dl)))
+    print('Mean: %f10, Std: %f10' % (mean / len(dl), std / len(dl)))
     print('--------------------------------------------------------')
 
+    # import torch
+    # import torchaudio
+    # import torchaudio.transforms as T
+    # import matplotlib.pyplot as plt
+    # import os
+    #
+    # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+    #
+    # p = r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\dataset\2\wav'
+    # w = os.path.join(p, '6.wav')
+    # wav, f = torchaudio.load(w)
+    # transform = T.AmplitudeToDB(stype="amplitude", top_db=80)
+    #
+    # waveform_db = transform(torch.stft(wav, 1024))
 
+    # mel_spectrogram = T.MelSpectrogram(
+    #     sample_rate=f,
+    #     n_fft=1024,
+    #     win_length=None,
+    #     hop_length=512,
+    #     center=True,
+    #     pad_mode="reflect",
+    #     power=2.0,
+    #     norm='slaney',
+    #     onesided=True,
+    #     n_mels=128,
+    #     mel_scale="htk",
+    # )
+    # melspec = mel_spectrogram(wav)
+    # plt.plot(melspec[0])
+    # plt.show()
+    # a=0
 
     # def mask(self, x):
     #     mask_d = np.ones((65, 65), dtype=np.float32)
