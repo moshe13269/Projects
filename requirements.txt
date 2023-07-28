@@ -13,9 +13,9 @@ torchaudio==2.0.0
 sentencepiece==0.1.99
 scipy=1.10.1
 torchvision=0.15.2
-pip~=23.0.1
-wheel~=0.38.4
-openssl~=1.1.1t
+pip==23.0.1
+wheel==0.38.4
+openssl==1.1.1t
 setuptools~=66.0.0
 gitdb~=4.0.10
 rsa~=4.9

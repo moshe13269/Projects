@@ -1,9 +1,9 @@
-
 import os
 import sys
 import hydra
 import argparse
-sys.path.append('/home/moshela/work/moshe/pycharm/Projects/')
+
+# sys.path.append('/home/moshela/work/moshe/pycharm/Projects/')
 from Projects_torch import task
 from omegaconf import DictConfig
 
@@ -12,12 +12,14 @@ from omegaconf import DictConfig
 def main(cfg: DictConfig) -> None:
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--path2data', required=False,
-                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data', #'/home/moshela/work/moshe/pycharm/dataset/noy/data/',
+                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data',
+                        # '/home/moshela/work/moshe/pycharm/dataset/noy/data/',
                         # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data', #
                         help='path2data')
     parser.add_argument('--path2save', required=False,
-                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main', #'/home/moshela/work/moshe/pycharm/results',
-    # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main', #
+                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main',
+                        # '/home/moshela/work/moshe/pycharm/results',
+                        # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main', #
                         help='path2save')
 
     parser.add_argument('--batch', required=False,
