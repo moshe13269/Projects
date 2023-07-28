@@ -2,9 +2,9 @@ import os
 # import sys
 import hydra
 import argparse
-
+import Projects_torch.task
 # sys.path.append('/home/moshel/Projects/Projects_torch/')
-from Projects_torch import task
+# from Projects_torch import task
 from omegaconf import DictConfig
 
 
@@ -28,7 +28,7 @@ def main(cfg: DictConfig) -> None:
 
     args = parser.parse_args()
 
-    task.TrainTaskSupervised(cfg, args)
+    Projects_torch.task.TrainTaskSupervised(cfg, args)
 
     # train_task.train_model()
 
