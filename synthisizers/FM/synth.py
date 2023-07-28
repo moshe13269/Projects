@@ -6,7 +6,7 @@ import numpy as np
 import torch
 # from args import cfg
 from scipy.io.wavfile import write
-# from utils import get_unique_labels
+# from synthisizers.FM.utils import get_unique_labels
 import pandas as pd
 
 from synth_utils import *
@@ -133,7 +133,8 @@ for f in fields2remove:
     subset.remove(f)
 df = pd.DataFrame.from_dict(dic2save).drop_duplicates(subset=subset)
 if True:
-    df.to_csv(r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv', index=False)
+    # df.to_csv(r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv', index=False)
+    df.to_csv('/home/moshel/datasets/fm/Data_custom_synth.csv', index=False)
 
 # dic_unique = get_unique_labels(r'data/for_test/Data_custom_synth.csv')
 print(df.shape)
@@ -148,7 +149,8 @@ for i in tqdm(range(num_sounds)):
         my_synth = SynthBasicFlow(file_name='unnamed_sound', parameters_dict=single_wav_dic, num_sounds=1)
         wavs = my_synth.my_generate_signal(1)
         s = np.squeeze(wavs.detach().cpu().numpy())
-        write(r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data\%d.wav' % file_name, SAMPLE_RATE, s)
+        write('/home/moshel/datasets/fm/data/%d.wav' % file_name, SAMPLE_RATE, s)
+        # write(r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data\%d.wav' % file_name, SAMPLE_RATE, s)
     # Noy_Synth_Wavs
 
 
