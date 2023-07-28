@@ -3,7 +3,7 @@ import sys
 import hydra
 import argparse
 
-sys.path.append('/home/moshel/Projects/Projects_torch/')
+# sys.path.append('/home/moshel/Projects/Projects_torch/')
 from Projects_torch import task
 from omegaconf import DictConfig
 
