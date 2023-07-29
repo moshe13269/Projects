@@ -1,11 +1,12 @@
 import os
 import sys
 sys.path.append('/home/moshel/Projects/Projects_torch/')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import hydra
 import argparse
+from Projects_torch import task
 import Projects_torch.task
-# sys.path.append('/home/moshel/Projects/Projects_torch/')
-# from Projects_torch import task
+
 from omegaconf import DictConfig
 
 
