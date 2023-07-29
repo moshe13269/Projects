@@ -1,5 +1,6 @@
 import os
-# import sys
+import sys
+sys.path.append('/home/moshel/Projects/Projects_torch/')
 import hydra
 import argparse
 import Projects_torch.task
