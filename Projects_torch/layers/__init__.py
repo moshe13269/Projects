@@ -5,4 +5,4 @@ from Projects_torch.layers.linear_classifier_2 import LinearClassifier
 from Projects_torch.layers.unet_blocks import ConvBlock, UpConvBlock, AttentionBlock
 from Projects_torch.layers.transformer import Transformer
 from Projects_torch.layers.transformer import TransformerE
-from Projects_torch.layers.transformer_decoder import TransformerD as TransformerD
+from Projects_torch.layers.transformer_decoder import TransformerD
