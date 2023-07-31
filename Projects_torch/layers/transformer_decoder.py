@@ -157,7 +157,7 @@ class TransformerD(nn.Module):
     def __init__(self, d_model, num_heads, num_layers, d_ff, input_shape: tuple[int, int],
                  dropout=0.1, path2csv=None, num_quant_params=None):
         super(TransformerD, self).__init__()
-
+        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq')
         self.positional_encoding = PositionalEncoding(d_model, input_shape[0])
         self.decoder_layers = nn.ModuleList(
             [DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
