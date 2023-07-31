@@ -49,8 +49,10 @@ class TrainTaskSupervised:
                                                   cfg.train_task.TrainTask.loss_ce,
                                                   list(self.outputs_dimension_per_outputs),
                                                   cfg.train_task.TrainTask.loss)
+            print('lllllllllllllllllllllllllllllllllllllll')
         else:
             self.loss = losses.losses_instantiate(loss=cfg.train_task.TrainTask.loss)
+            print('lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll')
 
         if not self.cfg.train_task.TrainTask.get('loss_l2'):
             self.loss = self.loss[1:]
@@ -59,9 +61,10 @@ class TrainTaskSupervised:
         # model instantiate
         ################################
         if self.path2load_model is None:
+            print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
             self.model = instantiate(cfg.train_task.TrainTask.model)
             # self.model.apply(init_weight_model)
-
+            print('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
             if self.num_ce_loss is not None:
                 pl_model = model.pl_model.LitModel(model=self.model,
                                                    losses=self.loss,
