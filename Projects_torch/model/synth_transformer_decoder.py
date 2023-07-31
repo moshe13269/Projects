@@ -1,11 +1,11 @@
 import torch.nn as nn
-import Projects_torch.layers
+from Projects_torch.layers.transformer_decoder import TransformerD
 
 
 class SynthTransformerDecoder(nn.Module):
 
     def __init__(self,
-                 transformer: Projects_torch.layers.TransformerD #Projects_torch.layers.transformer_decoder.TransformerD
+                 transformer: TransformerD #Projects_torch.layers.transformer_decoder.TransformerD
                  ):
 
         super(SynthTransformerDecoder, self).__init__()
