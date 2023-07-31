@@ -5,7 +5,7 @@ import Projects_torch.layers
 class SynthTransformerDecoder(nn.Module):
 
     def __init__(self,
-                 transformer: Projects_torch.layers.transformer_decoder.TransformerD
+                 transformer: Projects_torch.layers.TransformerD #Projects_torch.layers.transformer_decoder.TransformerD
                  ):
 
         super(SynthTransformerDecoder, self).__init__()
