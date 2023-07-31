@@ -157,22 +157,22 @@ class TransformerD(nn.Module):
     def __init__(self, d_model, num_heads, num_layers, d_ff, input_shape: tuple[int, int],
                  dropout=0.1, path2csv=None, num_quant_params=None):
         super(TransformerD, self).__init__()
-        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq')
+
         self.positional_encoding = PositionalEncoding(d_model, input_shape[0])
         self.decoder_layers = nn.ModuleList(
             [DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
-
+        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq111111')
         self.fc_embeddings = nn.Linear(1, d_model)
         self.fc_output = nn.Linear(d_model, input_shape[1])
         self.dropout = nn.Dropout(dropout)
-
+        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq222222222222')
         self.conv1d = Conv1DLayer(input_shape=input_shape)
 
         self.path2csv = path2csv
         self.num_quant_params = num_quant_params
         self.embedding = None
         self.init_embedding_layer(d_model)
-
+        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq333333333')
     def init_embedding_layer(self, d_model):
         if self.path2csv is not None:
             import pandas as pd
