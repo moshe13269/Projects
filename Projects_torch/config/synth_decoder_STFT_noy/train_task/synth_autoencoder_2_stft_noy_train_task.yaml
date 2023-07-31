@@ -26,7 +26,7 @@ TrainTask:
         - 128
         - 1025
       dropout: 0.1
-      path2csv: 'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv'
+      path2csv:    #'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv'
 
   to_metrics: False #
 
