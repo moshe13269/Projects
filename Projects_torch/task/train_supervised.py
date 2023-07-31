@@ -49,10 +49,8 @@ class TrainTaskSupervised:
                                                   cfg.train_task.TrainTask.loss_ce,
                                                   list(self.outputs_dimension_per_outputs),
                                                   cfg.train_task.TrainTask.loss)
-            print('lllllllllllllllllllllllllllllllllllllll')
         else:
             self.loss = losses.losses_instantiate(loss=cfg.train_task.TrainTask.loss)
-            print('lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll')
 
         if not self.cfg.train_task.TrainTask.get('loss_l2'):
             self.loss = self.loss[1:]
