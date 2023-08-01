@@ -155,24 +155,29 @@ class TransformerD(nn.Module):
     """
 
     def __init__(self, d_model, num_heads, num_layers, d_ff, input_shape: tuple[int, int],
+                 num_parameters: int, param_quant_level: int,
+
                  dropout=0.1, path2csv=None, num_quant_params=None):
         super(TransformerD, self).__init__()
 
         self.positional_encoding = PositionalEncoding(d_model, input_shape[0])
         self.decoder_layers = nn.ModuleList(
             [DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
-        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq111111')
+
         self.fc_embeddings = nn.Linear(1, d_model)
         self.fc_output = nn.Linear(d_model, input_shape[1])
         self.dropout = nn.Dropout(dropout)
-        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq222222222222')
+
         self.conv1d = Conv1DLayer(input_shape=input_shape)
 
         self.path2csv = path2csv
         self.num_quant_params = num_quant_params
         self.embedding = None
         self.init_embedding_layer(d_model)
-        print('qqqqqqqqqqqqqqqqqqqqqqqqqqqqq333333333')
+
+        self.liner1 = nn.Linear(param_quant_level, d_model) # 31, 512
+        self.liner2 = nn.Linear(num_parameters, input_shape[0]) # 9, 130
+
     def init_embedding_layer(self, d_model):
         if self.path2csv is not None:
             import pandas as pd
@@ -184,10 +189,11 @@ class TransformerD(nn.Module):
                     params_quant_arr.append(len_row_set)
             self.num_quant_params = params_quant_arr
 
-        self.embedding = nn.ModuleList(
-            [nn.Embedding(num_embeddings=self.num_quant_params[i], embedding_dim=d_model, max_norm=True)
-             for i in range(len(self.num_quant_params))]
-        )
+        if self.num_quant_params is not None:
+            self.embedding = nn.ModuleList(
+                [nn.Embedding(num_embeddings=self.num_quant_params[i], embedding_dim=d_model, max_norm=True)
+                 for i in range(len(self.num_quant_params))]
+            )
 
     def generate_mask(self, tgt):
         seq_length = tgt.size(1)
@@ -201,18 +207,22 @@ class TransformerD(nn.Module):
         src: param vector with shape (batch, N) where N is the number of param in the synth (row from the cvs)
         tgt: spectrogram of the target outputs wav: (batch, time_axis, freq_axis)
         """
-        embedding_decoder_inputs = []
-        for i in range(len(self.embedding)):
-            embedding_decoder_inputs.append(
-                self.embedding[i](condition_vector[:, i:i+1])
-            )
-        embedding_decoder_inputs = torch.cat(embedding_decoder_inputs, dim=1)
+        # embedding_decoder_inputs = []
+        # for i in range(len(self.embedding)):
+        #     embedding_decoder_inputs.append(
+        #         self.embedding[i](condition_vector[:, i:i+1])
+        #     )
+        # embedding_decoder_inputs = torch.cat(embedding_decoder_inputs, dim=1)
         masking = self.generate_mask(decoder_inputs)
 
         decoder_hidden = self.dropout(self.positional_encoding(self.conv1d(decoder_inputs)))
 
+        condition_vector_ = torch.nn.functional.relu(self.liner1(condition_vector))
+        condition_vector_ = self.liner2(torch.transpose(condition_vector_, 2, 1))
+        condition_vector_ = torch.transpose(condition_vector_, 2, 1)
+
         for dec_layer in self.decoder_layers:
-            decoder_hidden = dec_layer(decoder_hidden, embedding_decoder_inputs, masking)
+            decoder_hidden = dec_layer(decoder_hidden, condition_vector_, masking) #embedding_decoder_inputs, masking)
 
         decoder_output = torch.nn.functional.relu(self.fc_output(decoder_hidden))
 
@@ -227,8 +237,9 @@ if __name__ == "__main__":
                                  d_ff=2048,
                                  input_shape=(130, 129),
                                  dropout=0.1,
-                                 path2csv=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
-    decoder_inputs = torch.normal(mean=torch.zeros(64, 130, 129))
-    condition_vector = torch.randint(0, 3, size=(64, 9, 31)).type(torch.float32)
+                                 num_parameters=9, param_quant_level=31,
+                                 path2csv=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv').cuda()
+    decoder_inputs = torch.normal(mean=torch.zeros(64, 130, 129)).cuda()
+    condition_vector = torch.randint(0, 3, size=(64, 9, 31)).type(torch.float32).cuda()
     output_dec = trans_decoder(decoder_inputs=decoder_inputs, condition_vector=condition_vector)
     print(output_dec.shape)
