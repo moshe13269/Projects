@@ -24,9 +24,11 @@ TrainTask:
       d_ff: 2048
       input_shape:
         - 128
-        - 1025
+        - 256
+      num_parameters: 9 # #########################$$$$$$$$$$$$$$$$$$$$$$$$$
+      param_quant_level: 31 # ######################### %%%%%%%
       dropout: 0.1
-      path2csv:
+#      path2csv:
       #'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv'
 
   to_metrics: False #
@@ -68,9 +70,9 @@ TrainTask:
     learning_rate: 1e-4 #1.6e-6 #1.25e-6
 
   processor:
-    _target_: Projects_torch.processors.processor_synth_decoder_stft.DataLoaderSTFT
-    norm_mean: 0.013329904
-    norm_std: 0.041720923
+    _target_: Projects_torch.processors.processor_synth_encoder_eml_spec.DataLoaderMelSpec
+#    norm_mean: 0.013329904
+#    norm_std: 0.041720923
 
     num_classes:
       - 3
@@ -83,12 +85,15 @@ TrainTask:
       - 5
       - 16
 
-  batch_size:
-    train: 80 #48
-    test: 1
-    valid: 80 #48
+    win_length: 256
+    n_fft: 1025
 
-  learning_rate: 8e-4 #0.5e-7
+  batch_size:
+    train: 256 #48
+    test: 1
+    valid: 256 #48
+
+  learning_rate: 1e-4 #0.5e-7
 
   epochs: 4000
   path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_decoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/decoder

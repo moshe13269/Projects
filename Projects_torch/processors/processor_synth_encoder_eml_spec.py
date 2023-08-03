@@ -28,7 +28,14 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
 class DataLoaderMelSpec(Dataset):
-    def __init__(self, num_classes, autoencoder=False, norm_mean=None, norm_std=None, dataset_path=None,
+    def __init__(self,
+                 num_classes,
+                 win_length=256,
+                 n_fft=1025,
+                 autoencoder=True,
+                 norm_mean=None,
+                 norm_std=None,
+                 dataset_path=None,
                  calc_mean=False):
 
         super().__init__()
@@ -45,6 +52,8 @@ class DataLoaderMelSpec(Dataset):
         self.labels = None
         self.calc_mean = calc_mean
         self.autoencoder = autoencoder
+        self.win_length=win_length
+        self.n_fft=n_fft
 
     def load_dataset(self, dataset_path):
         self.files = [os.path.join(dataset_path, file)
@@ -91,7 +100,7 @@ class DataLoaderMelSpec(Dataset):
         # label = self.label2onehot(label)
         samplerate, data = wavfile.read(wav_file)
 
-        sgram = librosa.stft(data, win_length=256, n_fft=1025)
+        sgram = librosa.stft(data, win_length=self.win_length, n_fft=self.n_fft)
         sgram_mag, _ = librosa.magphase(sgram)
         mel_scale_sgram = librosa.feature.melspectrogram(S=sgram_mag, sr=samplerate)
         mel_sgram = librosa.amplitude_to_db(mel_scale_sgram, ref=np.min)
@@ -109,8 +118,10 @@ class DataLoaderMelSpec(Dataset):
         #          for label_ in label]
         # label = np.ndarray.astype(np.expand_dims(label_, 1), np.float32)
 
+        label = torch.nn.functional.one_hot(torch.from_numpy(np.int64(label)), max(self.num_classes))
+        label = label.type(torch.float32)
         if self.autoencoder:
-            return mel_sgram, [mel_sgram, label]
+            return [mel_sgram, label], mel_sgram
         return mel_sgram, label
 
 

@@ -59,10 +59,10 @@ class TrainTaskSupervised:
         # model instantiate
         ################################
         if self.path2load_model is None:
-            print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+
             self.model = instantiate(cfg.train_task.TrainTask.model)
             # self.model.apply(init_weight_model)
-            print('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+
             if self.num_ce_loss is not None:
                 pl_model = model.pl_model.LitModel(model=self.model,
                                                    losses=self.loss,
