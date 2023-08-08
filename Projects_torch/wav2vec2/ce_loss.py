@@ -23,10 +23,10 @@ class CELoss(nn.Module):
 
         loss = 0.0
 
-        output_list = [output[self.index2split[i]: self.index2split[i+1]] for i in range(len(self.index2split)-1)]
+        output_list = [output[:, self.index2split[i]: self.index2split[i+1]] for i in range(len(self.index2split)-1)]
 
         for i in range(len(output_list)):
-            loss += self.ce(output[i], target[i].squeeze())
+            loss += self.ce(torch.nn.functional.softmax(output_list[i], dim=-1), target[:, i:i+1].squeeze())
         loss = loss / len(output_list)
 
         return loss

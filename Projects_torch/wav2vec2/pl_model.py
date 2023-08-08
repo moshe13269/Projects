@@ -16,8 +16,15 @@ class LitModelWav2Vec2(pl.LightningModule):
         bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
         self.model = bundle.get_model()
 
-        self.linear1 = nn.Linear(29, 1)
-        self.linear2 = nn.Linear(50, num_outputs)
+        self.linear_model = nn.Sequential(
+            nn.Linear(768, 1),
+            nn.GELU(),
+            nn.Flatten(),
+            nn.Linear(50, num_outputs)
+        )
+
+        # self.linear1 = nn.Linear(50, 1)
+        # self.linear2 = nn.Linear(768, num_outputs)
         self.loss = ce_loss
         self.learn_rate = learn_rate
 
@@ -25,10 +32,13 @@ class LitModelWav2Vec2(pl.LightningModule):
         with torch.inference_mode():
             features, _ = self.model.extract_features(x)
 
-        features = torch.tensor(features[0].numpy())
+        features = torch.tensor(features[0].cpu().numpy()).cuda()
 
-        features = torch.nn.functional.relu(self.linear1(features))
-        features = torch.nn.functional.relu(self.linear2(torch.squeeze(features)))
+        # features = torch.transpose(features, 2, 1)
+
+        # features = torch.nn.functional.relu(self.linear1(features))
+        # features = self.linear2(torch.squeeze(features))
+        features = self.linear_model(features)
         return features
 
     def training_step(self, batch, batch_idx):
@@ -56,4 +66,4 @@ class LitModelWav2Vec2(pl.LightningModule):
         self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
     def configure_optimizers(self):
-        return torch.optim.AdamW(self.model.parameters(), lr=self.learn_rate)
+        return torch.optim.AdamW(self.linear_model.parameters(), lr=self.learn_rate)

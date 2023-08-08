@@ -23,7 +23,7 @@ def main(path2csv, dataset_path, path2save_model):
     #   model
     #######################################################
     ce_loss = CELoss(outputs_dimension_per_outputs)
-    model = LitModelWav2Vec2(ce_loss=ce_loss, num_outputs=sum(outputs_dimension_per_outputs), learn_rate=1e-3)
+    model = LitModelWav2Vec2(ce_loss=ce_loss, num_outputs=sum(outputs_dimension_per_outputs), learn_rate=0.01)
 
     #######################################################
     #   dataloader
@@ -82,6 +82,6 @@ def main(path2csv, dataset_path, path2save_model):
 
 if __name__ == '__main__':
     path2csv = r"C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv"
-    dataset_path = r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy'
+    dataset_path = r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data'
     path2save_model = r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset'
     main(path2csv=path2csv, dataset_path=dataset_path, path2save_model=path2save_model)

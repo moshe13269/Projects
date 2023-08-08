@@ -54,6 +54,6 @@ class DataLoader(Dataset):
         label = np.squeeze(np.load(label_file))
         _, data = wavfile.read(wav_file)
 
-        data = torch.unsqueeze(torch.from_numpy(data), dim=0)
+        # data = torch.unsqueeze(torch.from_numpy(data), dim=0)
 
-        return data, torch.from_numpy(np.int64(label))
+        return torch.from_numpy(data), torch.from_numpy(np.int64(label))
