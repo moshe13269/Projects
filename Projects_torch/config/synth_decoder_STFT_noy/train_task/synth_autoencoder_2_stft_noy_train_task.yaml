@@ -20,13 +20,13 @@ TrainTask:
       _target_: Projects_torch.layers.transformer_decoder.TransformerD
       d_model: 512
       num_heads: 16
-      num_layers: 12
+      num_layers: 6
       d_ff: 2048
       input_shape:
         - 128
         - 256
-      num_parameters: 9 # #########################$$$$$$$$$$$$$$$$$$$$$$$$$
-      param_quant_level: 31 # ######################### %%%%%%%
+      num_parameters: 9
+      param_quant_level: 31
       dropout: 0.1
 #      path2csv:
       #'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv'
@@ -54,21 +54,6 @@ TrainTask:
       monitor: 'linear_classifier_loss'
       verbose: 1
 
-  to_schedule: True
-
-  schedule:
-    _target_: callbacks.WarmLRSchedule
-    initial_learning_rate: 6e-6
-    warmup_steps: 8
-    hold_step: 1000 #1
-    decay_step: 10
-    max_learn_rate: 7.5e-5 #2.5e-5 #8e-6 #1.5e-6
-    min_learn_rate: 1.5e-6 #9e-7
-
-  optimizer:
-    _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 1e-4 #1.6e-6 #1.25e-6
-
   processor:
     _target_: Projects_torch.processors.processor_synth_encoder_eml_spec.DataLoaderMelSpec
 #    norm_mean: 0.013329904
@@ -89,11 +74,11 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 256 #48
+    train: 64 #48
     test: 1
-    valid: 256 #48
+    valid: 64 #48
 
-  learning_rate: 1e-4 #0.5e-7
+  learning_rate: 1e-3 #0.5e-7
 
   epochs: 4000
   path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_decoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/decoder
@@ -104,4 +89,3 @@ TrainTask:
 
   steps_per_epoch: 1000
   validation_steps: 150
-
