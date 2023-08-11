@@ -44,16 +44,6 @@ TrainTask:
 
   loss_l2: True
 
-  callbacks:
-    -
-      _target_: tensorflow.keras.callbacks.ModelCheckpoint
-      filepath: /home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/8/
-      save_best_only: True
-      save_freq: 7500 #'epoch'
-      initial_value_threshold: 5
-      monitor: 'linear_classifier_loss'
-      verbose: 1
-
   processor:
     _target_: Projects_torch.processors.processor_synth_encoder_eml_spec.DataLoaderMelSpec
 #    norm_mean: 0.013329904
@@ -74,9 +64,9 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 64 #48
+    train: 128 #48
     test: 1
-    valid: 64 #48
+    valid: 128 #48
 
   learning_rate: 1e-3 #0.5e-7
 

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from ce_loss import CELoss
 from processor import DataLoader
-from pl_model import LitModelWav2Vec2
+from pl_model_ import LitModelWav2Vec2
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import MLFlowLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -13,17 +13,17 @@ from torch.utils.data.sampler import SubsetRandomSampler
 def main(path2csv, dataset_path, path2save_model):
     np.random.seed(123456)
 
-    epochs = 4
+    epochs = 15
     df = pd.read_csv(path2csv)
     path2save_model = path2save_model
-    batch_size = {'train': 64, 'test': 64}
+    batch_size = {'train': 128, 'test': 128}
     outputs_dimension_per_outputs = [len(set(df[key])) for key in df.keys()[1:]]
 
     #######################################################
     #   model
     #######################################################
     ce_loss = CELoss(outputs_dimension_per_outputs)
-    model = LitModelWav2Vec2(ce_loss=ce_loss, num_outputs=sum(outputs_dimension_per_outputs), learn_rate=0.01)
+    model = LitModelWav2Vec2(ce_loss=ce_loss, num_outputs=sum(outputs_dimension_per_outputs), learn_rate=0.001)
 
     #######################################################
     #   dataloader

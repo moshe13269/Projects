@@ -19,11 +19,23 @@ def main(cfg: DictConfig) -> None:
                         # '/home/moshela/work/moshe/pycharm/dataset/noy/data/',
                         # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\data', #
                         help='path2data')
-    parser.add_argument('--path2save', required=False,
-                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main',
+    # parser.add_argument('--path2save', required=False,
+    #                     default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main',
+    #                     # '/home/moshela/work/moshe/pycharm/results',
+    #                     # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main', #
+    #                     help='path2save')
+
+    parser.add_argument('--path2save_image', required=False,
+                        default=None,
                         # '/home/moshela/work/moshe/pycharm/results',
                         # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main', #
-                        help='path2save')
+                        help='path2save_image')
+
+    parser.add_argument('--path2save_model', required=False,
+                        default=None,
+                        # '/home/moshela/work/moshe/pycharm/results',
+                        # r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\outputs_main', #
+                        help='path2save_model')
 
     parser.add_argument('--batch', required=False,
                         default=2,

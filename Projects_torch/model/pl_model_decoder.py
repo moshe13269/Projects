@@ -36,8 +36,9 @@ class LitModelDecoder(pl.LightningModule):
         else:
             loss = 0.0
             loss_ = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=-1), dim=-1))
+            _loss_ = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=1), dim=-1))
             # loss_ = self.mse_loss(output, target_spec) #self.losses[0](output, target_spec)
-            loss += loss_
+            loss += (loss_ + _loss_) / 2.
             # self.log("train_loss ", loss_, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)

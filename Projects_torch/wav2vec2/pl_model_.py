@@ -7,38 +7,43 @@ import matplotlib.image
 from os.path import join
 from ce_loss import CELoss
 import lightning.pytorch as pl
+from transformers import Wav2Vec2ForCTC
+from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2Model
 
 
 class LitModelWav2Vec2(pl.LightningModule):
     def __init__(self, ce_loss, num_outputs, learn_rate):
         super().__init__()
 
-        bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
-        self.model = bundle.get_model()
+        # bundle = torchaudio.pipelines.WAV2VEC2_ASR_BASE_960H
+        # self.model = bundle.get_model()
+        # self.model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-large-960h-lv60-self")
+
+        model_name = "facebook/wav2vec2-large-xlsr-53"
+        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_name)
+        self.model = Wav2Vec2Model.from_pretrained(model_name)
 
         self.linear_model = nn.Sequential(
-            nn.LeakyReLU(),
-            nn.Linear(768, 1),
-            nn.LeakyReLU(),
+            nn.GELU(),
+            nn.Linear(50, 1),
+            nn.GELU(),
             nn.Flatten(),
-            nn.Linear(50, num_outputs)
+            nn.Linear(1024, num_outputs)
         )
 
-        # self.linear1 = nn.Linear(50, 1)
-        # self.linear2 = nn.Linear(768, num_outputs)
         self.loss = ce_loss
         self.learn_rate = learn_rate
 
     def forward(self, x):
-        with torch.inference_mode():
-            features, _ = self.model.extract_features(x)
+        i = self.feature_extractor(x, return_tensors="pt", sampling_rate=16000)
+        with torch.no_grad():
+            # o = self.model(i.input_values.cuda().squeeze())
+            o = self.model(i.input_values.cuda().squeeze(), output_hidden_states=True)['hidden_states'][16]
 
-        features = torch.tensor(features[0].cpu().numpy()).cuda()
-
-        # features = torch.transpose(features, 2, 1)
-
-        # features = torch.nn.functional.relu(self.linear1(features))
-        # features = self.linear2(torch.squeeze(features))
+        features = o
+        # features = o.last_hidden_state
+        # features = self.model(x, output_hidden_states=True)['hidden_states'][18]
+        features = torch.transpose(features, 2, 1)
         features = self.linear_model(features)
         return features
 

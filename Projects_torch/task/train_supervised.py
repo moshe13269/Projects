@@ -25,10 +25,19 @@ class TrainTaskSupervised:
         ######################################
         # model_name & path2save
         ######################################
-        self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
+        if args.path2save_model is None:
+            self.path2save_model = self.cfg.train_task.TrainTask.get('path2save_model')
+        else:
+            self.path2save_model = args.path2save_model
+
         self.model_name = self.cfg.train_task.TrainTask.get('model_name')
+
         self.path2load_model = self.cfg.train_task.TrainTask.get('path2load_model')
-        self.path2save_images = self.cfg.train_task.TrainTask.get('path2save_images')
+
+        if args.path2save_image is None:
+            self.path2save_images = self.cfg.train_task.TrainTask.get('path2save_images')
+        else:
+            self.path2save_images = args.path2save_image
 
         ######################################
         # losses & learning_rate & epochs
@@ -121,7 +130,7 @@ class TrainTaskSupervised:
 
         checkpoint_callback = ModelCheckpoint(dirpath=self.path2save_model,
                                               save_weights_only=False,
-                                              # monitor='val_loss',
+                                              monitor='train_loss_epoch',
                                               save_last=True,
                                               verbose=True)
 
