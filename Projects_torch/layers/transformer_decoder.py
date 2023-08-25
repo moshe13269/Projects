@@ -48,10 +48,10 @@ class PositionWiseFeedForward(nn.Module):
         super(PositionWiseFeedForward, self).__init__()
         self.fc1 = nn.Linear(d_model, d_ff)
         self.fc2 = nn.Linear(d_ff, d_model)
-        self.elu = nn.ELU() #nn.ReLU()
+        self.selu = nn.SELU() #nn.ReLU()
 
     def forward(self, x):
-        return self.fc2(self.elu(self.fc1(x)))
+        return self.fc2(self.selu(self.fc1(x)))
 
 
 class PositionalEncoding(nn.Module):
@@ -118,7 +118,7 @@ class Conv1DLayer(nn.Module):
                         make_conv_layer(d_model),
                         nn.Dropout(p=dropout),
                         nn.LayerNorm([d_model, input_shape[0]], elementwise_affine=True, eps=1e-6),
-                        nn.ELU()
+                        nn.SELU()
                     )
                 )
             else:
@@ -127,7 +127,7 @@ class Conv1DLayer(nn.Module):
                         make_conv_layer(input_shape[1]),
                         nn.Dropout(p=dropout),
                         nn.LayerNorm([d_model, input_shape[0]], elementwise_affine=True, eps=1e-6),
-                        nn.ELU()
+                        nn.SELU()
                     )
                 )
 
@@ -217,14 +217,14 @@ class TransformerD(nn.Module):
 
         decoder_hidden = self.dropout(self.positional_encoding(self.conv1d(decoder_inputs)))
 
-        condition_vector_ = torch.nn.functional.elu(self.liner1(condition_vector)) #torch.nn.functional.relu(self.liner1(condition_vector))
+        condition_vector_ = torch.nn.functional.selu(self.liner1(condition_vector)) #torch.nn.functional.relu(self.liner1(condition_vector))
         condition_vector_ = self.liner2(torch.transpose(condition_vector_, 2, 1))
         condition_vector_ = torch.transpose(condition_vector_, 2, 1)
 
         for dec_layer in self.decoder_layers:
             decoder_hidden = dec_layer(decoder_hidden, condition_vector_, masking) #embedding_decoder_inputs, masking)
 
-        decoder_output = torch.nn.functional.elu(self.fc_output(decoder_hidden)) #torch.nn.functional.relu(self.fc_output(decoder_hidden))
+        decoder_output = torch.nn.functional.selu(self.fc_output(decoder_hidden)) #torch.nn.functional.relu(self.fc_output(decoder_hidden))
 
         return decoder_output
 
