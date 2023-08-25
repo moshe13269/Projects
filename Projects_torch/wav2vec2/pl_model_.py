@@ -24,7 +24,7 @@ class LitModelWav2Vec2(pl.LightningModule):
         self.model = Wav2Vec2Model.from_pretrained(model_name)
 
         self.linear_model = nn.Sequential(
-            nn.GELU(),
+            # nn.GELU(),
             nn.Linear(50, 1),
             nn.GELU(),
             nn.Flatten(),
@@ -38,7 +38,7 @@ class LitModelWav2Vec2(pl.LightningModule):
         i = self.feature_extractor(x, return_tensors="pt", sampling_rate=16000)
         with torch.no_grad():
             # o = self.model(i.input_values.cuda().squeeze())
-            o = self.model(i.input_values.cuda().squeeze(), output_hidden_states=True)['hidden_states'][16]
+            o = self.model(i.input_values.cuda().squeeze(), output_hidden_states=True)['hidden_states'][13]
 
         features = o
         # features = o.last_hidden_state

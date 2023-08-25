@@ -14,7 +14,7 @@ class LitModelDecoder(pl.LightningModule):
         self.losses = losses
         self.learn_rate = learn_rate
         self.mse_loss = nn.MSELoss()
-        self.l1_loss = nn.L1Loss(reduction='none')
+        self.l1_loss = nn.L1Loss() #nn.L1Loss(reduction='none')
         self.path2save_images = path2save_images
 
     def forward(self, x):
@@ -29,17 +29,22 @@ class LitModelDecoder(pl.LightningModule):
             loss = 0.0
             for i in range(len(self.losses)):
                 # loss_ = self.losses[i](output, target_spec)
-                loss_ = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=-1), dim=-1))
-                self.log("train_loss " + str(type(self.losses[i])), loss_, on_step=False, on_epoch=True, prog_bar=True,
+                loss_l2 = torch.mean(torch.sum(torch.mean(self.mse_loss(output, target_spec), dim=-1), dim=-1))
+                loss_l1 = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=-1), dim=-1))
+                loss_mean = loss_l2 + loss_l1
+                self.log("train_loss l1" + str(type(self.losses[i])), loss_l1, on_step=False, on_epoch=True, prog_bar=True,
                          logger=True)
-                loss += loss_
+                self.log("train_loss l2" + str(type(self.losses[i])), loss_l2, on_step=False, on_epoch=True, prog_bar=True,
+                         logger=True)
+                loss += loss_mean
         else:
             loss = 0.0
-            loss_ = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=-1), dim=-1))
-            _loss_ = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=1), dim=-1))
-            # loss_ = self.mse_loss(output, target_spec) #self.losses[0](output, target_spec)
-            loss += (loss_ + _loss_) / 2.
-            # self.log("train_loss ", loss_, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            loss_l2 = self.mse_loss(output, target_spec)
+            loss_l1 = self.l1_loss(output, target_spec)
+            loss_mean = loss_l2 + loss_l1
+            self.log("train_loss l1", loss_l1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            self.log("train_loss l2", loss_l2, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            loss += loss_mean
 
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
@@ -62,10 +67,12 @@ class LitModelDecoder(pl.LightningModule):
                 loss += loss_
         else:
             loss = 0.0
-            loss_ = torch.mean(torch.sum(torch.mean(self.l1_loss(output, target_spec), dim=-1), dim=-1))
-            # loss_ = self.mse_loss(output, target_spec) #self.losses[0](output, target_spec)
-            loss += loss_
-            # self.log("valid_loss ", loss_, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            loss_l2 = self.mse_loss(output, target_spec)
+            loss_l1 = self.l1_loss(output, target_spec)
+            loss_mean = loss_l2 + loss_l1
+            self.log("train_loss l1", loss_l1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            self.log("train_loss l2", loss_l2, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            loss += loss_mean
 
         self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 

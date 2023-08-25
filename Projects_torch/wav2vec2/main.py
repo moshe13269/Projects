@@ -13,7 +13,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 def main(path2csv, dataset_path, path2save_model):
     np.random.seed(123456)
 
-    epochs = 15
+    epochs = 5
     df = pd.read_csv(path2csv)
     path2save_model = path2save_model
     batch_size = {'train': 128, 'test': 128}
