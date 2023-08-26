@@ -32,6 +32,7 @@ class DataLoaderMelSpec(Dataset):
                  num_classes,
                  win_length=256,
                  n_fft=1025,
+                 encoder=False,
                  autoencoder=True,
                  norm_mean=None,
                  norm_std=None,
@@ -52,6 +53,7 @@ class DataLoaderMelSpec(Dataset):
         self.labels = None
         self.calc_mean = calc_mean
         self.autoencoder = autoencoder
+        self.encoder = encoder
         self.win_length=win_length
         self.n_fft=n_fft
 
@@ -118,6 +120,10 @@ class DataLoaderMelSpec(Dataset):
         #          for label_ in label]
         # label = np.ndarray.astype(np.expand_dims(label_, 1), np.float32)
         mel_sgram = (mel_sgram - mel_sgram.mean()) / mel_sgram.std()
+
+        if self.encoder:
+            return mel_sgram, torch.from_numpy(np.int64(label))
+
         label = torch.nn.functional.one_hot(torch.from_numpy(np.int64(label)), max(self.num_classes))
         label = label.type(torch.float32)
         if self.autoencoder:

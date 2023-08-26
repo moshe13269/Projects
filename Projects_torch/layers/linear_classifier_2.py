@@ -18,7 +18,7 @@ class LinearClassifier(nn.Module):
 
     def __init__(self,
                  outputs_dimension_per_outputs,
-                 activation: str = 'relu',
+                 activation: str = 'selu',
                  dropout: float = 0.2,
                  **kwargs):
         super().__init__(**kwargs)
@@ -30,9 +30,9 @@ class LinearClassifier(nn.Module):
             self.layers.append(
                 nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(in_features=65 * 512, out_features=output_size),
+                    nn.Linear(in_features=129 * 512, out_features=output_size),
                     nn.Dropout(p=dropout),
-                    nn.ReLU(),
+                    nn.ELU(),
                     nn.Linear(in_features=output_size,
                               out_features=output_size)
                     # nn.Softmax(dim=-1)

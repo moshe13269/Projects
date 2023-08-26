@@ -15,12 +15,12 @@ TrainTask:
   model:
     _target_: Projects_torch.model.synth_transformer_encoder.SynthTransformerEncoder
     transformer:
-      _target_: Projects_torch.layers.transformer.TransformerE
+      _target_: Projects_torch.layers.transformer_encoder.TransformerE
       d_model: 512
       num_heads: 8
       num_layers: 12
       d_ff: 2048
-      max_seq_length: 65
+      max_seq_length: 129 #65
       dropout: 0.1
 
     conv_encoder:
@@ -29,7 +29,7 @@ TrainTask:
       units: 512
       conv_layers:
         -
-          - 130     # (in_channels, dim, kernel, stride)
+          - 128     # (in_channels, dim, kernel, stride)
           - 512
           - 4
           - 2
@@ -65,7 +65,7 @@ TrainTask:
 
     linear_classifier:
       _target_: Projects_torch.layers.linear_classifier_2.LinearClassifier
-      activation: relu
+      activation: selu
       dropout: 0.2
       outputs_dimension_per_outputs:
         - 3
@@ -78,7 +78,8 @@ TrainTask:
         - 5
         - 16
 
-  to_metrics: False #
+
+  to_metrics: False
 
   metrics:
     _target_: Projects_torch.metrics.accuracy_2.CustomAccuracy2
@@ -92,7 +93,8 @@ TrainTask:
       - 8
       - 5
       - 16
-#    num_classes: 1
+
+  #    num_classes: 1
 #    index_y_true: 1
 
   loss:
@@ -104,15 +106,15 @@ TrainTask:
     num_classes: 1
     index_y_true: 1
     outputs_dimension_per_outputs:
-        - 3
-        - 12
-        - 20
-        - 31
-        - 4
-        - 5
-        - 8
-        - 5
-        - 16
+      - 3
+      - 12
+      - 20
+      - 31
+      - 4
+      - 5
+      - 8
+      - 5
+      - 16
   num_ce_loss: 1
 
   loss_l2: False
@@ -127,24 +129,6 @@ TrainTask:
       monitor: 'linear_classifier_loss'
       verbose: 1
 
-#    -
-#      _target_: tensorflow.keras.callbacks.LearningRateScheduler
-#      schedule:
-#        _target_: callbacks.WarmLRSchedule
-#        initial_learning_rate: 0.5e-7
-#        warmup_steps: 25
-#        hold_step: 1
-#        decay_step: 100
-#        max_learn_rate: 1.5e-6
-#        min_learn_rate: 3e-8
-#    -
-#      _target_: tensorflow.keras.callbacks.LearningRateScheduler
-#      schedule:
-#        _target_: tensorflow.keras.optimizers.schedules.ExponentialDecay
-#        initial_learning_rate: 8.5e-5
-#        decay_steps: 750
-#        decay_rate: 1e-4
-
   to_schedule: True
 
   schedule:
@@ -153,34 +137,17 @@ TrainTask:
     warmup_steps: 8
     hold_step: 1000 #1
     decay_step: 10
-    max_learn_rate: 7.5e-5 #2.5e-5 #8e-6 #1.5e-6
-    min_learn_rate: 1.5e-6 #9e-7
+    max_learn_rate: 7.5e-5
+    min_learn_rate: 1.5e-6
 
   optimizer:
     _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 1e-4 #1.6e-6 #1.25e-6
-#      _target_: tensorflow.keras.callbacks.LearningRateScheduler
-#      schedule:
-#      _target_: callbacks.WarmLRSchedule
-#      initial_learning_rate: 0.5e-7
-#      warmup_steps: 25
-#      hold_step: 1
-#      decay_step: 100
-#      max_learn_rate: 1.5e-6
-#      min_learn_rate: 3e-8
+    learning_rate: 1e-4
 
   processor:
-    _target_: Projects_torch.processors.processor_synth_encoder_stft.DataLoaderSTFT
-    norm_mean: 0.013329904
-    norm_std: 0.041720923
+    _target_: Projects_torch.processors.processor_synth_encoder_eml_spec.DataLoaderMelSpec
     autoencoder: False
-#    std_mean_calc:
-#      _target_: dataset.calc_std_mean_dataset_wav.StdMeanCalc
-#      path2dataset: /home/moshelaufer/PycharmProjects/datasets/tal_noise/
-#      stft: True
-#    mask:
-#      - 65 #33 #129
-#      - 1
+    encoder: True
     num_classes:
       - 3
       - 12
@@ -192,12 +159,15 @@ TrainTask:
       - 5
       - 16
 
-  batch_size:
-    train: 256 #48
-    test: 1
-    valid: 256 #48
+    win_length: 256
+    n_fft: 1025
 
-  learning_rate: 8e-4 #0.5e-7
+  batch_size:
+    train: 100 #118 #48
+    test: 1
+    valid: 100 #118 #48
+
+  learning_rate: 3e-4 #0.5e-7
 
   epochs: 4000
   path2save_model: /home/moshela/work/moshe/pycharm/checkpoints/noy/autoencoder #C:\Users\moshe\PycharmProjects\ckt #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/

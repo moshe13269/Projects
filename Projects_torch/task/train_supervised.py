@@ -53,6 +53,8 @@ class TrainTaskSupervised:
 
         self.learning_rate = self.cfg.train_task.TrainTask.get('learning_rate')
 
+        self.num_classes = self.num_ce_loss
+
         if self.num_ce_loss is not None:
             self.loss = losses.losses_instantiate(self.num_ce_loss,
                                                   cfg.train_task.TrainTask.loss_ce,
@@ -72,10 +74,14 @@ class TrainTaskSupervised:
             self.model = instantiate(cfg.train_task.TrainTask.model)
             # self.model.apply(init_weight_model)
 
-            if self.num_ce_loss is not None:
-                pl_model = model.pl_model.LitModel(model=self.model,
-                                                   losses=self.loss,
-                                                   learn_rate=self.learning_rate)
+            if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder):
+                pl_model = model.pl_model_encoder.LitModelEncoder(model=self.model,
+                                                                  losses=self.loss,
+                                                                  learn_rate=self.learning_rate,
+                                                                  outputs_dimension_per_outputs=
+                                                                  self.outputs_dimension_per_outputs,
+                                                                  num_classes=self.num_classes
+                                                                  )
             else:
                 pl_model = model.pl_model_decoder.LitModelDecoder(model=self.model,
                                                                   losses=self.loss,
