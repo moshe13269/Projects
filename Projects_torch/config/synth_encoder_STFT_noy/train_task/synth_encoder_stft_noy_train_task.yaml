@@ -170,13 +170,13 @@ TrainTask:
   learning_rate: 3e-4 #0.5e-7
 
   epochs: 4000
-  path2save_model: /home/moshela/work/moshe/pycharm/checkpoints/noy/autoencoder #C:\Users\moshe\PycharmProjects\ckt #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
+  path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_encoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
   model_name: synth_autoencoder_2_stft_noy
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft/
   num_outputs: 2 #10 #1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise.png
 
-  steps_per_epoch: 1000 # 2500
+  steps_per_epoch: 10 # 2500
   validation_steps: 150
 
   results:
