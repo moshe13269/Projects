@@ -122,7 +122,10 @@ class DataLoaderMelSpec(Dataset):
         mel_sgram = (mel_sgram - mel_sgram.mean()) / mel_sgram.std()
 
         if self.encoder:
-            return mel_sgram, torch.from_numpy(np.int64(label))
+            label_list = [torch.nn.functional.one_hot(torch.from_numpy(np.asarray(np.int64(label[j]))),
+                                                      self.num_classes[j]).type(torch.float32)
+                          for j in range(len(self.num_classes))]
+            return mel_sgram, label_list
 
         label = torch.nn.functional.one_hot(torch.from_numpy(np.int64(label)), max(self.num_classes))
         label = label.type(torch.float32)

@@ -23,12 +23,16 @@ class SynthTransformerEncoder(nn.Module):
 
         self.linear_classifier = linear_classifier
 
+        self.linear_in = nn.Linear(256, 512)
+
         self.conv_encoder = conv_encoder
 
     def forward(self, inputs):
 
-        outputs = self.conv_encoder(inputs)
+        # outputs = self.conv_encoder(inputs)
 
-        encoder_outputs = self.transformer(outputs)
+        inputs = torch.nn.functional.elu(self.linear_in(inputs))
+
+        encoder_outputs = self.transformer(inputs)
 
         return self.linear_classifier(encoder_outputs)

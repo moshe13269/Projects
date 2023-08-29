@@ -17,15 +17,14 @@ TrainTask:
     transformer:
       _target_: Projects_torch.layers.transformer_encoder.TransformerE
       d_model: 512
-      num_heads: 8
-      num_layers: 12
+      num_heads: 16
+      num_layers: 6
       d_ff: 2048
-      max_seq_length: 129 #65
+      max_seq_length: 128 #65
       dropout: 0.1
 
     conv_encoder:
       _target_: Projects_torch.layers.conv_wav_encoder.ConvFeatureExtractionModel
-      activation: relu
       units: 512
       conv_layers:
         -
@@ -58,14 +57,12 @@ TrainTask:
         - 1
         - 1
 
-      dropout: 0.1
-      conv_bias: True
-      is_group_norm: False
+      dropout: 0.15
+      is_group_norm: True
       is_layer_norm: False
 
     linear_classifier:
       _target_: Projects_torch.layers.linear_classifier_2.LinearClassifier
-      activation: selu
       dropout: 0.2
       outputs_dimension_per_outputs:
         - 3
@@ -81,18 +78,18 @@ TrainTask:
 
   to_metrics: False
 
-  metrics:
-    _target_: Projects_torch.metrics.accuracy_2.CustomAccuracy2
-    outputs_dimension_per_outputs:
-      - 3
-      - 12
-      - 20
-      - 31
-      - 4
-      - 5
-      - 8
-      - 5
-      - 16
+#  metrics:
+#    _target_: Projects_torch.metrics.accuracy_2.CustomAccuracy2
+#    outputs_dimension_per_outputs:
+#      - 3
+#      - 12
+#      - 20
+#      - 31
+#      - 4
+#      - 5
+#      - 8
+#      - 5
+#      - 16
 
   #    num_classes: 1
 #    index_y_true: 1
@@ -163,15 +160,15 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 100 #118 #48
+    train: 240 #118 #48
     test: 1
-    valid: 100 #118 #48
+    valid: 240 #118 #48
 
-  learning_rate: 3e-4 #0.5e-7
+  learning_rate: 3e-5 #0.5e-7
 
   epochs: 4000
   path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_encoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
-  model_name: synth_autoencoder_2_stft_noy
+  model_name: synth_encoder_stft_noy
   path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft/
   num_outputs: 2 #10 #1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise.png

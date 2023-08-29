@@ -13,29 +13,29 @@ class LinearClassifier(nn.Module):
     """
 
     outputs_dimension_per_outputs: List[int]
-    activation: str = 'softmax'
     dropout: float = 0.2
 
     def __init__(self,
                  outputs_dimension_per_outputs,
-                 activation: str = 'selu',
                  dropout: float = 0.2,
                  **kwargs):
         super().__init__(**kwargs)
 
         self.outputs_dimension_per_outputs = outputs_dimension_per_outputs
-        self.activation = activation
         self.layers = torch.nn.ModuleList()
         for output_size in self.outputs_dimension_per_outputs:
             self.layers.append(
                 nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(in_features=129 * 512, out_features=output_size),
+                    nn.Linear(in_features=128 * 512, out_features=output_size),
                     nn.Dropout(p=dropout),
-                    nn.ELU(),
+                    nn.ReLU(),
+                    nn.Linear(in_features=output_size,
+                              out_features=output_size),
+                    nn.Dropout(p=dropout),
+                    nn.ReLU(),
                     nn.Linear(in_features=output_size,
                               out_features=output_size)
-                    # nn.Softmax(dim=-1)
                 )
             )
 

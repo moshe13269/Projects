@@ -72,7 +72,7 @@ class TrainTaskSupervised:
         if self.path2load_model is None:
 
             self.model = instantiate(cfg.train_task.TrainTask.model)
-            # self.model.apply(init_weight_model)
+            self.model.apply(init_weight_model)
 
             if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder):
                 pl_model = model.pl_model_encoder.LitModelEncoder(model=self.model,
@@ -136,7 +136,7 @@ class TrainTaskSupervised:
 
         checkpoint_callback = ModelCheckpoint(dirpath=self.path2save_model,
                                               save_weights_only=False,
-                                              monitor='train_loss_epoch',
+                                              monitor='validation_loss',
                                               save_last=True,
                                               verbose=True)
 
