@@ -27,7 +27,7 @@ class LinearClassifier(nn.Module):
             self.layers.append(
                 nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(in_features=128 * 512, out_features=output_size),
+                    nn.Linear(in_features=65 * 512, out_features=output_size),
                     nn.Dropout(p=dropout),
                     nn.ReLU(),
                     nn.Linear(in_features=output_size,
@@ -39,12 +39,26 @@ class LinearClassifier(nn.Module):
                 )
             )
 
+        output_dim = sum(outputs_dimension_per_outputs)
+        self.layers = nn.Sequential(
+                nn.Flatten(),
+                nn.Linear(in_features=512, out_features=output_dim),
+                nn.Dropout(p=dropout),
+                nn.ReLU(),
+                nn.Linear(in_features=output_dim,
+                          out_features=output_dim),
+                nn.Dropout(p=dropout),
+                nn.ReLU(),
+                nn.Linear(in_features=output_dim,
+                          out_features=output_dim)
+            )
+
     def forward(self, x):
-        outputs = []
-        for layer in self.layers:
-            outputs.append(layer(x))
-        return outputs
-        #torch.nn.ModuleList() ???
+        return self.layers(x)
+        # outputs = []
+        # for layer in self.layers:
+        #     outputs.append(layer(x))
+        # return outputs
 
 
 if __name__ == "__main__":

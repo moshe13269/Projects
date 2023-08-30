@@ -26,7 +26,6 @@ class LitModelEncoder(pl.LightningModule):
 
         output = [output[:, self.index2split[i]:self.index2split[i+1]] for i in range(len(self.index2split)-1)]
 
-        # loss_list = [0.0] * len(output)
         loss = 0.0
         for i in range(len(output)):
             # loss_list[i] += self.ce_loss[i](torch.nn.functional.softmax(output[i], dim=-1), labels[i])
@@ -38,7 +37,6 @@ class LitModelEncoder(pl.LightningModule):
             self.log("train_loss " + str(i), loss_i, on_step=True, on_epoch=True, prog_bar=True,
                      logger=True)
 
-        # loss = sum(loss_list) / len(loss_list)
         loss /= 9.
 
         self.log("total train_loss", loss, on_step=True, on_epoch=True, prog_bar=False,
@@ -52,7 +50,6 @@ class LitModelEncoder(pl.LightningModule):
 
         output = [output[:, self.index2split[i]:self.index2split[i + 1]] for i in range(len(self.index2split) - 1)]
 
-        # loss_list = [0.0] * len(output)
         loss = 0.0
         for i in range(len(output)):
             # loss_list[i] += self.ce_loss[i](torch.nn.functional.softmax(output[i], dim=-1), labels[i])
@@ -64,7 +61,6 @@ class LitModelEncoder(pl.LightningModule):
             self.log("validation_loss " + str(i), loss_i, on_step=True, on_epoch=True, prog_bar=False,
                      logger=True)
 
-        # loss = sum(loss_list) / len(loss_list)
         loss /= 9.
 
         self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=False,

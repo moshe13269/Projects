@@ -46,6 +46,8 @@ class TrainTaskSupervised:
         if 'linear_classifier' in cfg.train_task.TrainTask.model:
             self.outputs_dimension_per_outputs = \
                 cfg.train_task.TrainTask.model.linear_classifier.outputs_dimension_per_outputs
+        elif 'outputs_dimension_per_outputs' in cfg.train_task.TrainTask:
+            self.outputs_dimension_per_outputs = cfg.train_task.TrainTask.outputs_dimension_per_outputs
         else:
             self.outputs_dimension_per_outputs = None
 
@@ -74,7 +76,8 @@ class TrainTaskSupervised:
             self.model = instantiate(cfg.train_task.TrainTask.model)
             self.model.apply(init_weight_model)
 
-            if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder):
+            if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder) or \
+                    isinstance(self.model, model.ViT.MyViT):
                 pl_model = model.pl_model_encoder.LitModelEncoder(model=self.model,
                                                                   losses=self.loss,
                                                                   learn_rate=self.learning_rate,
@@ -110,6 +113,8 @@ class TrainTaskSupervised:
         # if shuffle_dataset:
 
         np.random.seed(123456)
+        torch.manual_seed(123456)
+
         np.random.shuffle(indices)
 
         train_indices, val_indices = indices[split:], indices[:split]
@@ -120,7 +125,7 @@ class TrainTaskSupervised:
         train_loader = torch.utils.data.DataLoader(self.dataset,
                                                    batch_size=self.batch_size['train'],
                                                    sampler=train_sampler,
-                                                   num_workers=1)
+                                                   num_workers=4)
 
         validation_loader = torch.utils.data.DataLoader(self.dataset,
                                                         batch_size=self.batch_size['valid'],

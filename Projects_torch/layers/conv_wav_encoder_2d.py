@@ -8,8 +8,8 @@ class ConvFeatureExtractionModel(nn.Module):
                  conv_layers: List[Tuple[int, int, int, int]],
                  num_duplicate_layer: Tuple[int, int, int, int],
                  units: int,
-                 is_group_norm: str = True,
-                 is_layer_norm: str = False,
+                 is_group_norm: str = False,
+                 is_layer_norm: str = True,
                  dropout: float = 0.1,
                  # mode: str = "default",
                  # conv_bias: bool = False
@@ -26,7 +26,7 @@ class ConvFeatureExtractionModel(nn.Module):
             (in_channels, dim, kernel, stride) = layers_param
 
             def make_conv():
-                conv = nn.Conv1d(in_channels=in_channels,
+                conv = nn.Conv2d(in_channels=in_channels,
                                  out_channels=dim,
                                  kernel_size=kernel,
                                  stride=stride,
@@ -37,7 +37,7 @@ class ConvFeatureExtractionModel(nn.Module):
             if is_layer_norm:
                 return nn.Sequential(
                     make_conv(),
-                    nn.LayerNorm([dim, 128]),
+                    nn.LayerNorm([dim, 127, 255]),
                     # nn.LayerNorm([512], elementwise_affine=True, eps=1e-6),
                     # nn.Dropout(p=dropout),
                     nn.ReLU(),
@@ -73,26 +73,31 @@ class ConvFeatureExtractionModel(nn.Module):
 
         self.conv_layers = layers
 
-        # self.fc = nn.Linear(in_features=units, out_features=units)
-        # self.activation = nn.GELU()
+        self.fc = nn.Linear(in_features=127*255, out_features=65)
+        self.activation = nn.GELU()
 
     def forward(self, x, **kwargs):
         # BxT -> BxTxC
-
+        # print(x.shape)
+        x = torch.unsqueeze(x, 1)
         for conv in self.conv_layers:
             x = conv(x)
+        x = torch.flatten(x, start_dim=2)
+        x = self.activation(self.fc(x))
+        # print(x.shape)
+
         return x.transpose(dim0=1, dim1=2)
 
 
 if __name__ == '__main__':
-    data = torch.normal(mean=torch.zeros(4, 128, 256))
-    conv_layers: List[Tuple[int, int, int, int]] = [(128, 512, 4, 2),
+    data = torch.normal(mean=torch.zeros(4, 1, 128, 256))
+    conv_layers: List[Tuple[int, int, int, int]] = [(1, 512, 4, 1),
                                                     (512, 512, 3, 1),
                                                     (512, 512, 3, 1),
-                                                    (512, 512, 2, 1)]
+                                                    (512, 512, 3, 1)]
     num_duplicate_layer: Tuple[int, int, int, int] = (1, 1, 1, 1)
     conv = ConvFeatureExtractionModel(conv_layers=conv_layers,
                                       num_duplicate_layer=num_duplicate_layer,
                                       units=512, )
     output = conv(data)
-    print(output.shape)
+    # print(output.shape)

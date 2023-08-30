@@ -83,8 +83,11 @@ class EncoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, mask):
-        attn_output = self.self_attn(x, x, x, mask)  # x: (64, 130, 512) = attn_output, mask: (64, 1, 1, 130)
+    def forward(self, x, mask=None):
+        if mask is None:
+            attn_output = self.self_attn(x, x, x)
+        else:
+            attn_output = self.self_attn(x, x, x, mask)  # x: (64, 130, 512) = attn_output, mask: (64, 1, 1, 130)
         x = self.norm1(x + self.dropout(attn_output))
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
@@ -92,8 +95,15 @@ class EncoderLayer(nn.Module):
 
 
 class TransformerE(nn.Module):
-    def __init__(self, d_model, num_heads, num_layers, d_ff, max_seq_length,
-                 dropout, output_channels=129):
+    def __init__(self,
+                 d_model,
+                 num_heads,
+                 num_layers,
+                 d_ff,
+                 max_seq_length,
+                 dropout,
+                 # output_channels=129,
+                 top_k=4):
         super(TransformerE, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
@@ -101,19 +111,28 @@ class TransformerE(nn.Module):
             [EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
 
         self.dropout = nn.Dropout(dropout)
+        self.top_k = top_k
 
     def generate_mask(self, src):
         src_mask = torch.Tensor(torch.zeros(src.shape[0], src.shape[1]).unsqueeze(1).unsqueeze(2))
         return src_mask
 
     def forward(self, src):
-        src_mask = self.generate_mask(src)  # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
+        # src_mask = self.generate_mask(src)  # src_mask: (64, 1, 1,100), tgt_maks: (64, 1, 99, 99)
         src_embedded = self.dropout(self.positional_encoding(src))
 
         enc_output = src_embedded
+        top_k_layers = 0.0
+        k = 0
+        counter = 1.
         for enc_layer in self.encoder_layers:
-            enc_output = enc_layer(enc_output, src_mask)
-        return enc_output  # (64, 99, 5000)
+            enc_output = enc_layer(enc_output) #enc_layer(enc_output, src_mask)
+            if k >= self.top_k:
+                top_k_layers += enc_output
+                counter += 1.
+            k += 1
+        top_k_layers = top_k_layers / counter
+        return top_k_layers #enc_output  # (64, 99, 5000)
 
 
 if __name__ == "__main__":

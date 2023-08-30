@@ -19,11 +19,15 @@ class SynthTransformerEncoder(nn.Module):
 
         super(SynthTransformerEncoder, self).__init__()
 
+        # self.conv_encoder = conv_encoder
+
+        # self.dropout = nn.Dropout(0.3)
+
         self.transformer = transformer
 
         self.linear_classifier = linear_classifier
 
-        self.linear_in = nn.Linear(256, 512)
+        self.linear_in = nn.Linear(128, 512)
 
         self.conv_encoder = conv_encoder
 
@@ -31,8 +35,12 @@ class SynthTransformerEncoder(nn.Module):
 
         # outputs = self.conv_encoder(inputs)
 
-        inputs = torch.nn.functional.elu(self.linear_in(inputs))
+        # outputs = self.dropout(outputs)
 
-        encoder_outputs = self.transformer(inputs)
+        inputs = inputs.transpose(dim0=1, dim1=2)
 
-        return self.linear_classifier(encoder_outputs)
+        inputs_ = torch.nn.functional.relu(self.linear_in(inputs))
+
+        encoder_outputs = self.transformer(inputs_)
+
+        return self.linear_classifier(torch.squeeze(encoder_outputs[:, 256:, :], dim=1))

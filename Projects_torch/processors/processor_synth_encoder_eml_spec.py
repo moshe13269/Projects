@@ -119,13 +119,15 @@ class DataLoaderMelSpec(Dataset):
         # label = [np.ndarray.astype(label_, dtype=np.int64)
         #          for label_ in label]
         # label = np.ndarray.astype(np.expand_dims(label_, 1), np.float32)
+
         mel_sgram = (mel_sgram - mel_sgram.mean()) / mel_sgram.std()
 
         if self.encoder:
-            label_list = [torch.nn.functional.one_hot(torch.from_numpy(np.asarray(np.int64(label[j]))),
-                                                      self.num_classes[j]).type(torch.float32)
-                          for j in range(len(self.num_classes))]
-            return mel_sgram, label_list
+            # label_list = [torch.nn.functional.one_hot(torch.from_numpy(np.asarray(np.int64(label[j]))),
+            #                                           self.num_classes[j]).type(torch.float32)
+            #               for j in range(len(self.num_classes))]
+            # mel_sgram = torch.cat((torch.from_numpy(mel_sgram), torch.mean(torch.from_numpy(mel_sgram), 1, True)), 1)
+            return mel_sgram, torch.from_numpy(np.int64(label)) # (128, 256)
 
         label = torch.nn.functional.one_hot(torch.from_numpy(np.int64(label)), max(self.num_classes))
         label = label.type(torch.float32)

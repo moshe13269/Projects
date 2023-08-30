@@ -17,21 +17,22 @@ TrainTask:
     transformer:
       _target_: Projects_torch.layers.transformer_encoder.TransformerE
       d_model: 512
-      num_heads: 16
+      num_heads: 8
       num_layers: 6
-      d_ff: 2048
-      max_seq_length: 128 #65
+      d_ff: 768 #2048
+      max_seq_length: 257 #65 #129 #65 # 128
       dropout: 0.1
+      top_k: 5
 
     conv_encoder:
-      _target_: Projects_torch.layers.conv_wav_encoder.ConvFeatureExtractionModel
+      _target_: Projects_torch.layers.conv_wav_encoder_2d.ConvFeatureExtractionModel
       units: 512
       conv_layers:
         -
-          - 128     # (in_channels, dim, kernel, stride)
+          - 1 #128     # (in_channels, dim, kernel, stride)
           - 512
           - 4
-          - 2
+          - 1 #2
 
         -
           - 512
@@ -39,27 +40,27 @@ TrainTask:
           - 3
           - 1
 
-        -
-          - 512
-          - 512
-          - 3
-          - 1
+#        -
+#          - 512
+#          - 512
+#          - 3
+#          - 1
 
-        -
-          - 512
-          - 512
-          - 2
-          - 1
+#        -
+#          - 512
+#          - 512
+#          - 3 #2
+#          - 1
 
       num_duplicate_layer:
         - 1
         - 1
-        - 1
-        - 1
+#        - 1
+#        - 1
 
       dropout: 0.15
-      is_group_norm: True
-      is_layer_norm: False
+      is_group_norm: False
+      is_layer_norm: True #False
 
     linear_classifier:
       _target_: Projects_torch.layers.linear_classifier_2.LinearClassifier
@@ -160,11 +161,11 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 240 #118 #48
+    train: 128 # 240 #118 #48
     test: 1
-    valid: 240 #118 #48
+    valid: 128 #118 #48
 
-  learning_rate: 3e-5 #0.5e-7
+  learning_rate: 3e-3 #0.5e-7
 
   epochs: 4000
   path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_encoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
