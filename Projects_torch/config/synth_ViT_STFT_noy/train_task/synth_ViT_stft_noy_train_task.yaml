@@ -106,6 +106,10 @@ TrainTask:
     test: 1
     valid: 100 #118 #48
 
+  num_workers:
+    train: 16
+    valid: 1
+
   learning_rate: 3e-3 #0.5e-7
 
   epochs: 4000
