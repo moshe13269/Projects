@@ -1,0 +1,78 @@
+# @package _group_
+
+TrainTask:
+
+  dataset_class:
+    _target_: dataset.dataset.Dataset
+    path2load:
+      - /home/moshelaufer/PycharmProjects/datasets/noy_synth/
+    type_files: wav
+    labels: True
+    dataset_names: tal_noise_1
+
+  path2load_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
+
+  path2save_images: C:\Users\moshe\PycharmProjects\results\images
+
+  model:
+    _target_: Projects_torch.model.synth_transformer_decoder.SynthTransformerDecoder
+    transformer:
+      _target_: Projects_torch.layers.transformer_decoder.TransformerD
+      d_model: 512
+      num_heads: 16
+      num_layers: 6
+      d_ff: 2048
+      input_shape:
+        - 128
+        - 256
+      num_parameters: 9
+      param_quant_level: 31
+      dropout: 0.1
+#      path2csv:
+      #'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv'
+
+  to_metrics: False #
+
+#    num_classes: 1
+#    index_y_true: 1
+
+  loss_ce:
+
+  loss:
+    - _target_: Projects_torch.losses.l2_loss.L2Loss
+
+  loss_l2: True
+
+  processor:
+    _target_: Projects_torch.processors.processor_synth_DAX.DataLoaderMelSpec
+
+    num_classes:
+      - 3
+      - 12
+      - 20
+      - 31
+      - 4
+      - 5
+      - 8
+      - 5
+      - 16
+
+    win_length: 256
+    n_fft: 1025
+
+  batch_size:
+    train: 120 #118 #48
+    test: 1
+    valid: 120 #118 #48
+
+  learning_rate: 3e-4 #0.5e-7
+
+  epochs: 4000
+  path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_decoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/decoder
+  model_name: synth_decoder_stft_noy
+  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_decoder_stft/
+  num_outputs: 1
+  path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise.png
+
+  steps_per_epoch: 1000
+  validation_steps: 150
