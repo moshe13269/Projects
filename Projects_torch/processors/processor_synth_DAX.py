@@ -13,6 +13,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 class DataLoaderMelSpec(Dataset):
     def __init__(self,
                  num_classes,
+                 win_length=256,
+                 n_fft=1025,
                  encoder=False,
                  autoencoder=True,
                  norm_mean=None,
