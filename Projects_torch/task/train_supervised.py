@@ -124,7 +124,6 @@ class TrainTaskSupervised:
         ################################
         self.num_workers = self.cfg.train_task.TrainTask.get('num_workers')
         self.batch_size = self.cfg.train_task.TrainTask.get('batch_size')
-        self.dataset = instantiate(cfg.train_task.TrainTask.processor)
 
         dataset_folders = os.listdir(args.path2data)
         if 'train' in dataset_folders and 'test' in dataset_folders and 'valid' in dataset_folders:
@@ -174,6 +173,7 @@ class TrainTaskSupervised:
 
                 main_(path2csv=path2csv, path2save=os.path.join(args.path2data, 'labels'))
 
+            self.dataset = instantiate(cfg.train_task.TrainTask.processor)
             self.dataset.load_dataset(args.path2data)
 
             dataset_size = len(self.dataset)
