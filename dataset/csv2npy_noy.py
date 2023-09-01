@@ -35,21 +35,26 @@ class LabelsConverter:
         return
 
 
-def main(args):
-    labels_converter = LabelsConverter(path2csv=args.path2csv, path2save=args.path2save)
+def main_(path2csv, path2save):
+    labels_converter = LabelsConverter(path2csv=path2csv, path2save=path2save)
     labels_converter.create_labels_list()
     labels_converter.convert_csv_rows2npy()
 
+# def main(args):
+#     labels_converter = LabelsConverter(path2csv=args.path2csv, path2save=args.path2save)
+#     labels_converter.create_labels_list()
+#     labels_converter.convert_csv_rows2npy()
 
-if __name__ == '__main__':
-    sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
-    parser = argparse.ArgumentParser(description=None)
-    parser.add_argument('--path2csv', required=False,
-                        help='path2csv',
-                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
-    parser.add_argument('--path2save', required=False,
-                        help='path2save',
-                        default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\labels')
 
-    args = parser.parse_args()
-    main(args)
+# if __name__ == '__main__':
+#     sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
+#     parser = argparse.ArgumentParser(description=None)
+#     parser.add_argument('--path2csv', required=False,
+#                         help='path2csv',
+#                         default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv')
+#     parser.add_argument('--path2save', required=False,
+#                         help='path2save',
+#                         default=r'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\labels')
+#
+#     args = parser.parse_args()
+#     main(args)

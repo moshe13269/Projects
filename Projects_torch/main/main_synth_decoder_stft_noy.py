@@ -1,14 +1,9 @@
 import os
-import sys
-# sys.path.append('/home/moshel/Projects/Projects_torch/')
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import hydra
 import argparse
-# from Projects_torch.task import TrainTaskSupervised
 from Projects_torch import task
-# import Projects_torch.task
-
 from omegaconf import DictConfig
+from dataset.csv2npy_noy import main_
 
 
 @hydra.main(config_path=os.path.join('../config', 'synth_decoder_STFT_noy'), config_name='config')
@@ -42,6 +37,19 @@ def main(cfg: DictConfig) -> None:
                         help='batch')
 
     args = parser.parse_args()
+
+    ################################
+    # parser csv to labels
+    ################################
+    path2dataset = args.path2data
+
+    if not os.path.exists(os.path.join(os.getcwd(), path2dataset, 'labels')):
+        path2csv = [os.path.join(args.path2data, csv_file)
+                    for csv_file in os.listdir(path2dataset) if csv_file.endswith('.csv')][0]
+
+        os.makedirs(os.path.join(args.path2data, 'labels'))
+
+        main_(path2csv=path2csv, path2save=os.path.join(args.path2data, 'labels'))
 
     task.TrainTaskSupervised(cfg, args)
 
