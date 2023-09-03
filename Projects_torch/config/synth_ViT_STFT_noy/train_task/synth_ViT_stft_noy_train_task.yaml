@@ -10,7 +10,7 @@ TrainTask:
     labels: True
     dataset_names: tal_noise_1
 
-  path2load_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
+  path2load_model:
 
   model:
     _target_: Projects_torch.model.ViT.MyViT
@@ -20,11 +20,10 @@ TrainTask:
       - 256
     n_patches: 7
     n_blocks: 6
-    hidden_d: 2048
+    hidden_d: 1024
     n_heads: 8
     out_d: 104
     input_d: 128
-
 
   outputs_dimension_per_outputs:
     - 3
@@ -36,16 +35,6 @@ TrainTask:
     - 8
     - 5
     - 16
-
-#    transformer:
-#      _target_: Projects_torch.layers.transformer_encoder.TransformerE
-#      d_model: 512
-#      num_heads: 8
-#      num_layers: 6
-#      d_ff: 768 #2048
-#      max_seq_length: 257 #65 #129 #65 # 128
-#      dropout: 0.1
-#      top_k: 5
 
   loss:
     - _target_: Projects_torch.losses.l2_loss.L2Loss
@@ -102,28 +91,21 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 512 # 240 #118 #48
+    train: 32
     test: 1
-    valid: 512 #118 #48
+    valid: 32
 
   num_workers:
-    train: 16
+    train: 2
     valid: 1
 
   learning_rate: 1e-4 #0.5e-7
 
   epochs: 4000
-  path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_encoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/
   model_name: synth_vit_stft_noy
-  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_autoencoder_2_stft/
-  num_outputs: 2 #10 #1
-  path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise.png
+  num_outputs: 2
 
-  steps_per_epoch: 10 # 2500
+  steps_per_epoch: 10
   validation_steps: 150
 
-  results:
-    _target_: Projects_torch.results.results.Results
-    path2save_results: /home/moshelaufer/PycharmProjects/results/results/results
-    num_class: 100
 

@@ -10,7 +10,7 @@ TrainTask:
     labels: True
     dataset_names: tal_noise_1
 
-  path2load_model: #/home/moshelaufer/PycharmProjects/results/checkpoint/synth_autoencoder_noy/
+  path2load_model:
 
   path2save_images: C:\Users\moshe\PycharmProjects\results\images
 
@@ -28,26 +28,19 @@ TrainTask:
       num_parameters: 9
       param_quant_level: 31
       dropout: 0.1
-#      path2csv:
-      #'C:\Users\moshe\PycharmProjects\commercial_synth_dataset\noy\Data_custom_synth.csv'
 
-  to_metrics: False #
 
-#    num_classes: 1
-#    index_y_true: 1
+  to_metrics: False
 
   loss_ce:
 
   loss:
-#    - _target_: losses.spectral_magnitude_losses.Spectral_LogSTFTMagnitude_Loss
     - _target_: Projects_torch.losses.l2_loss.L2Loss
 
   loss_l2: True
 
   processor:
     _target_: Projects_torch.processors.processor_synth_encoder_eml_spec.DataLoaderMelSpec
-#    norm_mean: 0.013329904
-#    norm_std: 0.041720923
 
     num_classes:
       - 3
@@ -68,16 +61,14 @@ TrainTask:
     valid: 1
 
   batch_size:
-    train: 512 #118 #48
+    train: 512
     test: 1
-    valid: 512 #118 #48
+    valid: 512
 
   learning_rate: 1e-4 #0.5e-7
 
   epochs: 4000
-  path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_decoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/decoder
   model_name: synth_decoder_stft_noy
-  path2save_csv: /home/moshelaufer/PycharmProjects/results/csv/synth_decoder_stft/
   num_outputs: 1
   path2save_plot_model: /home/moshelaufer/PycharmProjects/results/plot/model_plot_tal_noise.png
 

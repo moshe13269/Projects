@@ -76,4 +76,4 @@ class LitModelEncoder(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=self.learn_rate, weight_decay=1e-5, betas=(0.5, 0.999))
+        return torch.optim.Adam(self.model.parameters(), lr=self.learn_rate, weight_decay=1e-5) #, betas=(0.5, 0.999))
