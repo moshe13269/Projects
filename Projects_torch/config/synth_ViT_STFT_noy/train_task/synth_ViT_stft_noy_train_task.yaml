@@ -20,7 +20,7 @@ TrainTask:
       - 256
     n_patches: 7
     n_blocks: 6
-    hidden_d: 1024
+    hidden_d: 2048
     n_heads: 8
     out_d: 104
     input_d: 128
@@ -102,12 +102,12 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 20 # 240 #118 #48
+    train: 512 # 240 #118 #48
     test: 1
-    valid: 20 #118 #48
+    valid: 512 #118 #48
 
   num_workers:
-    train: 2
+    train: 16
     valid: 1
 
   learning_rate: 1e-4 #0.5e-7
