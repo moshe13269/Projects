@@ -20,7 +20,7 @@ TrainTask:
       - 256
     n_patches: 7
     n_blocks: 6
-    hidden_d: 512
+    hidden_d: 1024
     n_heads: 8
     out_d: 104
     input_d: 128
@@ -102,15 +102,15 @@ TrainTask:
     n_fft: 1025
 
   batch_size:
-    train: 100 # 240 #118 #48
+    train: 20 # 240 #118 #48
     test: 1
-    valid: 100 #118 #48
+    valid: 20 #118 #48
 
   num_workers:
-    train: 16
+    train: 2
     valid: 1
 
-  learning_rate: 3e-3 #0.5e-7
+  learning_rate: 1e-4 #0.5e-7
 
   epochs: 4000
   path2save_model: C:\Users\moshe\PycharmProjects\checkpoints\noy_encoder #/home/moshela/work/moshe/pycharm/checkpoints/noy/checkpoint_4.pt #    /home/moshelaufer/PycharmProjects/results/models/

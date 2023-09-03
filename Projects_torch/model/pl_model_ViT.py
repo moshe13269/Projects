@@ -17,8 +17,9 @@ class LitModelEncoder(pl.LightningModule):
         self.index2split = [sum(self.outputs_dimension_per_outputs[:i])
                             for i in range(len(self.outputs_dimension_per_outputs) + 1)]
         self.ce_loss = [nn.CrossEntropyLoss() for _ in self.outputs_dimension_per_outputs]
-        self.accuracies_list = [Accuracy(task="multiclass", num_classes=self.outputs_dimension_per_outputs[i], top_k=1)
-                                for i in range(len(self.outputs_dimension_per_outputs))]
+        self.accuracies_list = [
+            Accuracy(task="multiclass", num_classes=self.outputs_dimension_per_outputs[i], top_k=1).cuda()
+            for i in range(len(self.outputs_dimension_per_outputs))]
 
     def forward(self, x):
         return self.model(x)
@@ -27,15 +28,11 @@ class LitModelEncoder(pl.LightningModule):
         labels = batch[1]
         output = self(batch[0])
 
-        output = [output[:, self.index2split[i]:self.index2split[i+1]] for i in range(len(self.index2split)-1)]
+        output = [output[:, self.index2split[i]:self.index2split[i + 1]] for i in range(len(self.index2split) - 1)]
 
         loss = 0.0
         for i in range(len(output)):
-            # loss_list[i] += self.ce_loss[i](torch.nn.functional.softmax(output[i], dim=-1), labels[i])
-            # loss_list[i] += self.ce_loss[i](torch.nn.functional.softmax(output[i], dim=-1),
-            #                                 labels[:, i:i + 1].squeeze())
-            loss_i = self.ce_loss[i](output[i], labels[:, i:i+1].squeeze())
-            # loss_list[i] += loss_i
+            loss_i = self.ce_loss[i](output[i], labels[:, i:i + 1].squeeze())
             loss += loss_i
             self.log("train_loss " + str(i), loss_i, on_step=True, on_epoch=True, prog_bar=True,
                      logger=True)
@@ -56,11 +53,7 @@ class LitModelEncoder(pl.LightningModule):
         loss = 0.0
         accuracy = 0.0
         for i in range(len(output)):
-            # loss_list[i] += self.ce_loss[i](torch.nn.functional.softmax(output[i], dim=-1), labels[i])
-            # loss_list[i] += self.ce_loss[i](torch.nn.functional.softmax(output[i], dim=-1),
-            #                                 labels[:, i:i + 1].squeeze())
             loss_i = self.ce_loss[i](output[i], labels[:, i:i + 1].squeeze())
-            # loss_list[i] += loss_i
             loss += loss_i
             self.log("validation_loss " + str(i), loss_i, on_step=True, on_epoch=True, prog_bar=False,
                      logger=True)
@@ -71,7 +64,7 @@ class LitModelEncoder(pl.LightningModule):
 
             accuracy += acc_i
 
-        loss /= len(self.outputs_dimension_per_outputs) #9.
+        loss /= len(self.outputs_dimension_per_outputs)  # 9.
         accuracy /= len(self.outputs_dimension_per_outputs)
 
         self.log("validation_loss", loss, on_step=True, on_epoch=True, prog_bar=False,
@@ -84,5 +77,3 @@ class LitModelEncoder(pl.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters(), lr=self.learn_rate, weight_decay=1e-5, betas=(0.5, 0.999))
-
-

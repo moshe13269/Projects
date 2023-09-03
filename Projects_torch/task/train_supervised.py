@@ -95,15 +95,16 @@ class TrainTaskSupervised:
             self.model = instantiate(cfg.train_task.TrainTask.model)
             self.model.apply(init_weight_model)
 
-            if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder) or \
-                    isinstance(self.model, model.ViT.MyViT):
-                pl_model = model.pl_model_encoder.LitModelEncoder(model=self.model,
-                                                                  losses=self.loss,
-                                                                  learn_rate=self.learning_rate,
-                                                                  outputs_dimension_per_outputs=
-                                                                  self.outputs_dimension_per_outputs,
-                                                                  num_classes=self.num_classes
-                                                                  )
+            # if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder) or \
+            #         isinstance(self.model, model.ViT.MyViT):
+            if isinstance(self.model, model.ViT.MyViT):
+                pl_model = model.pl_model_ViT.LitModelEncoder(model=self.model,
+                                                              losses=self.loss,
+                                                              learn_rate=self.learning_rate,
+                                                              outputs_dimension_per_outputs=
+                                                              self.outputs_dimension_per_outputs,
+                                                              num_classes=self.num_classes
+                                                              )
             else:
                 pl_model = model.pl_model_decoder.LitModelDecoder(model=self.model,
                                                                   losses=self.loss,
@@ -174,7 +175,7 @@ class TrainTaskSupervised:
                 main_(path2csv=path2csv, path2save=os.path.join(args.path2data, 'labels'))
 
             self.dataset = instantiate(cfg.train_task.TrainTask.processor)
-            self.dataset.load_dataset(args.path2data)
+            self.dataset.load_dataset(os.path.join(args.path2data, 'data'))
 
             dataset_size = len(self.dataset)
             indices = list(range(dataset_size))
@@ -240,4 +241,4 @@ class TrainTaskSupervised:
 
         # Train the model
         # with mlflow.start_run() as run:
-        print_auto_logged_info(mlflow.get_run(run_id=run.info.run_id))
+        print_auto_logged_info(mlflow.get_run(run_id=mlf_logger.run_id))

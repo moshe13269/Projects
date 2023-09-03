@@ -7,7 +7,7 @@ import hydra
 from omegaconf import DictConfig
 
 
-@hydra.main(config_path=os.path.join('../config', 'synth_autoencoder_2_STFT_shlomi'),
+@hydra.main(config_path=os.path.join('../../config', 'synth_autoencoder_2_STFT_shlomi'),
             config_name='config')
 def main(cfg: DictConfig) -> None:
     train_task = task.TrainTestTaskSupervised(cfg)
