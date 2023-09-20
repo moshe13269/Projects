@@ -57,13 +57,13 @@ TrainTask:
     n_fft: 1025
 
   num_workers:
-    train: 16
+    train: 1
     valid: 1
 
   batch_size:
-    train: 512
+    train: 1024
     test: 1
-    valid: 512
+    valid: 1024
 
   learning_rate: 1e-4 #0.5e-7
 
