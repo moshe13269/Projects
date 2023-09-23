@@ -20,9 +20,13 @@ class LitModelEncoder(pl.LightningModule):
         self.index2split = [sum(self.outputs_dimension_per_outputs[:i])
                             for i in range(len(self.outputs_dimension_per_outputs) + 1)]
         self.ce_loss = [nn.CrossEntropyLoss() for _ in self.outputs_dimension_per_outputs]
+
         self.accuracies_list = [
-            Accuracy(task="multiclass", num_classes=self.outputs_dimension_per_outputs[i], top_k=1).cuda()
+            Accuracy(task="multiclass", num_classes=self.outputs_dimension_per_outputs[i], top_k=1)
             for i in range(len(self.outputs_dimension_per_outputs))]
+        if torch.cuda.is_available():
+            for acc in self.accuracies_list:
+                acc.cuda()
 
     def forward(self, x):
         return self.model(x)
