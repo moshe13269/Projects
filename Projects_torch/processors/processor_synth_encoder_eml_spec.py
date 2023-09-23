@@ -62,7 +62,7 @@ class DataLoaderMelSpec(Dataset):
                       for file in os.listdir(dataset_path) if file.endswith('.wav')]
 
         if sys.platform == 'win32':
-            self.labels = [file.replace('\data', '\labels').replace('.wav', '.npy')
+            self.labels = [file.replace(r'\\data\\', r'\\labels\\').replace('.wav', '.npy')
                            for file in self.files]
         else:
             self.labels = [file.replace('//data//', '//labels//').replace('.wav', '.npy')
