@@ -7,7 +7,10 @@ from torchmetrics import Accuracy
 class LitModelEncoder(pl.LightningModule):
     def __init__(self, model, losses, learn_rate, outputs_dimension_per_outputs, num_classes):
         super().__init__()
-        self.model = model.cuda()
+        if torch.cuda.is_available():
+            self.model = model.cuda()
+        else:
+            self.model = model
         self.losses = losses
         self.learn_rate = learn_rate
 
