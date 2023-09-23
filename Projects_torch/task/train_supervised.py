@@ -113,8 +113,8 @@ class TrainTaskSupervised:
                                                                   path2save_images=self.path2images)
 
             # compile
-            if sys.platform != 'win32':
-                pl_model = torch.compile(pl_model)
+            # if sys.platform != 'win32':
+            #     pl_model = torch.compile(pl_model)
 
             print("Learning rate: %f" % self.learning_rate)
         else:
