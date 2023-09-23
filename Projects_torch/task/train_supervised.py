@@ -4,7 +4,7 @@ sys.path.append('/home/moshela/work/moshe/pycharm/Projects/dataset/')
 import torch
 import numpy as np
 import mlflow.pytorch
-from mlflow import MlflowClient
+# from mlflow import MlflowClient
 from omegaconf import DictConfig
 from Projects_torch import model
 from Projects_torch import losses
@@ -229,17 +229,17 @@ class TrainTaskSupervised:
                          val_dataloaders=validation_loader,
                          ckpt_path=None)
 
-        def print_auto_logged_info(r):
-            tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
-            artifacts = [f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")]
-            print("run_id: {}".format(r.info.run_id))
-            print("artifacts: {}".format(artifacts))
-            print("params: {}".format(r.data.params))
-            print("metrics: {}".format(r.data.metrics))
-            print("tags: {}".format(tags))
+        # def print_auto_logged_info(r):
+        #     tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
+        #     artifacts = [f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")]
+        #     print("run_id: {}".format(r.info.run_id))
+        #     print("artifacts: {}".format(artifacts))
+        #     print("params: {}".format(r.data.params))
+        #     print("metrics: {}".format(r.data.metrics))
+        #     print("tags: {}".format(tags))
 
         # mlflow.pytorch.autolog()
 
         # Train the model
         # with mlflow.start_run() as run:
-        print_auto_logged_info(mlflow.get_run(run_id=mlf_logger.run_id))
+        # print_auto_logged_info(mlflow.get_run(run_id=mlf_logger.run_id))
