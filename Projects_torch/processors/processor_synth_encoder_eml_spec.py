@@ -97,7 +97,7 @@ class DataLoaderMelSpec(Dataset):
         if sys.platform == 'win32':
             label_file = self.files_[idx][0].replace('\data', '\labels').replace('.wav', '.npy')
         else:
-            label_file = self.files_[idx][0].replace('/data/', '/labels/').replace('.wav', '.npy')
+            label_file = self.files_[idx][0].replace('//data//', '//labels//').replace('.wav', '.npy')
         label = np.squeeze(np.load(label_file))
         # label = self.label2onehot(label)
         samplerate, data = wavfile.read(wav_file)
