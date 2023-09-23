@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append('/home/moshela/work/moshe/pycharm/Projects/dataset')
+sys.path.append('/home/moshela/work/moshe/pycharm/Projects/dataset/')
 import torch
 import numpy as np
 import mlflow.pytorch
