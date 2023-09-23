@@ -95,7 +95,7 @@ class DataLoaderMelSpec(Dataset):
     def __getitem__(self, idx):
         wav_file = self.files_[idx][0]
         if sys.platform == 'win32':
-            label_file = self.files_[idx][0].replace('\data', '\labels').replace('.wav', '.npy')
+            label_file = self.files_[idx][0].replace(r'\\data\\', r'\\labels\\').replace('.wav', '.npy')
         else:
             label_file = self.files_[idx][0].replace('//data//', '//labels//').replace('.wav', '.npy')
         label = np.squeeze(np.load(label_file))
