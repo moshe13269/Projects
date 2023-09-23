@@ -65,7 +65,7 @@ class DataLoaderMelSpec(Dataset):
             self.labels = [file.replace('\data', '\labels').replace('.wav', '.npy')
                            for file in self.files]
         else:
-            self.labels = [file.replace('data/', 'labels/').replace('.wav', '.npy')
+            self.labels = [file.replace('//data//', '//labels//').replace('.wav', '.npy')
                            for file in self.files]
         self.files_ = list(zip(self.files, self.labels))
 
