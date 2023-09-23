@@ -4,6 +4,7 @@ import hydra
 import argparse
 
 sys.path.append('/home/moshela/work/moshe/pycharm/Projects/')
+sys.path.append('/home/a/home/cc/students/cs/moshelaufer/Projects/Projects_torch/')
 from Projects_torch import task
 from omegaconf import DictConfig
 
