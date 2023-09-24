@@ -40,17 +40,14 @@ class DataLoaderMelSpec(Dataset):
                  calc_mean=False):
 
         super().__init__()
-        print('1111111111111111111')
         self.norm_mean = norm_mean
         self.norm_std = norm_std
         self.dataset_path = None
         self.num_classes = num_classes
-        print('2222222222222222222222222222222')
         self.num_classes_per_outputs = np.asarray(
             [sum(num_classes[:i])
              for i in range(len(num_classes))]
         )
-        print('33333333333333333333333333')
         self.files = None
         self.files_ = None
         self.labels = None
@@ -59,7 +56,6 @@ class DataLoaderMelSpec(Dataset):
         self.encoder = encoder
         self.win_length=win_length
         self.n_fft=n_fft
-        print('44444444444444444444444444444444444')
 
     def load_dataset(self, dataset_path):
         self.files = [os.path.join(dataset_path, file)
@@ -101,6 +97,7 @@ class DataLoaderMelSpec(Dataset):
         if sys.platform == 'win32':
             label_file = self.files_[idx][0].replace(r'\\data\\', r'\\labels\\').replace('.wav', '.npy')
         else:
+            print(self.files_[idx][0])
             label_file = self.files_[idx][0].replace('//data//', '//labels//').replace('.wav', '.npy')
         label = np.squeeze(np.load(label_file))
         # label = self.label2onehot(label)
