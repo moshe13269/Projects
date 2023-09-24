@@ -175,6 +175,7 @@ class TrainTaskSupervised:
 
                 main_(path2csv=path2csv, path2save=os.path.join(args.path2data, 'labels'))
 
+            print('676767676767676767677676')
             self.dataset = instantiate(cfg.train_task.TrainTask.processor)
             self.dataset.load_dataset(os.path.join(args.path2data, 'data'))
 
