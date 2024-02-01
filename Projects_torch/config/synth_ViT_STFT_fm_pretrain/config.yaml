@@ -1,0 +1,4 @@
+
+defaults:
+  - train_task: synth_ViT_stft_fm_pretrain_train_task
+  - _self_

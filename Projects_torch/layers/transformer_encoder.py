@@ -75,12 +75,16 @@ class PositionalEncoding(nn.Module):
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self, d_model, num_heads, d_ff, dropout):
+    def __init__(self, d_model, num_heads, d_ff, dropout, batch_norm=True):
         super(EncoderLayer, self).__init__()
         self.self_attn = MultiHeadAttention(d_model, num_heads)
         self.feed_forward = PositionWiseFeedForward(d_model, d_ff)
-        self.norm1 = nn.LayerNorm(d_model)
-        self.norm2 = nn.LayerNorm(d_model)
+        if batch_norm:
+            self.norm1 = nn.BatchNorm1d(d_model)
+            self.norm2 = nn.BatchNorm1d(d_model)
+        else:
+            self.norm1 = nn.LayerNorm(d_model)
+            self.norm2 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
@@ -103,7 +107,7 @@ class TransformerE(nn.Module):
                  max_seq_length,
                  dropout,
                  # output_channels=129,
-                 top_k=4):
+                 top_k=1):
         super(TransformerE, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
@@ -127,12 +131,14 @@ class TransformerE(nn.Module):
         counter = 1.
         for enc_layer in self.encoder_layers:
             enc_output = enc_layer(enc_output) #enc_layer(enc_output, src_mask)
-            if k >= self.top_k:
-                top_k_layers += enc_output
-                counter += 1.
-            k += 1
-        top_k_layers = top_k_layers / counter
-        return top_k_layers #enc_output  # (64, 99, 5000)
+        return enc_output
+
+        #     if k >= self.top_k:
+        #         top_k_layers += enc_output
+        #         counter += 1.
+        #     k += 1
+        # top_k_layers = top_k_layers / counter
+        # return top_k_layers #enc_output  # (64, 99, 5000)
 
 
 if __name__ == "__main__":
@@ -154,7 +160,7 @@ if __name__ == "__main__":
 
     trans_decoder = TransformerE(d_model=512, num_heads=16, num_layers=12, d_ff=2048,
                                  max_seq_length=130,
-                                 dropout=0.1, output_channels=512)
+                                 dropout=0.1) #, output_channels=512)
     # src_data = torch.normal(mean=torch.zeros(64, 130, 512))
     tgt_data = torch.normal(mean=torch.zeros(64, 130, 512))
     src_data = torch.normal(mean=torch.zeros(64, 5, 512))

@@ -19,7 +19,7 @@ path2save: path to empty folder which all the outputs will be saved
 """
 
 
-@hydra.main(config_path=os.path.join('../config', 'synth_ViT_STFT_noy'), config_name='config')
+@hydra.main(config_path=os.path.join('../config', 'synth_ViT_STFT_fm_pretrain'), config_name='config')
 def main(cfg: DictConfig) -> None:
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--path2data', required=False,

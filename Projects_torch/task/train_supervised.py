@@ -98,7 +98,7 @@ class TrainTaskSupervised:
 
             # if isinstance(self.model, model.synth_transformer_encoder.SynthTransformerEncoder) or \
             #         isinstance(self.model, model.ViT.MyViT):
-            if isinstance(self.model, model.ViT.MyViT):
+            if isinstance(self.model, model.ViT_pretrain.ViTPretrain):
                 pl_model = model.pl_model_ViT.LitModelEncoder(model=self.model,
                                                               losses=self.loss,
                                                               learn_rate=self.learning_rate,
@@ -227,7 +227,7 @@ class TrainTaskSupervised:
         self.trainer.fit(model=pl_model,
                          train_dataloaders=train_loader,
                          val_dataloaders=validation_loader,
-                         ckpt_path=None)
+                         ckpt_path=None) #r'C:\Users\moshe\PycharmProjects\checkpoints\3')
 
         # def print_auto_logged_info(r):
         #     tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}

@@ -33,7 +33,6 @@ class DataLoaderMelSpec(Dataset):
                  win_length=256,
                  n_fft=1025,
                  encoder=False,
-                 autoencoder=True,
                  norm_mean=None,
                  norm_std=None,
                  dataset_path=None,
@@ -52,7 +51,6 @@ class DataLoaderMelSpec(Dataset):
         self.files_ = None
         self.labels = None
         self.calc_mean = calc_mean
-        self.autoencoder = autoencoder
         self.encoder = encoder
         self.win_length=win_length
         self.n_fft=n_fft
@@ -92,10 +90,22 @@ class DataLoaderMelSpec(Dataset):
         onehot_label = onehot_label.type(torch.float32)
         return onehot_label + torch.normal(torch.zeros_like(onehot_label), std=0.01)
 
+    def encoder_mask(self, stft, topk=5, length=5):
+        index2mask = torch.randn(size=stft.shape)
+        # mask = torch.zeros_like(torch.from_numpy(stft))
+        top_k = torch.topk(index2mask, k=topk, dim=-1)[0]
+        mask = torch.where((index2mask - top_k[:, topk-1:]) >= 0., 1, 0.)
+
+        for i in range(length):
+            mask += torch.roll(mask, shifts=i, dims=-1)
+        mask = torch.where(mask > 0., 1., 0.)
+        return mask
+
     def __getitem__(self, idx):
         wav_file = self.files_[idx][0]
         if sys.platform == 'win32':
-            label_file = self.files_[idx][0].replace(r'\\data\\', r'\\labels\\').replace('.wav', '.npy')
+            # label_file = self.files_[idx][0].replace(r'\\data\\', r'\\labels\\').replace('.wav', '.npy')
+            label_file = self.files_[idx][0].replace(r'\data', '\labels').replace('.wav', '.npy')
         else:
             label_file = self.files_[idx][0].replace('fm/data', 'fm/labels').replace('.wav', '.npy')
             # label_file = self.files_[idx][0].replace('//data//', '//labels//').replace('.wav', '.npy')
@@ -123,12 +133,14 @@ class DataLoaderMelSpec(Dataset):
 
         mel_sgram = (mel_sgram - mel_sgram.mean()) / mel_sgram.std()
 
+        mask = self.encoder_mask(mel_sgram, topk=8, length=5)
+
         if self.encoder:
             # label_list = [torch.nn.functional.one_hot(torch.from_numpy(np.asarray(np.int64(label[j]))),
             #                                           self.num_classes[j]).type(torch.float32)
             #               for j in range(len(self.num_classes))]
             # mel_sgram = torch.cat((torch.from_numpy(mel_sgram), torch.mean(torch.from_numpy(mel_sgram), 1, True)), 1)
-            return mel_sgram, torch.from_numpy(np.int64(label)) # (128, 256)
+            return [mel_sgram, mask], torch.from_numpy(np.int64(label)) # (128, 256)
 
         label = torch.nn.functional.one_hot(torch.from_numpy(np.int64(label)), max(self.num_classes))
         label = label.type(torch.float32)

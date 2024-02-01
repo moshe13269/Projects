@@ -72,14 +72,19 @@ class PositionalEncoding(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self, d_model, num_heads, d_ff, dropout):
+    def __init__(self, d_model, num_heads, d_ff, dropout, batch_norm=True):
         super(DecoderLayer, self).__init__()
         self.self_attn = MultiHeadAttention(d_model, num_heads)
         self.cross_attn = MultiHeadAttention(d_model, num_heads)
         self.feed_forward = PositionWiseFeedForward(d_model, d_ff)
-        self.norm1 = nn.LayerNorm(d_model)
-        self.norm2 = nn.LayerNorm(d_model)
-        self.norm3 = nn.LayerNorm(d_model)
+        if batch_norm:
+            self.norm1 = nn.BatchNorm1d(d_model)
+            self.norm2 = nn.BatchNorm1d(d_model)
+            self.norm3 = nn.BatchNorm1d(d_model)
+        else:
+            self.norm1 = nn.LayerNorm(d_model)
+            self.norm2 = nn.LayerNorm(d_model)
+            self.norm3 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, tgt_output, embeddings_param, tgt_mask):
@@ -94,11 +99,17 @@ class DecoderLayer(nn.Module):
 
 
 class Conv1DLayer(nn.Module):
-    def __init__(self, input_shape, d_model=512, num_conv_layers=7, dropout=0.1, kernel=3, stride=1, padding=1):
+    def __init__(self, input_shape, d_model=512, num_conv_layers=7, dropout=0.1, kernel=3, stride=1, padding=1,
+                 batch_norm=True):
         super(Conv1DLayer, self).__init__()
-        self.norm1 = nn.LayerNorm(d_model)
-        self.norm2 = nn.LayerNorm(d_model)
-        self.norm3 = nn.LayerNorm(d_model)
+        if batch_norm:
+            self.norm1 = nn.BatchNorm1d(d_model)
+            self.norm2 = nn.BatchNorm1d(d_model)
+            self.norm3 = nn.BatchNorm1d(d_model)
+        else:
+            self.norm1 = nn.LayerNorm(d_model)
+            self.norm2 = nn.LayerNorm(d_model)
+            self.norm3 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
         def make_conv_layer(in_channel):
@@ -112,24 +123,44 @@ class Conv1DLayer(nn.Module):
         self.conv_layers = torch.nn.ModuleList()
 
         for i in range(num_conv_layers):
-            if i != 0:
-                self.conv_layers.append(
-                    nn.Sequential(
-                        make_conv_layer(d_model),
-                        nn.Dropout(p=dropout),
-                        nn.LayerNorm([d_model, input_shape[0]], elementwise_affine=True, eps=1e-6),
-                        nn.SELU()
+            if batch_norm:
+                if i != 0:
+                    self.conv_layers.append(
+                        nn.Sequential(
+                            make_conv_layer(d_model),
+                            nn.Dropout(p=dropout),
+                            nn.BatchNorm1d(d_model),
+                            nn.SELU()
+                        )
                     )
-                )
+                else:
+                    self.conv_layers.append(
+                        nn.Sequential(
+                            make_conv_layer(input_shape[1]),
+                            nn.Dropout(p=dropout),
+                            nn.BatchNorm1d(d_model),
+                            nn.SELU()
+                        )
+                    )
             else:
-                self.conv_layers.append(
-                    nn.Sequential(
-                        make_conv_layer(input_shape[1]),
-                        nn.Dropout(p=dropout),
-                        nn.LayerNorm([d_model, input_shape[0]], elementwise_affine=True, eps=1e-6),
-                        nn.SELU()
+                if i != 0:
+                    self.conv_layers.append(
+                        nn.Sequential(
+                            make_conv_layer(d_model),
+                            nn.Dropout(p=dropout),
+                            nn.LayerNorm([d_model, input_shape[0]], elementwise_affine=True, eps=1e-6),
+                            nn.SELU()
+                        )
                     )
-                )
+                else:
+                    self.conv_layers.append(
+                        nn.Sequential(
+                            make_conv_layer(input_shape[1]),
+                            nn.Dropout(p=dropout),
+                            nn.LayerNorm([d_model, input_shape[0]], elementwise_affine=True, eps=1e-6),
+                            nn.SELU()
+                        )
+                    )
 
     def forward(self, x):
         x = torch.permute(x, (0, 2, 1))
